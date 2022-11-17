@@ -16,4 +16,12 @@ export const
 			current: 0, // Calculated on resize
 		},
 		resizeDelay: 50,
+	},
+	Keybind = {
+		forward: "KeyW",
+		backward: "KeyS",
+		left: "KeyA",
+		right: "KeyD",
+		up: "Space",
+		down: "ControlLeft",
 	};

@@ -1,3 +1,3 @@
-export function Material({color}) {
-	this.color = color;
+export function Material({textures}) {
+	this.textures = textures;
 }

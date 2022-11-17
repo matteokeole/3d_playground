@@ -1,31 +1,6 @@
 import {TEXTURE_PATH, RESOURCES, TEXTURES} from "../constants.js";
 
 /**
- * Asynchronous resource loader function.
- * 
- * @async
- * @param {array} paths
- */
-export async function loadResources(paths) {
-	const {length} = paths;
-	let path, image;
-
-	for (let i = 0; i < length; i++) {
-		path = paths[i];
-		image = new Image();
-		image.src = TEXTURE_PATH + path;
-
-		try {
-			await image.decode();
-		} catch (error) {
-			continue;
-		}
-
-		RESOURCES[path] = image;
-	}
-}
-
-/**
  * Asynchronous texture loader function.
  * 
  * @async

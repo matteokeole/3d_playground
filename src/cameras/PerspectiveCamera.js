@@ -7,12 +7,11 @@ export function PerspectiveCamera(fov, aspect, near, far) {
 	this.far = far;
 	this.position = new Vector3(0, 0, 0);
 	this.rotation = new Vector3(0, 0, 0);
-	this.up = new Vector3(0, 1, 0);
 	// Convert the client left-hand coordinate system (+ forward, - backward)
 	// to a valid WebGL right-hand coordinate system (- forward, + backward)
 	this.lhcs = new Vector3(-1, -1, 1);
 
-	const f = Math.tan(Math.PI * 0.5 - 0.5 * fov);
+	const f = Math.tan((Math.PI - fov * Math.PI / 180) * .5);
 	const range = 1 / (near - far);
 	this.projectionMatrix = new Matrix4(
 		f / aspect, 0, 0, 0,
@@ -34,4 +33,28 @@ PerspectiveCamera.prototype.lookAround = function(mx, my) {
 	) this.rotation.x += x;
 
 	this.rotation.y += y;
-}
+};
+
+PerspectiveCamera.prototype.moveX = function(n) {
+	const direction = new Vector3(
+		Math.cos(this.rotation.y),
+		0,
+	   -Math.sin(this.rotation.y),
+	);
+
+	this.position = this.position.add(direction.multiplyScalar(n));
+};
+
+PerspectiveCamera.prototype.moveY = function(n) {
+	this.position.y += n;
+};
+
+PerspectiveCamera.prototype.moveZ = function(n) {
+	const direction = new Vector3(
+		Math.sin(this.rotation.y),
+		0,
+		Math.cos(this.rotation.y),
+	);
+
+	this.position = this.position.add(direction.multiplyScalar(n));
+};

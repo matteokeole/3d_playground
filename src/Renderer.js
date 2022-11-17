@@ -19,24 +19,33 @@ const
 
 		gl.attribute = {
 			position: gl.getAttribLocation(program, "a_position"),
+			uv: gl.getAttribLocation(program, "a_uv"),
 		};
 		gl.uniform = {
 			matrix: gl.getUniformLocation(program, "u_matrix"),
 		};
 		gl.buffer = {
-			position: gl.createBuffer(),
+			vertex: gl.createBuffer(),
 			index: gl.createBuffer(),
+			uv: gl.createBuffer(),
 		};
+		gl.vao = gl.createVertexArray();
 
-		gl.bindVertexArray(gl.vao = gl.createVertexArray());
+		gl.bindVertexArray(gl.vao);
 
 		gl.enableVertexAttribArray(gl.attribute.position);
-		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.position);
-		gl.vertexAttribPointer(gl.attribute.buffer, 3, gl.FLOAT, false, 0, 0);
+		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.vertex);
+		gl.vertexAttribPointer(gl.attribute.position, 3, gl.FLOAT, false, 0, 0);
+
+		gl.enableVertexAttribArray(gl.attribute.uv);
+		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.uv);
+		gl.vertexAttribPointer(gl.attribute.uv, 2, gl.FLOAT, true, 0, 0);
 
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gl.buffer.index);
 
 		gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
+		gl.enable(gl.CULL_FACE);
+		gl.enable(gl.DEPTH_TEST);
 	},
 	render = function(scene, camera) {
 		const
@@ -61,10 +70,15 @@ const
 
 			gl.uniformMatrix4fv(gl.uniform.matrix, false, worldViewProjectionMatrix);
 
-			gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.position);
+			gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.vertex);
 			gl.bufferData(gl.ARRAY_BUFFER, mesh.geometry.vertices, gl.STATIC_DRAW);
 
+			gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.uv);
+			gl.bufferData(gl.ARRAY_BUFFER, mesh.geometry.uvs, gl.STATIC_DRAW);
+
 			gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, mesh.geometry.indices, gl.STATIC_DRAW);
+
+			gl.bindTexture(gl.TEXTURE_2D, mesh.material.textures[0].texture);
 
 			gl.drawElements(gl.TRIANGLES, mesh.geometry.indices.length, gl.UNSIGNED_SHORT, 0);
 		}
