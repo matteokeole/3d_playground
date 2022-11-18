@@ -5,12 +5,8 @@ const VELOCITY = .02;
 const VELOCITY_SQRT = VELOCITY * Math.SQRT1_2;
 
 export default function() {
-	const v =
-		// Cancel diagonal speed boost
-		(keys.has(Keybind.forward) || keys.has(Keybind.backward)) &&
-		(keys.has(Keybind.left) || keys.has(Keybind.right)) ?
-			VELOCITY_SQRT :
-			VELOCITY;
+	// Cancel diagonal speed boost
+	const v = diagonalMovement() ? VELOCITY_SQRT : VELOCITY;
 
 	if (keys.has(Keybind.forward)) camera.moveZ(v);
 	if (keys.has(Keybind.backward)) camera.moveZ(-v);
@@ -19,3 +15,7 @@ export default function() {
 	if (keys.has(Keybind.up)) camera.moveY(v);
 	if (keys.has(Keybind.down)) camera.moveY(-v);
 };
+
+const diagonalMovement = () =>
+	(keys.has(Keybind.forward) || keys.has(Keybind.backward)) &&
+	(keys.has(Keybind.left) || keys.has(Keybind.right));
