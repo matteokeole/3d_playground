@@ -1,4 +1,5 @@
-export function Scene() {
+export function Scene({background}) {
+	this.background = background.normalized;
 	this.meshes = new Set();
 }
 

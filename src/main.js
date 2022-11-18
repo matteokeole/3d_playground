@@ -1,4 +1,4 @@
-import {TEXTURES} from "./constants.js";
+import {keys, TEXTURES, WINDOW} from "./constants.js";
 import {Renderer} from "./Renderer.js";
 import {Scene} from "./Scene.js";
 import {Mesh} from "./Mesh.js";
@@ -11,8 +11,7 @@ import {loadTextures} from "./utils/index.js";
 import loop from "./loop.js";
 
 export const
-	keys = new Set(),
-	scene = new Scene(),
+	scene = new Scene({background: new Color(0x202124)}),
 	camera = new PerspectiveCamera(90, innerWidth / innerHeight, .1, 1000);
 
 await loadTextures(Renderer.gl, [
@@ -29,12 +28,12 @@ const mesh = new Mesh(
 			TEXTURES["noodles.jpg"],
 		],
 		/*textures: [
-			TEXTURES["crafting_table_front"],	// Front
-			TEXTURES["crafting_table_front"],	// Back
-			TEXTURES["crafting_table_side"],	// Left
-			TEXTURES["crafting_table_side"],	// Right
-			TEXTURES["crafting_table_top"],		// Top
-			TEXTURES["crafting_table_top"],		// Bottom
+			TEXTURES["crafting_table_front.png"],	// Front
+			TEXTURES["crafting_table_front.png"],	// Back
+			TEXTURES["crafting_table_side.png"],	// Left
+			TEXTURES["crafting_table_side.png"],	// Right
+			TEXTURES["crafting_table_top.png"],		// Top
+			TEXTURES["crafting_table_top.png"],		// Bottom
 		],*/
 	}),
 );
@@ -43,13 +42,7 @@ mesh.position = new Vector3(0, 0, 2);
 
 scene.add(mesh);
 
-addEventListener("click", function() {
-	Renderer.canvas.requestPointerLock();
-});
-
-document.addEventListener("pointerlockchange", pointerLockChange);
-
-function pointerLockChange() {
+document.addEventListener("pointerlockchange", function() {
 	if (Renderer.canvas === document.pointerLockElement) {
 		addEventListener("mousemove", lookAround);
 		addEventListener("keydown", pressKeys);
@@ -61,21 +54,21 @@ function pointerLockChange() {
 
 		keys.clear();
 	}
-}
+});
 
-function lookAround(e) {
-	const {movementX: x, movementY: y} = e;
+addEventListener("resize", function() {
+	WINDOW.width = innerWidth;
+	WINDOW.height = innerHeight;
 
-	camera.lookAround(x, y);
-}
+	Renderer.resize();
+	camera.aspect = Renderer.canvas.clientWidth / Renderer.canvas.clientHeight;
+	camera.updateProjectionMatrix();
+	Renderer.viewport();
+});
 
-function pressKeys(e) {
-	keys.add(e.code);
-}
-
-function releaseKeys(e) {
-	keys.delete(e.code);
-}
+const lookAround = ({movementX: x, movementY: y}) => camera.lookAround(x, y);
+const pressKeys = ({code}) => keys.add(code);
+const releaseKeys = ({code}) => keys.delete(code);
 
 await Renderer.init();
 

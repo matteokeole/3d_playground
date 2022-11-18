@@ -1,3 +1,4 @@
+import {WINDOW} from "./constants.js";
 import {Matrix4} from "./math/index.js";
 import {linkProgram} from "./utils/index.js";
 
@@ -54,9 +55,14 @@ const
 		let mesh, worldMatrix, worldViewProjectionMatrix;
 
 		const viewProjectionMatrix = camera.projectionMatrix
-			.multiplyMatrix4(Matrix4.rotationX(-camera.rotation.x))
+			.multiplyMatrix4(Matrix4.translation(camera.distance.invert()))
+			.multiplyMatrix4(Matrix4.rotationX(camera.rotation.x))
 			.multiplyMatrix4(Matrix4.rotationY(camera.rotation.y))
+			.multiplyMatrix4(Matrix4.rotationZ(-camera.rotation.z))
 			.multiplyMatrix4(Matrix4.translation(camera.position.multiply(camera.lhcs)));
+
+		gl.clearColor(...scene.background);
+		gl.clear(gl.COLOR_BUFFER_BIT);
 
 		for (let i = 0; i < length; i++) {
 			mesh = meshes[i];
@@ -82,6 +88,15 @@ const
 
 			gl.drawElements(gl.TRIANGLES, mesh.geometry.indices.length, gl.UNSIGNED_SHORT, 0);
 		}
-	};
+	},
+	resize = function() {
+		canvas.width = WINDOW.width;
+		canvas.height = WINDOW.height;
+	},
+	viewport = () => gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
 
-export const Renderer = {canvas, gl, init, render};
+canvas.addEventListener("click", function() {
+	this.requestPointerLock();
+});
+
+export const Renderer = {canvas, gl, init, render, resize, viewport};

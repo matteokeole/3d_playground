@@ -24,4 +24,10 @@ export const
 		right: "KeyD",
 		up: "Space",
 		down: "ControlLeft",
-	};
+	},
+	WINDOW = {
+		width: 0,
+		height: 0,
+	},
+	keys = new Set(),
+	SENSITIVITY = 1100;
