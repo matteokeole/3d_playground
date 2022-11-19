@@ -19,8 +19,8 @@ const
 		gl.useProgram(program);
 
 		gl.attribute = {
-			position: gl.getAttribLocation(program, "a_position"),
-			uv: gl.getAttribLocation(program, "a_uv"),
+			position: 0,
+			uv: 1,
 		};
 		gl.uniform = {
 			matrix: gl.getUniformLocation(program, "u_matrix"),
@@ -30,15 +30,13 @@ const
 			index: gl.createBuffer(),
 			uv: gl.createBuffer(),
 		};
-		gl.vao = gl.createVertexArray();
-
-		gl.bindVertexArray(gl.vao);
 
 		gl.enableVertexAttribArray(gl.attribute.position);
+		gl.enableVertexAttribArray(gl.attribute.uv);
+
 		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.vertex);
 		gl.vertexAttribPointer(gl.attribute.position, 3, gl.FLOAT, false, 0, 0);
 
-		gl.enableVertexAttribArray(gl.attribute.uv);
 		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.uv);
 		gl.vertexAttribPointer(gl.attribute.uv, 2, gl.FLOAT, true, 0, 0);
 
@@ -46,7 +44,6 @@ const
 
 		gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
 		gl.enable(gl.CULL_FACE);
-		gl.enable(gl.DEPTH_TEST);
 	},
 	render = function(scene, camera) {
 		const
