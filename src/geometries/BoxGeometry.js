@@ -23,7 +23,7 @@ export function BoxGeometry(width, height, depth) {
 		0,  1,  0,		0,  1,  0,		0,  1,  0,		0,  1,  0,
 		0, -1,  0,		0, -1,  0,		0, -1,  0,		0, -1,  0,
 	]);
-	this.indices = new Uint16Array([
+	this.indices = new Uint8Array([
 		0,  2,  1,		2,  3,  1,
 		8,  10, 9,		10, 11, 9,
 		12, 14, 13,		14, 15, 13,

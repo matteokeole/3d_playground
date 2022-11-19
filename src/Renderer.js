@@ -86,7 +86,7 @@ const
 
 			gl.bindTexture(gl.TEXTURE_2D, mesh.material.textures[0].texture);
 
-			gl.drawElements(gl.TRIANGLES, mesh.geometry.indices.length, gl.UNSIGNED_SHORT, 0);
+			gl.drawElements(gl.TRIANGLES, mesh.geometry.indices.length, gl.UNSIGNED_BYTE, 0);
 		}
 	},
 	resize = function() {
