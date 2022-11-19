@@ -42,15 +42,15 @@ const
 		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.uv);
 		gl.vertexAttribPointer(gl.attribute.uv, 2, gl.FLOAT, true, 0, 0);
 
-		gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
 		gl.enable(gl.DEPTH_TEST);
 		gl.enable(gl.CULL_FACE);
+		gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+		gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
 	},
 	render = function(scene, camera) {
 		const
 			meshes = [...scene.meshes],
 			{length} = meshes;
-		let mesh, worldMatrix, worldViewProjectionMatrix;
 
 		const viewProjectionMatrix = camera.projectionMatrix
 			.multiplyMatrix4(Matrix4.translation(camera.distance.invert()))
@@ -63,17 +63,16 @@ const
 		gl.clear(gl.COLOR_BUFFER_BIT);
 
 		for (let i = 0; i < length; i++) {
-			mesh = meshes[i];
+			const mesh = meshes[i];
 
 			gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, mesh.geometry.indices, gl.STATIC_DRAW);
 
-			worldMatrix = Matrix4.translation(mesh.position.multiply(camera.lhcs).invert())
+			const worldMatrix = Matrix4.translation(mesh.position.multiply(camera.lhcs).invert())
 				.multiplyMatrix4(Matrix4.rotationX(-mesh.rotation.x))
 				.multiplyMatrix4(Matrix4.rotationY(mesh.rotation.y))
 				.multiplyMatrix4(Matrix4.rotationZ(-mesh.rotation.z))
 				.multiplyMatrix4(Matrix4.scale(mesh.scale));
-
-			worldViewProjectionMatrix = viewProjectionMatrix.multiplyMatrix4(worldMatrix);
+			const worldViewProjectionMatrix = viewProjectionMatrix.multiplyMatrix4(worldMatrix);
 
 			gl.uniformMatrix4fv(gl.uniform.matrix, false, new Float32Array(worldViewProjectionMatrix));
 

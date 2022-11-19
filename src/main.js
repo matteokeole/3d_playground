@@ -11,6 +11,7 @@ export const
 	scene = new Scene({background: new Color(0x202124)}),
 	camera = new PerspectiveCamera(90, innerWidth / innerHeight, .01, 100);
 
+await Renderer.init();
 await loadTextures(Renderer.gl, ["noodles.jpg"]);
 
 init(scene);
@@ -42,7 +43,5 @@ addEventListener("resize", function() {
 const lookAround = ({movementX: x, movementY: y}) => camera.lookAround(x, y);
 const pressKeys = ({code}) => keys.add(code);
 const releaseKeys = ({code}) => keys.delete(code);
-
-await Renderer.init();
 
 loop.start();
