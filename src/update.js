@@ -1,7 +1,7 @@
 import {camera} from "./main.js";
 import {Keybind, keys} from "./constants.js";
 
-const VELOCITY = .02;
+const VELOCITY = .01;
 const VELOCITY_SQRT = VELOCITY * Math.SQRT1_2;
 
 export default function() {
