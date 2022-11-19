@@ -11,6 +11,11 @@ const
 
 		document.body.appendChild(canvas);
 
+		gl.enable(gl.DEPTH_TEST);
+		gl.enable(gl.CULL_FACE);
+		gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+		gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
+
 		const program = await linkProgram(gl, [
 			"main.vert",
 			"main.frag",
@@ -30,6 +35,8 @@ const
 			vertex: gl.createBuffer(),
 			uv: gl.createBuffer(),
 		};
+		gl.vao = gl.createVertexArray();
+		gl.bindVertexArray(gl.vao);
 
 		gl.enableVertexAttribArray(gl.attribute.position);
 		gl.enableVertexAttribArray(gl.attribute.uv);
@@ -41,11 +48,6 @@ const
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.uv);
 		gl.vertexAttribPointer(gl.attribute.uv, 2, gl.FLOAT, true, 0, 0);
-
-		gl.enable(gl.DEPTH_TEST);
-		gl.enable(gl.CULL_FACE);
-		gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-		gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
 	},
 	render = function(scene, camera) {
 		const
