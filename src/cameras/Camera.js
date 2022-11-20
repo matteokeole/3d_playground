@@ -12,7 +12,7 @@ export function Camera() {
 
 Camera.prototype.lookAround = function(mx, my) {
 	const
-		x = my / SENSITIVITY,
+		x = -my / SENSITIVITY,
 		y = mx / SENSITIVITY;
 
 	// Prevent < -180° or > 180° rotation along the X axis

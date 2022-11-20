@@ -22,8 +22,8 @@ export async function linkProgram(gl, [vertexPath, fragmentPath]) {
 	if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
 		let log;
 
-		if (log = gl.getShaderInfoLog(vertexShader)) console.error("VERTEX SHADER", log);
-		if (log = gl.getShaderInfoLog(fragmentShader)) console.error("FRAGMENT SHADER", log);
+		if ((log = gl.getShaderInfoLog(vertexShader)).length !== 0) console.error("VERTEX SHADER", log);
+		if ((log = gl.getShaderInfoLog(fragmentShader)).length !== 0) console.error("FRAGMENT SHADER", log);
 
 		return;
 	}
