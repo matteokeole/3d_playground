@@ -5,26 +5,22 @@ import {Material} from "./materials/index.js";
 import {Vector3} from "./math/index.js";
 
 export default function(scene) {
-	const mesh1 = new Mesh(
-		new BoxGeometry(1, 1, 1),
-		new Material({
-			texture: [
-				TEXTURES["noodles.jpg"],
-			],
-		}),
-	);
-	mesh1.position = new Vector3(0, 0, 2);
+	const meshes = [];
 
-	const mesh2 = new Mesh(
-		new BoxGeometry(.7, .7, .7),
-		new Material({
-			texture: [
-				TEXTURES["noodles.jpg"],
-			],
-		}),
-	);
-	mesh2.position = new Vector3(-.8, -.15, 2.2);
-	mesh2.rotation = new Vector3(0, -Math.PI / 5, 0);
+	for (let i = 0; i < 100; i++) {
+		const mesh = new Mesh(
+			new BoxGeometry(1, 1, 1),
+			new Material({
+				texture: [
+					TEXTURES["noodles.jpg"],
+				],
+			}),
+		);
+		mesh.position = new Vector3(0, -1, i);
+		mesh.scale = new Vector3(.8, .8, .8);
 
-	scene.add(mesh1, mesh2);
+		meshes.push(mesh);
+	}
+
+	scene.add(...meshes);
 }

@@ -44,4 +44,5 @@ const lookAround = ({movementX: x, movementY: y}) => camera.lookAround(x, y);
 const pressKeys = ({code}) => keys.add(code);
 const releaseKeys = ({code}) => keys.delete(code);
 
+Renderer.prepareRender(scene, camera);
 loop.start();
