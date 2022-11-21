@@ -1,5 +1,5 @@
 /**
- * @todo Rotation methods
+ * @todo rotation()
  * 
  * 3x3 matrix class.
  * 

@@ -97,7 +97,7 @@ Vector3.prototype.multiplyScalar = function(n) {
  * @param {Vector3} v
  * @returns {Vector3}
  */
-Vector3.prototype.subtract = function(v) {
+Vector3.prototype.substract = function(v) {
 	return new Vector3(
 		this.x - v.x,
 		this.y - v.y,

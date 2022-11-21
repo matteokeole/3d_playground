@@ -1,4 +1,6 @@
 /**
+ * @todo invert()
+ * 
  * 4x4 matrix class.
  * 
  * @constructor
