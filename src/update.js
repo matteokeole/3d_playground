@@ -1,12 +1,9 @@
+import {Keybind, keys, VELOCITY, VELOCITY_SQRT1_2} from "./constants.js";
 import {camera} from "./main.js";
-import {Keybind, keys} from "./constants.js";
-
-const VELOCITY = .01;
-const VELOCITY_SQRT = VELOCITY * Math.SQRT1_2;
 
 export default function() {
 	// Cancel diagonal speed boost
-	const v = diagonalMovement() ? VELOCITY_SQRT : VELOCITY;
+	const v = diagonalMovement() ? VELOCITY_SQRT1_2 : VELOCITY;
 
 	if (keys.has(Keybind.forward)) camera.moveZ(v);
 	if (keys.has(Keybind.backward)) camera.moveZ(-v);

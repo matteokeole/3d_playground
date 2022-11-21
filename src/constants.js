@@ -1,8 +1,8 @@
 export const
 	SHADER_PATH = "assets/shaders/",
 	TEXTURE_PATH = "assets/textures/",
-	RESOURCES = {},
 	TEXTURES = {},
+	FRAMES_PER_SECOND = 60,
 	GUI = {
 		defaultWidth: 320,
 		defaultHeight: 240,
@@ -26,8 +26,10 @@ export const
 		down: "ControlLeft",
 	},
 	WINDOW = {
-		width: 0,
-		height: 0,
+		width: 0, // Calculated on resize
+		height: 0, // Calculated on resize
 	},
 	keys = new Set(),
-	SENSITIVITY = 1100;
+	SENSITIVITY = 1100,
+	VELOCITY = .04,
+	VELOCITY_SQRT1_2 = VELOCITY * Math.SQRT1_2;

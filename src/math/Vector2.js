@@ -1,7 +1,4 @@
 /**
- * @todo Expand with methods
- * @todo Documentation
- * 
  * Bi-dimensional vector class.
  * 
  * @constructor
