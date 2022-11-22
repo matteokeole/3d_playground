@@ -4,29 +4,51 @@ import render from "./render.js";
 
 export default {
 	start: () => {
-		currentFrame = 0;
+		currentFrame = currentRealFrame = 0;
 		interval = 1000 / FRAMES_PER_SECOND;
-		start = then = performance.now();
+		then = performance.now();
+
+		counter = counterThen = counterDiff = 0;
 
 		loop();
 	},
 	stop: () => cancelAnimationFrame(request),
 };
 
-let interval, start, then, now, diff, currentFrame, request;
+const fpsSpan = document.querySelector("#fps");
+const fpsAvgSpan = document.querySelector("#fps-avg");
+const timerSpan = document.querySelector("#timer");
+const FPS_LOOKUPS = [];
+let interval, then, now, counter, counterThen, counterDiff, diff, currentFrame, currentRealFrame, request;
+let FPS_AVERAGE = 0;
 
 function loop() {
 	request = requestAnimationFrame(loop);
 
-	now = performance.now();
+	counter = now = performance.now();
 	diff = now - then;
 
-	if (currentFrame === 0 || diff > interval) {
+	counterDiff = counter - counterThen;
+
+	if (currentRealFrame === 0 || diff > interval) {
 		then = now - diff % interval;
 
 		currentFrame++;
+		currentRealFrame++;
 
 		update();
 		render();
+	}
+
+	if (counterDiff > 1000) {
+		fpsSpan.textContent = `CURR: ${currentFrame}`;
+
+		FPS_LOOKUPS.push(currentFrame);
+		FPS_AVERAGE = FPS_LOOKUPS.reduce((a, b) => a + b) / FPS_LOOKUPS.length;
+		fpsAvgSpan.textContent = `AVG: ${FPS_AVERAGE.toFixed()}`;
+		timerSpan.textContent = `${(now / 1000).toFixed()}s`;
+
+		currentFrame = 0;
+		counterThen = performance.now();
 	}
 };

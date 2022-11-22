@@ -8,3 +8,9 @@ canvas {
 	display: block;
 	position: absolute;
 }
+
+div {
+	position: absolute;
+	background-color: orange;
+	z-index: 1;
+}
