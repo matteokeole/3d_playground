@@ -2,7 +2,7 @@ export const
 	SHADER_PATH = "assets/shaders/",
 	TEXTURE_PATH = "assets/textures/",
 	TEXTURES = {},
-	FRAMES_PER_SECOND = 60,
+	FRAMES_PER_SECOND = 165,
 	GUI = {
 		defaultWidth: 320,
 		defaultHeight: 240,

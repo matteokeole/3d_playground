@@ -16,11 +16,13 @@ export default {
 };
 
 const fpsSpan = document.querySelector("#fps");
+const fpsMaxSpan = document.querySelector("#fps-max");
 const fpsAvgSpan = document.querySelector("#fps-avg");
 const timerSpan = document.querySelector("#timer");
 const FPS_LOOKUPS = [];
 let interval, then, now, counter, counterThen, counterDiff, diff, currentFrame, currentRealFrame, request;
 let FPS_AVERAGE = 0;
+let FPS_MAX = 0;
 
 function loop() {
 	request = requestAnimationFrame(loop);
@@ -41,11 +43,14 @@ function loop() {
 	}
 
 	if (counterDiff > 1000) {
-		fpsSpan.textContent = `CURR: ${currentFrame}`;
+		if (FPS_MAX < currentFrame) FPS_MAX = currentFrame;
+		fpsMaxSpan.textContent = `Max: ${FPS_MAX}`;
+
+		fpsSpan.textContent = `Curr: ${currentFrame}`;
 
 		FPS_LOOKUPS.push(currentFrame);
 		FPS_AVERAGE = FPS_LOOKUPS.reduce((a, b) => a + b) / FPS_LOOKUPS.length;
-		fpsAvgSpan.textContent = `AVG: ${FPS_AVERAGE.toFixed()}`;
+		fpsAvgSpan.textContent = `Avg: ${FPS_AVERAGE.toFixed()}`;
 		timerSpan.textContent = `${(now / 1000).toFixed()}s`;
 
 		currentFrame = 0;

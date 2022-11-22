@@ -28,6 +28,10 @@ const
 			uv: 1,
 			matrix: 2,
 		};
+		gl.uniform = {
+			projection: gl.getUniformLocation(program, "u_projection"),
+			camera: gl.getUniformLocation(program, "u_camera"),
+		};
 		gl.buffer = {
 			index: gl.createBuffer(),
 			vertex: gl.createBuffer(),
@@ -77,27 +81,24 @@ const
 			gl.vertexAttribPointer(loc, 4, gl.FLOAT, false, 4 * 16, i * 16);
 			gl.vertexAttribDivisor(loc, 1);
 		}
-	},
-	render = function(scene, camera) {
-		const
-			meshes = [...scene.meshes],
-			{length} = meshes;
 
-		const viewProjectionMatrix = camera.projectionMatrix
-			.multiplyMatrix4(Matrix4.translation(camera.distance.invert()))
-			.multiplyMatrix4(Matrix4.rotationX(-camera.rotation.x))
-			.multiplyMatrix4(Matrix4.rotationY(camera.rotation.y))
-			.multiplyMatrix4(Matrix4.rotationZ(camera.rotation.z))
-			.multiplyMatrix4(Matrix4.translation(camera.position.multiply(camera.lhcs)));
+		gl.uniformMatrix4fv(gl.uniform.projection, false, new Float32Array(camera.projectionMatrix));
 
-		gl.clearColor(...scene.background);
-		gl.clear(gl.COLOR_BUFFER_BIT);
+		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, meshes[0].geometry.indices, gl.STATIC_DRAW);
+
+		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.vertex);
+		gl.bufferData(gl.ARRAY_BUFFER, meshes[0].geometry.vertices, gl.STATIC_DRAW);
+
+		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.uv);
+		gl.bufferData(gl.ARRAY_BUFFER, meshes[0].geometry.uvs, gl.STATIC_DRAW);
+
+		// gl.bindTexture(gl.TEXTURE_2D, meshes[0].material.texture[0].texture);
 
 		for (let i = 0; i < length; i++) {
 			const mesh = meshes[i];
 
-			const matrix = viewProjectionMatrix
-				.multiplyMatrix4(Matrix4.translation(mesh.position.multiply(camera.lhcs).invert()))
+			const matrix = Matrix4
+				.translation(mesh.position.multiply(camera.lhcs).invert())
 				.multiplyMatrix4(Matrix4.rotationX(-mesh.rotation.x))
 				.multiplyMatrix4(Matrix4.rotationY(mesh.rotation.y))
 				.multiplyMatrix4(Matrix4.rotationZ(-mesh.rotation.z))
@@ -108,18 +109,25 @@ const
 			}
 		}
 
-		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, meshes[0].geometry.indices, gl.STATIC_DRAW);
-
-		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.vertex);
-		gl.bufferData(gl.ARRAY_BUFFER, meshes[0].geometry.vertices, gl.STATIC_DRAW);
-
 		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.matrix);
 		gl.bufferSubData(gl.ARRAY_BUFFER, 0, gl.matrixData);
+	},
+	render = function(scene, camera) {
+		const
+			meshes = [...scene.meshes],
+			{length} = meshes;
 
-		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.uv);
-		gl.bufferData(gl.ARRAY_BUFFER, meshes[0].geometry.uvs, gl.STATIC_DRAW);
+		gl.clearColor(...scene.background);
+		gl.clear(gl.COLOR_BUFFER_BIT);
 
-		gl.bindTexture(gl.TEXTURE_2D, meshes[0].material.texture[0].texture);
+		const cameraMatrix = Matrix4
+			.translation(camera.distance.invert())
+			.multiplyMatrix4(Matrix4.rotationX(-camera.rotation.x))
+			.multiplyMatrix4(Matrix4.rotationY(camera.rotation.y))
+			.multiplyMatrix4(Matrix4.rotationZ(camera.rotation.z))
+			.multiplyMatrix4(Matrix4.translation(camera.position.multiply(camera.lhcs)));
+
+		gl.uniformMatrix4fv(gl.uniform.camera, false, new Float32Array(cameraMatrix));
 
 		gl.drawElementsInstanced(gl.TRIANGLES, 36, gl.UNSIGNED_BYTE, 0, length);
 	},

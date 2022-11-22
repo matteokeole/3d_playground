@@ -9,7 +9,7 @@ import loop from "./loop.js";
 
 export const
 	scene = new Scene({background: new Color(0x202124)}),
-	camera = new PerspectiveCamera(90, innerWidth / innerHeight, .01, 100);
+	camera = new PerspectiveCamera(90, innerWidth / innerHeight, .01, 50);
 
 await Renderer.init();
 await loadTextures(Renderer.gl, ["noodles.jpg"]);
