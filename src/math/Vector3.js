@@ -13,8 +13,6 @@ export function Vector3(x, y, z) {
 }
 
 /**
- * Adds another vector to this vector.
- * 
  * @param {Vector3} v
  * @returns {Vector3}
  */
@@ -27,8 +25,18 @@ Vector3.prototype.add = function(v) {
 };
 
 /**
- * Divides this vector by another vector.
- * 
+ * @param {number} n
+ * @returns {Vector3}
+ */
+Vector3.prototype.addScalar = function(n) {
+	return new Vector3(
+		this.x + n,
+		this.y + n,
+		this.z + n,
+	);
+};
+
+/**
  * @param {Vector3} v
  * @returns {Vector3}
  */
@@ -41,8 +49,6 @@ Vector3.prototype.divide = function(v) {
 };
 
 /**
- * Divides this vector by a scalar value.
- * 
  * @param {number} n
  * @returns {Vector3}
  */
@@ -55,8 +61,6 @@ Vector3.prototype.divideScalar = function(n) {
 };
 
 /**
- * Inverts this vector.
- * 
  * @returns {Vector3}
  */
 Vector3.prototype.invert = function() {
@@ -64,8 +68,6 @@ Vector3.prototype.invert = function() {
 };
 
 /**
- * Multiplies this vector by another vector.
- * 
  * @param {Vector3} v
  * @returns {Vector3}
  */
@@ -78,8 +80,6 @@ Vector3.prototype.multiply = function(v) {
 };
 
 /**
- * Multiplies this vector by a scalar value.
- * 
  * @param {number} n
  * @returns {Vector3}
  */
@@ -92,8 +92,6 @@ Vector3.prototype.multiplyScalar = function(n) {
 };
 
 /**
- * Subtracts another vector to this vector.
- * 
  * @param {Vector3} v
  * @returns {Vector3}
  */
@@ -102,5 +100,17 @@ Vector3.prototype.substract = function(v) {
 		this.x - v.x,
 		this.y - v.y,
 		this.z - v.z,
+	);
+};
+
+/**
+ * @param {number} n
+ * @returns {Vector3}
+ */
+Vector3.prototype.substractScalar = function(n) {
+	return new Vector3(
+		this.x - n,
+		this.y - n,
+		this.z - n,
 	);
 };
