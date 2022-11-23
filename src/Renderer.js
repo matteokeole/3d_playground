@@ -90,7 +90,7 @@ const
 		}
 
 		gl.uniformMatrix4fv(gl.uniform.projectionMatrix, false, new Float32Array(camera.projectionMatrix));
-		gl.uniform3f(gl.uniform.lightDirection, .5, .3, 2);
+		gl.uniform3f(gl.uniform.lightDirection, .8, .2, .15);
 
 		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, meshes[0].geometry.indices, gl.STATIC_DRAW);
 
@@ -102,8 +102,6 @@ const
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.uv);
 		gl.bufferData(gl.ARRAY_BUFFER, meshes[0].geometry.uvs, gl.STATIC_DRAW);
-
-		// gl.bindTexture(gl.TEXTURE_2D, meshes[0].material.texture[0].texture);
 
 		for (let i = 0; i < length; i++) {
 			const mesh = meshes[i];
@@ -134,6 +132,8 @@ const
 			.multiplyMatrix4(Matrix4.rotationY(camera.rotation.y))
 			.multiplyMatrix4(Matrix4.rotationZ(camera.rotation.z))
 			.multiplyMatrix4(Matrix4.translation(camera.position.multiply(camera.lhcs)));
+
+		gl.bindTexture(gl.TEXTURE_2D, meshes[0].material.texture.texture);
 
 		gl.uniformMatrix4fv(gl.uniform.cameraMatrix, false, new Float32Array(cameraMatrix));
 
