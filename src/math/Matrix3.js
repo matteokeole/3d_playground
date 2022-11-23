@@ -1,6 +1,4 @@
 /**
- * @todo rotation()
- * 
  * 3x3 matrix class.
  * 
  * @constructor
@@ -19,30 +17,21 @@ export function Matrix3(...elements) {
 Matrix3.prototype = Array.prototype;
 
 /**
- * Returns the product of this matrix by a translation matrix.
- * 
  * @param {Vector2} v
- * @returns {Matrix3}
  */
 Matrix3.prototype.translate = function(v) {
 	return this.multiplyMatrix3(Matrix3.translation(v));
 };
 
 /**
- * Returns the product of this matrix by a scale matrix.
- * 
  * @param {Vector2} v
- * @returns {Matrix3}
  */
 Matrix3.prototype.scale = function(v) {
 	return this.multiplyMatrix3(Matrix3.scale(v));
 };
 
 /**
- * Multiplies every element of this matrix by n.
- * 
  * @param {number} n
- * @returns {Matrix3}
  */
 Matrix3.prototype.multiplyScalar = function(n) {
 	const m = this;
@@ -55,10 +44,7 @@ Matrix3.prototype.multiplyScalar = function(n) {
 };
 
 /**
- * Returns the product of this matrix by another matrix.
- * 
  * @param {Matrix3} m
- * @returns {Matrix3}
  */
 Matrix3.prototype.multiplyMatrix3 = function(m) {
 	const
@@ -78,11 +64,6 @@ Matrix3.prototype.multiplyMatrix3 = function(m) {
 	);
 };
 
-/**
- * Inverts this matrix.
- * 
- * @returns {Matrix3}
- */
 Matrix3.prototype.invert = function() {
 	const
 		[a00, a10, a20, a01, a11, a21, a02, a12, a22] = this,
@@ -106,11 +87,6 @@ Matrix3.prototype.invert = function() {
 	).multiplyScalar(1 / d);
 };
 
-/**
- * Transposes this matrix.
- * 
- * @returns {Matrix3}
- */
 Matrix3.prototype.transpose = function() {
 	const m = this;
 
@@ -121,11 +97,6 @@ Matrix3.prototype.transpose = function() {
 	);
 };
 
-/**
- * Creates an identity matrix.
- * 
- * @returns {Matrix3}
- */
 Matrix3.identity = () => new Matrix3(
 	1, 0, 0,
 	0, 1, 0,
@@ -133,11 +104,9 @@ Matrix3.identity = () => new Matrix3(
 );
 
 /**
- * Creates a basic projection matrix.
  * NOTE: Inverts the Y axis.
  * 
  * @param {Vector2} v
- * @returns {Matrix3}
  */
 Matrix3.projection = function(v) {
 	const {x, y} = v;
@@ -150,10 +119,7 @@ Matrix3.projection = function(v) {
 };
 
 /**
- * Creates a translation matrix.
- * 
  * @param {Vector2} v
- * @returns {Matrix3}
  */
 Matrix3.translation = function(v) {
 	const {x, y} = v;
@@ -166,10 +132,20 @@ Matrix3.translation = function(v) {
 };
 
 /**
- * Creates a scale matrix.
- * 
+ * @param {number} a Angle in radians
+ */
+Matrix3.rotationZ = a => {
+	const s = Math.sin(a), c = Math.cos(a);
+
+	return new Matrix3(
+		c,  s,  0,
+	   -s,  c,  0,
+		0,  0,  1,
+	);
+};
+
+/**
  * @param {Vector2} v
- * @returns {Matrix3}
  */
 Matrix3.scale = function(v) {
 	const {x, y} = v;

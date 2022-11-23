@@ -1,4 +1,4 @@
-import {SENSITIVITY} from "../constants.js";
+import {SENSITIVITY} from "../../public/constants.js";
 import {Vector3} from "../math/index.js";
 
 export function Camera() {

@@ -1,4 +1,4 @@
-import {TEXTURE_PATH, TEXTURES} from "../constants.js";
+import {TEXTURE_PATH, TEXTURES} from "../../public/constants.js";
 
 /**
  * Asynchronous texture loader function.

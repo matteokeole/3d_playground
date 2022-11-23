@@ -1,4 +1,4 @@
-import {SHADER_PATH} from "../constants.js";
+import {SHADER_PATH} from "../../public/constants.js";
 
 /**
  * Creates and links a WebGLProgram to a WebGL2RenderingContext.

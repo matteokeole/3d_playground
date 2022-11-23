@@ -1,11 +1,15 @@
 import {keys, WINDOW} from "./constants.js";
-import {Renderer} from "./Renderer.js";
-import {Scene} from "./Scene.js";
-import {Color} from "./Color.js";
-import {PerspectiveCamera} from "./cameras/index.js";
-import {loadTextures} from "./utils/index.js";
+import {Renderer} from "../src/Renderer.js";
+import {Scene} from "../src/Scene.js";
+import {Color} from "../src/Color.js";
+import {PerspectiveCamera} from "../src/cameras/index.js";
+import {loadTextures} from "../src/utils/index.js";
 import init from "./init.js";
 import loop from "./loop.js";
+
+/**
+ * @todo Matrix attributes instead of uniforms?
+ */
 
 export const
 	scene = new Scene({background: new Color(0x202124)}),

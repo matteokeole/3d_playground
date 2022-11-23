@@ -1,6 +1,4 @@
 /**
- * @todo invert()
- * 
  * 4x4 matrix class.
  * 
  * @constructor
@@ -19,10 +17,7 @@ export function Matrix4(...elements) {
 Matrix4.prototype = Array.prototype;
 
 /**
- * Multiplies every element of this matrix by n.
- * 
  * @param {number} n
- * @returns {Matrix4}
  */
 Matrix4.prototype.multiplyScalar = function(n) {
 	const m = this;
@@ -36,10 +31,7 @@ Matrix4.prototype.multiplyScalar = function(n) {
 };
 
 /**
- * Returns the product of this matrix by another matrix.
- * 
  * @param {Matrix4} m
- * @returns {Matrix4}
  */
 Matrix4.prototype.multiplyMatrix4 = function(m) {
 	const
@@ -66,11 +58,37 @@ Matrix4.prototype.multiplyMatrix4 = function(m) {
 	);
 };
 
-/**
- * Transposes this matrix.
- * 
- * @returns {Matrix4}
- */
+Matrix4.prototype.invert = function() {
+	const
+		[a00, a10, a20, a30, a01, a11, a21, a31, a02, a12, a22, a32, a03, a13, a23, a33] = this,
+		b00 = a12 * a23 * a31 - a13 * a22 * a31 + a13 * a21 * a32 - a11 * a23 * a32 - a12 * a21 * a33 + a11 * a22 * a33,
+		b01 = a03 * a22 * a31 - a02 * a23 * a31 - a03 * a21 * a32 + a01 * a23 * a32 + a02 * a21 * a33 - a01 * a22 * a33,
+		b02 = a02 * a13 * a31 - a03 * a12 * a31 + a03 * a11 * a32 - a01 * a13 * a32 - a02 * a11 * a33 + a01 * a12 * a33,
+		b03 = a03 * a12 * a21 - a02 * a13 * a21 - a03 * a11 * a22 + a01 * a13 * a22 + a02 * a11 * a23 - a01 * a12 * a23,
+		d = a00 * b00 + a10 * b01 + a20 * b02 + a30 * b03;
+
+	if (0 === d) return new Matrix4(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+
+	return new Matrix4(
+		b00,
+		a13 * a22 * a30 - a12 * a23 * a30 - a13 * a20 * a32 + a10 * a23 * a32 + a12 * a20 * a33 - a10 * a22 * a33,
+		a11 * a23 * a30 - a13 * a21 * a30 + a13 * a20 * a31 - a10 * a23 * a31 - a11 * a20 * a33 + a10 * a21 * a33,
+		a12 * a21 * a30 - a11 * a22 * a30 - a12 * a20 * a31 + a10 * a22 * a31 + a11 * a20 * a32 - a10 * a21 * a32,
+		b01,
+		a02 * a23 * a30 - a03 * a22 * a30 + a03 * a20 * a32 - a00 * a23 * a32 - a02 * a20 * a33 + a00 * a22 * a33,
+		a03 * a21 * a30 - a01 * a23 * a30 - a03 * a20 * a31 + a00 * a23 * a31 + a01 * a20 * a33 - a00 * a21 * a33,
+		a01 * a22 * a30 - a02 * a21 * a30 + a02 * a20 * a31 - a00 * a22 * a31 - a01 * a20 * a32 + a00 * a21 * a32,
+		b02,
+		a03 * a12 * a30 - a02 * a13 * a30 - a03 * a10 * a32 + a00 * a13 * a32 + a02 * a10 * a33 - a00 * a12 * a33,
+		a01 * a13 * a30 - a03 * a11 * a30 + a03 * a10 * a31 - a00 * a13 * a31 - a01 * a10 * a33 + a00 * a11 * a33,
+		a02 * a11 * a30 - a01 * a12 * a30 - a02 * a10 * a31 + a00 * a12 * a31 + a01 * a10 * a32 - a00 * a11 * a32,
+		b03,
+		a02 * a13 * a20 - a03 * a12 * a20 + a03 * a10 * a22 - a00 * a13 * a22 - a02 * a10 * a23 + a00 * a12 * a23,
+		a03 * a11 * a20 - a01 * a13 * a20 - a03 * a10 * a21 + a00 * a13 * a21 + a01 * a10 * a23 - a00 * a11 * a23,
+		a01 * a12 * a20 - a02 * a11 * a20 + a02 * a10 * a21 - a00 * a12 * a21 - a01 * a10 * a22 + a00 * a11 * a22,
+	).multiplyScalar(1 / d);
+};
+
 Matrix4.prototype.transpose = function() {
 	const m = this;
 
@@ -82,11 +100,6 @@ Matrix4.prototype.transpose = function() {
 	);
 };
 
-/**
- * Creates an identity matrix.
- * 
- * @returns {Matrix4}
- */
 Matrix4.identity = () => new Matrix4(
 	1, 0, 0, 0,
 	0, 1, 0, 0,
@@ -95,15 +108,12 @@ Matrix4.identity = () => new Matrix4(
 );
 
 /**
- * Creates an orthographic matrix.
- * 
  * @param {number} l Left
  * @param {number} r Right
  * @param {number} t Top
  * @param {number} b Bottom
  * @param {number} n Near
  * @param {number} f Far
- * @returns {Matrix4}
  */
 Matrix4.orthographic = function(l, r, t, b, n, f) {
 	const nmf = n - f;
@@ -117,10 +127,7 @@ Matrix4.orthographic = function(l, r, t, b, n, f) {
 };
 
 /**
- * Creates a translation matrix.
- * 
  * @param {Vector3} v
- * @returns {Matrix4}
  */
 Matrix4.translation = function(v) {
 	const {x, y, z} = v;
@@ -134,10 +141,7 @@ Matrix4.translation = function(v) {
 };
 
 /**
- * Creates a X rotation matrix.
- * 
  * @param {number} a Angle in radians
- * @returns {Matrix4}
  */
 Matrix4.rotationX = a => {
 	const s = Math.sin(a), c = Math.cos(a);
@@ -151,10 +155,7 @@ Matrix4.rotationX = a => {
 };
 
 /**
- * Creates a Y rotation matrix.
- * 
  * @param {number} a Angle in radians
- * @returns {Matrix4}
  */
 Matrix4.rotationY = a => {
 	const s = Math.sin(a), c = Math.cos(a);
@@ -168,10 +169,7 @@ Matrix4.rotationY = a => {
 };
 
 /**
- * Creates a Z rotation matrix.
- * 
  * @param {number} a Angle in radians
- * @returns {Matrix4}
  */
 Matrix4.rotationZ = a => {
 	const s = Math.sin(a), c = Math.cos(a);
@@ -185,10 +183,7 @@ Matrix4.rotationZ = a => {
 };
 
 /**
- * Creates a scale matrix.
- * 
  * @param {Vector3} v
- * @returns {Matrix4}
  */
 Matrix4.scale = function(v) {
 	const {x, y, z} = v;

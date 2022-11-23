@@ -1,9 +1,12 @@
 import {Keybind, keys, VELOCITY, VELOCITY_SQRT1_2} from "./constants.js";
 import {camera} from "./main.js";
+import {lerp} from "../src/utils/index.js";
+
+let v;
 
 export default function() {
 	// Cancel diagonal speed boost
-	const v = diagonalMovement() ? VELOCITY_SQRT1_2 : VELOCITY;
+	v = diagonalMovement() ? VELOCITY_SQRT1_2 : VELOCITY;
 
 	if (keys.has(Keybind.forward)) camera.moveZ(v);
 	if (keys.has(Keybind.backward)) camera.moveZ(-v);
@@ -11,6 +14,8 @@ export default function() {
 	if (keys.has(Keybind.right)) camera.moveX(v);
 	if (keys.has(Keybind.up)) camera.moveY(v);
 	if (keys.has(Keybind.down)) camera.moveY(-v);
+
+	// camera.position = camera.position.lerp();
 };
 
 const diagonalMovement = () =>

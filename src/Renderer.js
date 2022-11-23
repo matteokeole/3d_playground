@@ -1,4 +1,4 @@
-import {WINDOW} from "./constants.js";
+import {WINDOW} from "../public/constants.js";
 import {Matrix4} from "./math/index.js";
 import {linkProgram} from "./utils/index.js";
 
@@ -26,29 +26,29 @@ const
 		gl.attribute = {
 			position: 0,
 			uv: 1,
-			matrix: 2,
+			worldMatrix: 2,
 		};
 		gl.uniform = {
-			projection: gl.getUniformLocation(program, "u_projection"),
-			camera: gl.getUniformLocation(program, "u_camera"),
+			projectionMatrix: gl.getUniformLocation(program, "u_projection"),
+			cameraMatrix: gl.getUniformLocation(program, "u_camera"),
 		};
 		gl.buffer = {
 			index: gl.createBuffer(),
-			vertex: gl.createBuffer(),
-			matrix: gl.createBuffer(),
+			position: gl.createBuffer(),
 			uv: gl.createBuffer(),
+			worldMatrix: gl.createBuffer(),
 		};
 		gl.vao = gl.createVertexArray();
 
 		gl.bindVertexArray(gl.vao);
 
 		gl.enableVertexAttribArray(gl.attribute.position);
-		gl.enableVertexAttribArray(gl.attribute.matrix);
 		gl.enableVertexAttribArray(gl.attribute.uv);
+		gl.enableVertexAttribArray(gl.attribute.worldMatrix);
 
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gl.buffer.index);
 
-		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.vertex);
+		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.position);
 		gl.vertexAttribPointer(gl.attribute.position, 3, gl.FLOAT, false, 0, 0);
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.uv);
@@ -71,22 +71,22 @@ const
 		}
 
 		// Allocate space on the matrix buffer
-		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.matrix);
+		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.worldMatrix);
 		gl.bufferData(gl.ARRAY_BUFFER, gl.matrixData.byteLength, gl.DYNAMIC_DRAW);
 
 		for (let i = 0; i < 4; i++) {
-			const loc = gl.attribute.matrix + i;
+			const loc = gl.attribute.worldMatrix + i;
 
 			gl.enableVertexAttribArray(loc);
 			gl.vertexAttribPointer(loc, 4, gl.FLOAT, false, 4 * 16, i * 16);
 			gl.vertexAttribDivisor(loc, 1);
 		}
 
-		gl.uniformMatrix4fv(gl.uniform.projection, false, new Float32Array(camera.projectionMatrix));
+		gl.uniformMatrix4fv(gl.uniform.projectionMatrix, false, new Float32Array(camera.projectionMatrix));
 
 		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, meshes[0].geometry.indices, gl.STATIC_DRAW);
 
-		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.vertex);
+		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.position);
 		gl.bufferData(gl.ARRAY_BUFFER, meshes[0].geometry.vertices, gl.STATIC_DRAW);
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.uv);
@@ -109,7 +109,7 @@ const
 			}
 		}
 
-		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.matrix);
+		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.worldMatrix);
 		gl.bufferSubData(gl.ARRAY_BUFFER, 0, gl.matrixData);
 	},
 	render = function(scene, camera) {
@@ -127,7 +127,7 @@ const
 			.multiplyMatrix4(Matrix4.rotationZ(camera.rotation.z))
 			.multiplyMatrix4(Matrix4.translation(camera.position.multiply(camera.lhcs)));
 
-		gl.uniformMatrix4fv(gl.uniform.camera, false, new Float32Array(cameraMatrix));
+		gl.uniformMatrix4fv(gl.uniform.cameraMatrix, false, new Float32Array(cameraMatrix));
 
 		gl.drawElementsInstanced(gl.TRIANGLES, 36, gl.UNSIGNED_BYTE, 0, length);
 	},
