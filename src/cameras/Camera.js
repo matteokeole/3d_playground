@@ -3,6 +3,7 @@ import {Vector3} from "../math/index.js";
 
 export function Camera() {
 	this.position = new Vector3(0, 0, 0);
+	this.target = new Vector3(0, 0, 0);
 	this.rotation = new Vector3(0, 0, 0);
 	this.distance = new Vector3(0, 0, 0);
 	// Convert the client left-hand coordinate system (+ forward, - backward)
@@ -24,26 +25,26 @@ Camera.prototype.lookAround = function(mx, my) {
 	this.rotation.y += y;
 };
 
-Camera.prototype.moveX = function(n) {
+Camera.prototype.moveTargetX = function(n) {
 	const direction = new Vector3(
 		Math.cos(this.rotation.y),
 		0,
 	   -Math.sin(this.rotation.y),
 	).multiplyScalar(n);
 
-	this.position = this.position.add(direction);
+	this.target = this.target.add(direction);
 };
 
-Camera.prototype.moveY = function(n) {
-	this.position.y += n;
+Camera.prototype.moveTargetY = function(n) {
+	this.target.y += n;
 };
 
-Camera.prototype.moveZ = function(n) {
+Camera.prototype.moveTargetZ = function(n) {
 	const direction = new Vector3(
 		Math.sin(this.rotation.y),
 		0,
 		Math.cos(this.rotation.y),
 	).multiplyScalar(n);
 
-	this.position = this.position.add(direction);
+	this.target = this.target.add(direction);
 };

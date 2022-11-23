@@ -100,6 +100,17 @@ Vector3.prototype.lengthSquared = function() {
 
 /**
  * @param {Vector3} v
+ * @param {number} n
+ */
+Vector3.prototype.lerp = function(v, n) {
+	const a = this.multiplyScalar(1 - n);
+	const b = v.multiplyScalar(n);
+
+	return a.add(b);
+};
+
+/**
+ * @param {Vector3} v
  */
 Vector3.prototype.multiply = function(v) {
 	return new Vector3(

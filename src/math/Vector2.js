@@ -83,6 +83,17 @@ Vector2.prototype.lengthSquared = function() {
 
 /**
  * @param {Vector2} v
+ * @param {number} n
+ */
+Vector2.prototype.lerp = function(v, n) {
+	const a = this.multiplyScalar(1 - n);
+	const b = v.multiplyScalar(n);
+
+	return a.add(b);
+};
+
+/**
+ * @param {Vector2} v
  */
 Vector2.prototype.multiply = function(v) {
 	return new Vector2(
