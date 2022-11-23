@@ -164,3 +164,11 @@ Vector3.prototype.substract = function(v) {
 Vector3.prototype.substractScalar = function(n) {
 	return this.addScalar(-n);
 };
+
+Vector3.prototype.toArray = function() {
+	return [
+		this.x,
+		this.y,
+		this.z,
+	];
+};

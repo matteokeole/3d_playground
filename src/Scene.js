@@ -1,6 +1,7 @@
 export function Scene({background}) {
 	this.background = background.normalized;
 	this.meshes = new Set();
+	this.directionalLight = null;
 }
 
 Scene.prototype.add = function(...meshes) {

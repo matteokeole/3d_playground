@@ -143,3 +143,10 @@ Vector2.prototype.substract = function(v) {
 Vector2.prototype.substractScalar = function(n) {
 	return this.addScalar(-n);
 };
+
+Vector2.prototype.toArray = function() {
+	return [
+		this.x,
+		this.y,
+	];
+};

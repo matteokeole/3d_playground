@@ -25,16 +25,19 @@ const
 
 		gl.attribute = {
 			position: 0,
-			uv: 1,
-			worldMatrix: 2,
+			normal: 1,
+			uv: 2,
+			worldMatrix: 3,
 		};
 		gl.uniform = {
 			projectionMatrix: gl.getUniformLocation(program, "u_projection"),
 			cameraMatrix: gl.getUniformLocation(program, "u_camera"),
+			lightDirection: gl.getUniformLocation(program, "u_lightDirection"),
 		};
 		gl.buffer = {
 			index: gl.createBuffer(),
 			position: gl.createBuffer(),
+			normal: gl.createBuffer(),
 			uv: gl.createBuffer(),
 			worldMatrix: gl.createBuffer(),
 		};
@@ -43,6 +46,7 @@ const
 		gl.bindVertexArray(gl.vao);
 
 		gl.enableVertexAttribArray(gl.attribute.position);
+		gl.enableVertexAttribArray(gl.attribute.normal);
 		gl.enableVertexAttribArray(gl.attribute.uv);
 		gl.enableVertexAttribArray(gl.attribute.worldMatrix);
 
@@ -50,6 +54,9 @@ const
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.position);
 		gl.vertexAttribPointer(gl.attribute.position, 3, gl.FLOAT, false, 0, 0);
+
+		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.normal);
+		gl.vertexAttribPointer(gl.attribute.normal, 3, gl.FLOAT, false, 0, 0);
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.uv);
 		gl.vertexAttribPointer(gl.attribute.uv, 2, gl.FLOAT, true, 0, 0);
@@ -83,11 +90,15 @@ const
 		}
 
 		gl.uniformMatrix4fv(gl.uniform.projectionMatrix, false, new Float32Array(camera.projectionMatrix));
+		gl.uniform3f(gl.uniform.lightDirection, .5, .3, 2);
 
 		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, meshes[0].geometry.indices, gl.STATIC_DRAW);
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.position);
 		gl.bufferData(gl.ARRAY_BUFFER, meshes[0].geometry.vertices, gl.STATIC_DRAW);
+
+		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.normal);
+		gl.bufferData(gl.ARRAY_BUFFER, meshes[0].geometry.normals, gl.STATIC_DRAW);
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.uv);
 		gl.bufferData(gl.ARRAY_BUFFER, meshes[0].geometry.uvs, gl.STATIC_DRAW);
@@ -104,9 +115,7 @@ const
 				.multiplyMatrix4(Matrix4.rotationZ(-mesh.rotation.z))
 				.multiplyMatrix4(Matrix4.scale(mesh.scale));
 
-			for (let j = 0; j < 16; j++) {
-				gl.matrices[i][j] = matrix[j];
-			}
+			for (let j = 0; j < 16; j++) gl.matrices[i][j] = matrix[j];
 		}
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.worldMatrix);
@@ -120,8 +129,7 @@ const
 		gl.clearColor(...scene.background);
 		gl.clear(gl.COLOR_BUFFER_BIT);
 
-		const cameraMatrix = Matrix4
-			.translation(camera.distance.invert())
+		const cameraMatrix = Matrix4.translation(camera.distance.invert())
 			.multiplyMatrix4(Matrix4.rotationX(-camera.rotation.x))
 			.multiplyMatrix4(Matrix4.rotationY(camera.rotation.y))
 			.multiplyMatrix4(Matrix4.rotationZ(camera.rotation.z))

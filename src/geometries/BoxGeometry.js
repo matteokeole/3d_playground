@@ -15,14 +15,14 @@ export function BoxGeometry(width, height, depth) {
 	   -w,  h, -d,		w,  h, -d,	   -w,  h,  d,		w,  h,  d,		// Top
 		w, -h, -d,	   -w, -h, -d,		w, -h,  d,	   -w, -h,  d,		// Bottom
 	]);
-	/*this.normals = new Float32Array([
+	this.normals = new Float32Array([
 		0,  0,  1,		0,  0,  1,		0,  0,  1,		0,  0,  1,
 		0,  0, -1,		0,  0, -1,		0,  0, -1,		0,  0, -1,
 	   -1,  0,  0,	   -1,  0,  0,	   -1,  0,  0,	   -1,  0,  0,
 		1,  0,  0,		1,  0,  0,		1,  0,  0,		1,  0,  0,
 		0,  1,  0,		0,  1,  0,		0,  1,  0,		0,  1,  0,
 		0, -1,  0,		0, -1,  0,		0, -1,  0,		0, -1,  0,
-	]);*/
+	]);
 	this.indices = new Uint8Array([
 		0,  2,  1,		2,  3,  1,
 		8,  10, 9,		10, 11, 9,
