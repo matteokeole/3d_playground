@@ -1,7 +1,5 @@
 import {Keybind, keys, VELOCITY, VELOCITY_SQRT1_2, CAMERA_LERP_FACTOR} from "./constants.js";
 import {camera} from "./main.js";
-import {lerp} from "../src/utils/index.js";
-import {Vector3} from "../src/math/index.js";
 
 let v;
 

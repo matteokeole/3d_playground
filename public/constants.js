@@ -29,7 +29,9 @@ export const
 		width: 0, // Calculated on resize
 		height: 0, // Calculated on resize
 	},
+	MAX_CALL_STACK_SIZE = 120557,
 	keys = new Set(),
+	PLAYER_HEIGHT = 1.8,
 	SENSITIVITY = 1100,
 	VELOCITY = .07,
 	VELOCITY_SQRT1_2 = VELOCITY * Math.SQRT1_2,

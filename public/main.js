@@ -1,4 +1,4 @@
-import {keys, WINDOW} from "./constants.js";
+import {keys} from "./constants.js";
 import {Renderer} from "../src/Renderer.js";
 import {Scene} from "../src/Scene.js";
 import {Color} from "../src/Color.js";

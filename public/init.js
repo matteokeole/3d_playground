@@ -1,17 +1,24 @@
-import {TEXTURES} from "./constants.js";
+import {TEXTURES, PLAYER_HEIGHT} from "./constants.js";
+import {Color} from "../src/Color.js";
 import {Mesh} from "../src/Mesh.js";
 import {BoxGeometry} from "../src/geometries/index.js";
 import {Material} from "../src/materials/index.js";
+import {DirectionalLight} from "../src/lights/index.js";
 import {Vector3} from "../src/math/index.js";
 
 const geometry = new BoxGeometry(1, 1, 1);
 
 export default function(scene, camera) {
-	camera.target.y = 1.8;
+	camera.target.y = PLAYER_HEIGHT;
 
-	const meshes = testFov();
+	const light = new DirectionalLight(
+		new Vector3(.8, .2, .15),
+		new Color(0xffffff),
+		1,
+	);
 
-	scene.add(...meshes);
+	scene.add(...testFov());
+	scene.directionalLight = light;
 }
 
 function testFov() {
@@ -87,17 +94,18 @@ function testFov() {
 	return meshes;
 }
 
-// Windows Chrome: 165 FPS (stable) with 120k instanced meshes (JS for loop limit)
+// Windows Chrome (max. 165): 165 FPS with 120k instanced meshes
+// Ubuntu Firefox (max. 60): 38 FPS with 120k instanced meshes (slowness on other applications)
 function testColumns() {
 	const meshes = [];
 	let i, j, k;
 	i = j = k = 0;
 
-	for (; i < 1000; i++) {
+	for (; i < 120000; i++) {
 		const mesh = new Mesh(
 			new BoxGeometry(1, 1, 1),
 			new Material({
-				texture: TEXTURES["noodles.jpg"],
+				texture: TEXTURES["white.png"],
 			}),
 		);
 
@@ -105,8 +113,6 @@ function testColumns() {
 		if (i % 100 === 0) k++;
 
 		mesh.position = new Vector3(i % 10 - 4.5, -1 - k, j % 10 - 4.5);
-		// mesh.position = new Vector3(0, -.8, 2);
-		// mesh.rotation = new Vector3(0, -Math.PI / 7, 0);
 		mesh.scale = new Vector3(.8, .8, .8);
 
 		meshes.push(mesh);

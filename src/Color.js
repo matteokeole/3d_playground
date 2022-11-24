@@ -1,5 +1,5 @@
 export function Color(value) {
-	this.hex = [
+	this.rgb = [
 		value >> 16 & 255,
 		value >> 8 & 255,
 		value & 255,

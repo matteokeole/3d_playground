@@ -33,6 +33,8 @@ const
 			projectionMatrix: gl.getUniformLocation(program, "u_projection"),
 			cameraMatrix: gl.getUniformLocation(program, "u_camera"),
 			lightDirection: gl.getUniformLocation(program, "u_lightDirection"),
+			lightColor: gl.getUniformLocation(program, "u_lightColor"),
+			lightIntensity: gl.getUniformLocation(program, "u_lightIntensity"),
 		};
 		gl.buffer = {
 			index: gl.createBuffer(),
@@ -90,7 +92,9 @@ const
 		}
 
 		gl.uniformMatrix4fv(gl.uniform.projectionMatrix, false, new Float32Array(camera.projectionMatrix));
-		gl.uniform3f(gl.uniform.lightDirection, .8, .2, .15);
+		gl.uniform3f(gl.uniform.lightDirection, ...scene.directionalLight.direction.toArray());
+		gl.uniform3f(gl.uniform.lightColor, ...scene.directionalLight.color.rgb);
+		gl.uniform1f(gl.uniform.lightIntensity, scene.directionalLight.intensity);
 
 		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, meshes[0].geometry.indices, gl.STATIC_DRAW);
 
