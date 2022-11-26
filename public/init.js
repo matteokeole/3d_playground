@@ -1,15 +1,14 @@
-import {TEXTURES, PLAYER_HEIGHT} from "./constants.js";
+import {PLAYER_HEIGHT} from "./constants.js";
 import {Color} from "../src/Color.js";
-import {Mesh} from "../src/Mesh.js";
-import {BoxGeometry} from "../src/geometries/index.js";
-import {Material} from "../src/materials/index.js";
 import {DirectionalLight} from "../src/lights/index.js";
 import {Vector3} from "../src/math/index.js";
-
-const geometry = new BoxGeometry(1, 1, 1);
+// import testColumns from "./tests/testColumns.js";
+// import testFov from "./tests/testFov.js";
+// import testUV from "./tests/testUV.js";
+import testNoise from "./tests/testNoise.js";
 
 export default function(scene, camera) {
-	camera.target.y = PLAYER_HEIGHT;
+	camera.position.y = camera.target.y = PLAYER_HEIGHT;
 
 	const light = new DirectionalLight(
 		new Vector3(.8, .2, .15),
@@ -17,106 +16,6 @@ export default function(scene, camera) {
 		1,
 	);
 
-	scene.add(...testFov());
 	scene.directionalLight = light;
-}
-
-function testFov() {
-	const
-		meshes = [],
-		material = {
-			white: new Material({
-				texture: TEXTURES["white.png"],
-			}),
-			black: new Material({
-				texture: TEXTURES["black.png"],
-			}),
-			test: new Material({
-				texture: TEXTURES["crafting_table_side.png"],
-			}),
-		},
-		uvs = new Float32Array([
-			0, 0,
-			0, 1,
-			1, 0,
-			1, 1,
-		]),
-		scale = .85,
-		scaleVector = new Vector3(1, 1, 1).multiplyScalar(scale);
-	let mesh, i = 0;
-
-	for (; i < 26; i++) {
-		mesh = new Mesh(
-			geometry,
-			i % 2 === 0 ? material.white : material.black,
-		);
-		mesh.geometry.uvs = uvs;
-		mesh.position = new Vector3(0, 0, i * scale);
-		mesh.scale = scaleVector;
-
-		meshes.push(mesh);
-	}
-
-	for (i = 0; i < 7; i++) {
-		mesh = new Mesh(geometry, material.test);
-		mesh.geometry.uvs = uvs;
-		mesh.position = new Vector3(-1, 1, i * 4 + 1).multiplyScalar(scale);
-		mesh.scale = scaleVector;
-
-		meshes.push(mesh);
-
-		mesh = new Mesh(geometry, material.test);
-		mesh.geometry.uvs = uvs;
-		mesh.position = new Vector3(-1, 2, i * 4 + 1).multiplyScalar(scale);
-		mesh.scale = scaleVector;
-
-		meshes.push(mesh);
-	}
-
-	for (i = 0; i < 2; i++) {
-		mesh = new Mesh(geometry, material.test);
-		mesh.geometry.uvs = uvs;
-		mesh.position = new Vector3(1, i + 1, 1).multiplyScalar(scale);
-		mesh.scale = scaleVector;
-
-		meshes.push(mesh);
-	}
-
-	for (i = 0; i < 2; i++) {
-		mesh = new Mesh(geometry, material.test);
-		mesh.geometry.uvs = uvs;
-		mesh.position = new Vector3(1, i + 1, 25).multiplyScalar(scale);
-		mesh.scale = scaleVector;
-
-		meshes.push(mesh);
-	}
-
-	return meshes;
-}
-
-// Windows Chrome (max. 165): 165 FPS with 120k instanced meshes
-// Ubuntu Firefox (max. 60): 38 FPS with 120k instanced meshes (slowness on other applications)
-function testColumns() {
-	const meshes = [];
-	let i, j, k;
-	i = j = k = 0;
-
-	for (; i < 120000; i++) {
-		const mesh = new Mesh(
-			new BoxGeometry(1, 1, 1),
-			new Material({
-				texture: TEXTURES["white.png"],
-			}),
-		);
-
-		if (i % 10 === 0) j++;
-		if (i % 100 === 0) k++;
-
-		mesh.position = new Vector3(i % 10 - 4.5, -1 - k, j % 10 - 4.5);
-		mesh.scale = new Vector3(.8, .8, .8);
-
-		meshes.push(mesh);
-	}
-
-	return meshes;
+	scene.add(...testNoise());
 }

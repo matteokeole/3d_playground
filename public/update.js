@@ -3,9 +3,9 @@ import {camera} from "./main.js";
 
 let v;
 
-export default function() {
+export default function(delta) {
 	// Cancel diagonal speed boost
-	v = diagonalMovement() ? VELOCITY_SQRT1_2 : VELOCITY;
+	v = (diagonalMovement() ? VELOCITY_SQRT1_2 : VELOCITY) * delta;
 
 	if (keys.has(Keybind.forward)) camera.moveTargetZ(v);
 	if (keys.has(Keybind.backward)) camera.moveTargetZ(-v);

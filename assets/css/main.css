@@ -9,7 +9,13 @@ canvas {
 }
 
 div {
+	padding: .5rem;
 	position: absolute;
-	background-color: orange;
+	background-color: #ffffff20;
+	color: #ffffff70;
 	z-index: 1;
+}
+
+div span {
+	display: block;
 }

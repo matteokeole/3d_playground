@@ -9,6 +9,7 @@ import loop from "./loop.js";
 
 /**
  * @todo Matrix attributes instead of uniforms?
+ * @todo Draw multiple textures on instanced geometry
  */
 export const
 	scene = new Scene({background: new Color(0x202124)}),
@@ -18,7 +19,9 @@ export const
 	releaseKeys = ({code}) => keys.delete(code);
 
 await Renderer.init();
-await loadTextures(Renderer.gl, ["white.png", "black.png", "crafting_table_side.png"]);
+
+const textures = await (await fetch("public/textures.json")).json();
+await loadTextures(Renderer.gl, textures);
 
 init(scene, camera);
 

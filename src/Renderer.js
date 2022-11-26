@@ -93,7 +93,7 @@ const
 
 		gl.uniformMatrix4fv(gl.uniform.projectionMatrix, false, new Float32Array(camera.projectionMatrix));
 		gl.uniform3f(gl.uniform.lightDirection, ...scene.directionalLight.direction.toArray());
-		gl.uniform3f(gl.uniform.lightColor, ...scene.directionalLight.color.rgb);
+		gl.uniform3f(gl.uniform.lightColor, ...scene.directionalLight.color.normalized);
 		gl.uniform1f(gl.uniform.lightIntensity, scene.directionalLight.intensity);
 
 		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, meshes[0].geometry.indices, gl.STATIC_DRAW);

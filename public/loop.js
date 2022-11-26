@@ -6,6 +6,7 @@ export default {
 	start: () => {
 		currentFrame = currentRealFrame = 0;
 		interval = 1000 / FRAMES_PER_SECOND;
+		delta = 30 / FRAMES_PER_SECOND;
 		then = performance.now();
 
 		counter = counterThen = counterDiff = 0;
@@ -15,12 +16,8 @@ export default {
 	stop: () => cancelAnimationFrame(request),
 };
 
-const fpsSpan = document.querySelector("#fps");
-const fpsMaxSpan = document.querySelector("#fps-max");
-const fpsAvgSpan = document.querySelector("#fps-avg");
-const timerSpan = document.querySelector("#timer");
 const FPS_LOOKUPS = [];
-let interval, then, now, counter, counterThen, counterDiff, diff, currentFrame, currentRealFrame, request;
+let interval, then, now, counter, counterThen, counterDiff, diff, delta, currentFrame, currentRealFrame, request;
 let FPS_AVERAGE = 0;
 let FPS_MAX = 0;
 
@@ -38,11 +35,13 @@ function loop() {
 		currentFrame++;
 		currentRealFrame++;
 
-		update();
+		update(delta);
 		render();
 	}
 
 	if (counterDiff > 1000) {
+		deltaSpan.textContent = `Δt: ${delta.toFixed(2)}`;
+
 		if (FPS_MAX < currentFrame) FPS_MAX = currentFrame;
 		fpsMaxSpan.textContent = `Max: ${FPS_MAX}`;
 
