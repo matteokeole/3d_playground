@@ -26,6 +26,7 @@ await loadTextures(Renderer.gl, textures);
 init(scene, camera);
 
 Renderer.prepareRender(scene, camera);
+Renderer.resize();
 loop.start();
 
 document.addEventListener("pointerlockchange", function() {

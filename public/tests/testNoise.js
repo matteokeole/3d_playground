@@ -7,12 +7,13 @@ import {Mesh} from "../../src/Mesh.js";
 export default function() {
 	const
 		meshes = [],
-		chunkSize = 64,
+		seed = .6389044591913386,
+		chunkSize = 16,
 		chunkSizeSquared = chunkSize ** 2,
 		chunkCenter = chunkSize / 2 - .5;
 	let mesh, i, j = 0, x, y, z;
 
-	noise.seed(Math.random());
+	noise.seed(seed);
 
 	for (i = 0; i < chunkSizeSquared; i++) {
 		mesh = createMesh();

@@ -11,8 +11,12 @@ uniform float u_lightIntensity;
 
 out vec4 FragColor;
 
-void main() {
-	vec3 texture = texture(u_texture, v_uv).rgb * u_lightColor * u_lightIntensity;
+const float ambient = .0;
 
-	FragColor = vec4(texture * v_brightness, 1);
+void main() {
+	vec3 texture = texture(u_texture, v_uv).rgb;
+	vec3 lightColor = u_lightColor * u_lightIntensity;
+	float diffuse = ambient + v_brightness;
+
+	FragColor = vec4(texture * lightColor * diffuse, 1);
 }
