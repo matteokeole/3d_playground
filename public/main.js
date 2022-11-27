@@ -1,4 +1,4 @@
-import {keys} from "./constants.js";
+import {keys, WINDOW} from "./constants.js";
 import {Renderer} from "../src/Renderer.js";
 import {Scene} from "../src/Scene.js";
 import {Color} from "../src/Color.js";
@@ -26,7 +26,6 @@ await loadTextures(Renderer.gl, textures);
 init(scene, camera);
 
 Renderer.prepareRender(scene, camera);
-Renderer.resize();
 loop.start();
 
 document.addEventListener("pointerlockchange", function() {
@@ -42,3 +41,13 @@ document.addEventListener("pointerlockchange", function() {
 		keys.clear();
 	}
 });
+
+function resize() {
+	WINDOW.width = Math.ceil(innerWidth / 2) * 2;
+	WINDOW.height = Math.ceil(innerHeight / 2) * 2;
+
+	Renderer.resize();
+}
+
+onresize = resize;
+resize();

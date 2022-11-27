@@ -1,6 +1,6 @@
 import {WINDOW} from "../public/constants.js";
 import {Matrix4} from "./math/index.js";
-import {linkProgram} from "./utils/index.js";
+import {createProgram, linkProgram} from "./utils/index.js";
 
 const
 	canvas = document.createElement("canvas"),
@@ -16,10 +16,12 @@ const
 		/** @todo Minimize the number of faces to render */
 		gl.enable(gl.CULL_FACE);
 
-		const program = await linkProgram(gl, [
+		const [program, vertexShader, fragmentShader] = await createProgram(gl, [
 			"main.vert",
 			"main.frag",
 		]);
+
+		linkProgram(gl, program, vertexShader, fragmentShader);
 
 		gl.useProgram(program);
 
@@ -129,7 +131,7 @@ const
 
 		gl.clearColor(...scene.background);
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-for (let i = 0; i < length; i++) {
+
 		const cameraMatrix = Matrix4.translation(camera.distance.invert())
 			.multiplyMatrix4(Matrix4.rotationX(-camera.rotation.x))
 			.multiplyMatrix4(Matrix4.rotationY(camera.rotation.y))
@@ -137,12 +139,10 @@ for (let i = 0; i < length; i++) {
 			.multiplyMatrix4(Matrix4.translation(camera.position.multiply(camera.lhcs)));
 
 		gl.uniformMatrix4fv(gl.uniform.cameraMatrix, false, new Float32Array(cameraMatrix));
-}
+
 		gl.drawElementsInstanced(gl.TRIANGLES, 36, gl.UNSIGNED_BYTE, 0, length);
 	},
-	resize = function() {
-		gl.viewport(0, 0, WINDOW.width, WINDOW.height);
-	};
+	resize = () => gl.viewport(0, 0, WINDOW.width, WINDOW.height);
 
 canvas.addEventListener("click", canvas.requestPointerLock);
 

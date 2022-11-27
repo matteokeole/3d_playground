@@ -40,17 +40,17 @@ function loop() {
 	}
 
 	if (counterDiff > 1000) {
-		deltaSpan.textContent = `Δt: ${delta.toFixed(2)}`;
+		deltaSpan.textContent = `Δt = ${delta.toFixed(2)}`;
 
 		if (FPS_MAX < currentFrame) FPS_MAX = currentFrame;
-		fpsMaxSpan.textContent = `Max: ${FPS_MAX}`;
+		fpsMaxSpan.textContent = `max = ${FPS_MAX}`;
 
-		fpsSpan.textContent = `Curr: ${currentFrame}`;
+		fpsSpan.textContent = `curr = ${currentFrame}`;
 
 		FPS_LOOKUPS.push(currentFrame);
 		FPS_AVERAGE = FPS_LOOKUPS.reduce((a, b) => a + b) / FPS_LOOKUPS.length;
-		fpsAvgSpan.textContent = `Avg: ${FPS_AVERAGE.toFixed()}`;
-		timerSpan.textContent = `${(now / 1000).toFixed()}s`;
+		fpsAvgSpan.textContent = `avg = ${FPS_AVERAGE.toFixed()}`;
+		timerSpan.textContent = `${(now / 1000).toFixed()}s elapsed`;
 
 		currentFrame = 0;
 		counterThen = performance.now();
