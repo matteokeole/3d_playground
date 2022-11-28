@@ -1,6 +1,10 @@
 import {WINDOW} from "../public/constants.js";
-import {Matrix4} from "./math/index.js";
+import {Matrix4, Vector3} from "./math/index.js";
 import {createProgram, linkProgram} from "./utils/index.js";
+import {TEXTURES} from "../public/constants.js";
+import {BoxGeometry} from "./geometries/index.js";
+import {Material} from "./materials/index.js";
+import {Mesh} from "./Mesh.js";
 
 const
 	canvas = document.createElement("canvas"),
@@ -45,11 +49,21 @@ const
 			uv: gl.createBuffer(),
 			worldMatrix: gl.createBuffer(),
 		};
-		gl.vao = gl.createVertexArray();
+		gl.vao = {
+			base: gl.createVertexArray(),
+			instancing: gl.createVertexArray(),
+		};
+	},
+	prepareRender = function(scene, camera) {
+		const
+			meshes = [...scene.meshes],
+			firstMesh = meshes[0],
+			{length} = meshes;
+		let i, j, loc, mesh;
 
-		gl.bindVertexArray(gl.vao);
+		gl.bindVertexArray(gl.vao.instancing);
 
-		gl.enableVertexAttribArray(gl.attribute.position);
+		/*gl.enableVertexAttribArray(gl.attribute.position);
 		gl.enableVertexAttribArray(gl.attribute.normal);
 		gl.enableVertexAttribArray(gl.attribute.uv);
 		gl.enableVertexAttribArray(gl.attribute.worldMatrix);
@@ -64,13 +78,6 @@ const
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.uv);
 		gl.vertexAttribPointer(gl.attribute.uv, 2, gl.FLOAT, true, 0, 0);
-	},
-	prepareRender = function(scene, camera) {
-		const
-			meshes = [...scene.meshes],
-			firstMesh = meshes[0],
-			{length} = meshes;
-		let i, j, loc, mesh;
 
 		gl.worldMatrixData = new Float32Array(length * 16);
 		gl.worldMatrices = [];
@@ -101,12 +108,38 @@ const
 			gl.enableVertexAttribArray(loc);
 			gl.vertexAttribPointer(loc, 4, gl.FLOAT, false, 64, i * 16);
 			gl.vertexAttribDivisor(loc, 1);
-		}
+		}*/
 
 		gl.uniformMatrix4fv(gl.uniform.projectionMatrix, false, new Float32Array(camera.projectionMatrix));
 		gl.uniform3f(gl.uniform.lightDirection, ...scene.directionalLight.direction.toArray());
 		gl.uniform3f(gl.uniform.lightColor, ...scene.directionalLight.color.normalized);
 		gl.uniform1f(gl.uniform.lightIntensity, scene.directionalLight.intensity);
+
+		gl.bindVertexArray(gl.vao.base);
+
+		gl.enableVertexAttribArray(gl.attribute.position);
+		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.position);
+		gl.vertexAttribPointer(gl.attribute.position, 3, gl.FLOAT, false, 0, 0);
+	},
+	render = function(scene, camera) {
+		const
+			meshes = [...scene.meshes],
+			firstMesh = meshes[0],
+			{length} = meshes;
+
+		gl.clearColor(...scene.background);
+		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+		const cameraMatrix = Matrix4.translation(camera.distance.invert())
+			.multiplyMatrix4(Matrix4.rotationX(-camera.rotation.x))
+			.multiplyMatrix4(Matrix4.rotationY(camera.rotation.y))
+			.multiplyMatrix4(Matrix4.rotationZ(camera.rotation.z))
+			.multiplyMatrix4(Matrix4.translation(camera.position.multiply(camera.lhcs)));
+
+		gl.uniformMatrix4fv(gl.uniform.cameraMatrix, false, new Float32Array(cameraMatrix));
+
+		/*gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.worldMatrix);
+		gl.bufferSubData(gl.ARRAY_BUFFER, 0, gl.worldMatrixData);
 
 		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, firstMesh.geometry.indices, gl.STATIC_DRAW);
 
@@ -119,28 +152,28 @@ const
 		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.uv);
 		gl.bufferData(gl.ARRAY_BUFFER, firstMesh.geometry.uvs, gl.STATIC_DRAW);
 
-		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.worldMatrix);
-		gl.bufferSubData(gl.ARRAY_BUFFER, 0, gl.worldMatrixData);
-
 		gl.bindTexture(gl.TEXTURE_2D, firstMesh.material.texture.texture);
-	},
-	render = function(scene, camera) {
-		const
-			meshes = [...scene.meshes],
-			{length} = meshes;
 
-		gl.clearColor(...scene.background);
-		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+		gl.drawElementsInstanced(gl.TRIANGLES, 36, gl.UNSIGNED_BYTE, 0, length);*/
 
-		const cameraMatrix = Matrix4.translation(camera.distance.invert())
-			.multiplyMatrix4(Matrix4.rotationX(-camera.rotation.x))
-			.multiplyMatrix4(Matrix4.rotationY(camera.rotation.y))
-			// .multiplyMatrix4(Matrix4.rotationZ(camera.rotation.z))
-			.multiplyMatrix4(Matrix4.translation(camera.position.multiply(camera.lhcs)));
+		// Test
+		{
+			// gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.worldMatrix);
+			// gl.bufferSubData(gl.ARRAY_BUFFER, 0, new Float32Array(Matrix4.identity()));
 
-		gl.uniformMatrix4fv(gl.uniform.cameraMatrix, false, new Float32Array(cameraMatrix));
+			gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.position);
+			gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+				-1, 1, 1,
+				-1, -1, 1,
+				1, 1, 1,
+				// 1, -1, 1,
+			]), gl.STATIC_DRAW);
 
-		gl.drawElementsInstanced(gl.TRIANGLES, 36, gl.UNSIGNED_BYTE, 0, length);
+			gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.worldMatrix);
+			gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(Matrix4.translation(new Vector3(0, 0, -2))), gl.STATIC_DRAW);
+
+			gl.drawArrays(gl.LINE_LOOP, 0, 4);
+		}
 	},
 	resize = () => gl.viewport(0, 0, WINDOW.width, WINDOW.height);
 

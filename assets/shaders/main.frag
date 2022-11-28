@@ -14,6 +14,10 @@ out vec4 FragColor;
 const float ambient = .0;
 
 void main() {
+	FragColor = vec4(1, .2, 0, 1);
+
+	return;
+
 	vec3 texture = texture(u_texture, v_uv).rgb;
 	vec3 lightColor = u_lightColor * u_lightIntensity;
 	float diffuse = ambient + v_brightness;
