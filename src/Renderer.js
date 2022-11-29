@@ -176,7 +176,6 @@ const
 
 		gl.drawElementsInstanced(gl.TRIANGLES, 36, gl.UNSIGNED_BYTE, 0, length);
 
-		// Test
 		gl.useProgram(gl.program.gui);
 		gl.bindVertexArray(gl.vao.gui);
 
@@ -184,16 +183,13 @@ const
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.guiPosition);
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+			n, n,
 			-n, n,
 			-n, -n,
-			n, n,
-			//
-			-n, -n,
 			n, -n,
-			n, n,
 		]), gl.STATIC_DRAW);
 
-		gl.drawArrays(gl.TRIANGLES, 0, 6);
+		gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 	},
 	resize = () => gl.viewport(0, 0, WINDOW.width, WINDOW.height);
 
