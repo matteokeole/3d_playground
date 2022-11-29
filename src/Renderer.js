@@ -17,6 +17,8 @@ const
 
 		gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 		gl.enable(gl.DEPTH_TEST);
+		gl.enable(gl.BLEND);
+		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 		/** @todo Minimize the number of faces to render */
 		gl.enable(gl.CULL_FACE);
 
@@ -25,15 +27,20 @@ const
 			"main.frag",
 		]);
 
-		linkProgram(gl, program, vertexShader, fragmentShader);
+		const [guiProgram, guiVertexShader, guiFragmentShader] = await createProgram(gl, [
+			"gui.vert",
+			"gui.frag",
+		]);
 
-		gl.useProgram(program);
+		linkProgram(gl, program, vertexShader, fragmentShader);
+		linkProgram(gl, guiProgram, guiVertexShader, guiFragmentShader);
 
 		gl.attribute = {
 			position: 0,
 			normal: 1,
 			uv: 2,
 			worldMatrix: 3,
+			guiPosition: 0,
 		};
 		gl.uniform = {
 			projectionMatrix: gl.getUniformLocation(program, "u_projection"),
@@ -48,22 +55,28 @@ const
 			normal: gl.createBuffer(),
 			uv: gl.createBuffer(),
 			worldMatrix: gl.createBuffer(),
+			guiPosition: gl.createBuffer(),
+		};
+		gl.program = {
+			base: program,
+			gui: guiProgram,
 		};
 		gl.vao = {
-			base: gl.createVertexArray(),
 			instancing: gl.createVertexArray(),
+			gui: gl.createVertexArray(),
 		};
 	},
 	prepareRender = function(scene, camera) {
 		const
 			meshes = [...scene.meshes],
-			firstMesh = meshes[0],
 			{length} = meshes;
 		let i, j, loc, mesh;
 
+		gl.useProgram(gl.program.base);
+
 		gl.bindVertexArray(gl.vao.instancing);
 
-		/*gl.enableVertexAttribArray(gl.attribute.position);
+		gl.enableVertexAttribArray(gl.attribute.position);
 		gl.enableVertexAttribArray(gl.attribute.normal);
 		gl.enableVertexAttribArray(gl.attribute.uv);
 		gl.enableVertexAttribArray(gl.attribute.worldMatrix);
@@ -108,18 +121,22 @@ const
 			gl.enableVertexAttribArray(loc);
 			gl.vertexAttribPointer(loc, 4, gl.FLOAT, false, 64, i * 16);
 			gl.vertexAttribDivisor(loc, 1);
-		}*/
+		}
 
 		gl.uniformMatrix4fv(gl.uniform.projectionMatrix, false, new Float32Array(camera.projectionMatrix));
 		gl.uniform3f(gl.uniform.lightDirection, ...scene.directionalLight.direction.toArray());
 		gl.uniform3f(gl.uniform.lightColor, ...scene.directionalLight.color.normalized);
 		gl.uniform1f(gl.uniform.lightIntensity, scene.directionalLight.intensity);
 
-		gl.bindVertexArray(gl.vao.base);
+		// Configure GUI VAO
 
-		gl.enableVertexAttribArray(gl.attribute.position);
-		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.position);
-		gl.vertexAttribPointer(gl.attribute.position, 3, gl.FLOAT, false, 0, 0);
+		gl.bindVertexArray(gl.vao.gui);
+
+		gl.useProgram(gl.program.gui);
+
+		gl.enableVertexAttribArray(gl.attribute.guiPosition);
+		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.guiPosition);
+		gl.vertexAttribPointer(gl.attribute.guiPosition, 2, gl.FLOAT, false, 0, 0);
 	},
 	render = function(scene, camera) {
 		const
@@ -130,6 +147,9 @@ const
 		gl.clearColor(...scene.background);
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+		gl.useProgram(gl.program.base);
+		gl.bindVertexArray(gl.vao.instancing);
+
 		const cameraMatrix = Matrix4.translation(camera.distance.invert())
 			.multiplyMatrix4(Matrix4.rotationX(-camera.rotation.x))
 			.multiplyMatrix4(Matrix4.rotationY(camera.rotation.y))
@@ -138,7 +158,7 @@ const
 
 		gl.uniformMatrix4fv(gl.uniform.cameraMatrix, false, new Float32Array(cameraMatrix));
 
-		/*gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.worldMatrix);
+		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.worldMatrix);
 		gl.bufferSubData(gl.ARRAY_BUFFER, 0, gl.worldMatrixData);
 
 		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, firstMesh.geometry.indices, gl.STATIC_DRAW);
@@ -154,26 +174,26 @@ const
 
 		gl.bindTexture(gl.TEXTURE_2D, firstMesh.material.texture.texture);
 
-		gl.drawElementsInstanced(gl.TRIANGLES, 36, gl.UNSIGNED_BYTE, 0, length);*/
+		gl.drawElementsInstanced(gl.TRIANGLES, 36, gl.UNSIGNED_BYTE, 0, length);
 
 		// Test
-		{
-			// gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.worldMatrix);
-			// gl.bufferSubData(gl.ARRAY_BUFFER, 0, new Float32Array(Matrix4.identity()));
+		gl.useProgram(gl.program.gui);
+		gl.bindVertexArray(gl.vao.gui);
 
-			gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.position);
-			gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-				-1, 1, 1,
-				-1, -1, 1,
-				1, 1, 1,
-				// 1, -1, 1,
-			]), gl.STATIC_DRAW);
+		const n = .95;
 
-			gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.worldMatrix);
-			gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(Matrix4.translation(new Vector3(0, 0, -2))), gl.STATIC_DRAW);
+		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.guiPosition);
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+			-n, n,
+			-n, -n,
+			n, n,
+			//
+			-n, -n,
+			n, -n,
+			n, n,
+		]), gl.STATIC_DRAW);
 
-			gl.drawArrays(gl.LINE_LOOP, 0, 4);
-		}
+		gl.drawArrays(gl.TRIANGLES, 0, 6);
 	},
 	resize = () => gl.viewport(0, 0, WINDOW.width, WINDOW.height);
 

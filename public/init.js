@@ -17,5 +17,5 @@ export default function(scene, camera) {
 	);
 
 	scene.directionalLight = light;
-	scene.add(...testColumns(1000));
+	scene.add(...testColumns(100));
 }
