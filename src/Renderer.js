@@ -19,7 +19,6 @@ const
 		gl.enable(gl.DEPTH_TEST);
 		gl.enable(gl.BLEND);
 		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-		/** @todo Minimize the number of faces to render */
 		gl.enable(gl.CULL_FACE);
 
 		const [program, vertexShader, fragmentShader] = await createProgram(gl, [
@@ -179,19 +178,30 @@ const
 		gl.useProgram(gl.program.gui);
 		gl.bindVertexArray(gl.vao.gui);
 
-		const n = .95;
-
 		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.guiPosition);
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-			n, n,
-			-n, n,
-			-n, -n,
-			n, -n,
+			1, 1,
+			-1, 1,
+			-1, -1,
+			1, -1,
 		]), gl.STATIC_DRAW);
+
+		gl.bindTexture(gl.TEXTURE_2D, TEXTURES["white.png"].texture);
 
 		gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 	},
-	resize = () => gl.viewport(0, 0, WINDOW.width, WINDOW.height);
+	/**
+	 * @todo Fix projection matrix update
+	 */
+	resize = function(camera) {
+		camera.updateProjectionMatrix();
+
+		gl.useProgram(gl.program.base);
+
+		gl.uniformMatrix4fv(gl.uniform.projectionMatrix, false, new Float32Array(camera.projectionMatrix));
+
+		gl.viewport(0, 0, WINDOW.width, WINDOW.height);
+	};
 
 canvas.addEventListener("click", canvas.requestPointerLock);
 

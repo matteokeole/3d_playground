@@ -46,7 +46,7 @@ function resize() {
 	WINDOW.width = Math.ceil(innerWidth / 2) * 2;
 	WINDOW.height = Math.ceil(innerHeight / 2) * 2;
 
-	Renderer.resize();
+	Renderer.resize(camera);
 }
 
 onresize = resize;
