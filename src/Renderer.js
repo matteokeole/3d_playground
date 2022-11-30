@@ -1,17 +1,18 @@
-import {WINDOW} from "../public/constants.js";
+import {GUI} from "../public/constants.js";
 import {Matrix4, Vector3} from "./math/index.js";
 import {createProgram, linkProgram} from "./utils/index.js";
 import {TEXTURES} from "../public/constants.js";
 import {BoxGeometry} from "./geometries/index.js";
 import {Material} from "./materials/index.js";
 import {Mesh} from "./Mesh.js";
+import {Compositor} from "./Compositor.js";
 
 const
 	canvas = document.createElement("canvas"),
 	gl = canvas.getContext("webgl2"),
 	init = async function() {
-		canvas.width = innerWidth;
-		canvas.height = innerHeight;
+		canvas.width = GUI.screenWidth;
+		canvas.height = GUI.screenHeight;
 
 		document.body.appendChild(canvas);
 
@@ -146,7 +147,7 @@ const
 		gl.clearColor(...scene.background);
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-		gl.useProgram(gl.program.base);
+		/*gl.useProgram(gl.program.base);
 		gl.bindVertexArray(gl.vao.instancing);
 
 		const cameraMatrix = Matrix4.translation(camera.distance.invert())
@@ -173,7 +174,7 @@ const
 
 		gl.bindTexture(gl.TEXTURE_2D, firstMesh.material.texture.texture);
 
-		gl.drawElementsInstanced(gl.TRIANGLES, 36, gl.UNSIGNED_BYTE, 0, length);
+		gl.drawElementsInstanced(gl.TRIANGLES, 36, gl.UNSIGNED_BYTE, 0, length);*/
 
 		gl.useProgram(gl.program.gui);
 		gl.bindVertexArray(gl.vao.gui);
@@ -186,7 +187,10 @@ const
 			1, -1,
 		]), gl.STATIC_DRAW);
 
-		gl.bindTexture(gl.TEXTURE_2D, TEXTURES["white.png"].texture);
+		gl.bindTexture(gl.TEXTURE_2D, gl.createTexture());
+		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, Compositor.texture);
+		// gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, Compositor.texture);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
 		gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 	},
@@ -200,7 +204,7 @@ const
 
 		gl.uniformMatrix4fv(gl.uniform.projectionMatrix, false, new Float32Array(camera.projectionMatrix));
 
-		gl.viewport(0, 0, WINDOW.width, WINDOW.height);
+		gl.viewport(0, 0, GUI.width, GUI.height);
 	};
 
 canvas.addEventListener("click", canvas.requestPointerLock);

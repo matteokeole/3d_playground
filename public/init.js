@@ -2,9 +2,9 @@ import {PLAYER_HEIGHT} from "./constants.js";
 import {Color} from "../src/Color.js";
 import {DirectionalLight} from "../src/lights/index.js";
 import {Vector3} from "../src/math/index.js";
-// import testColumns from "./tests/testColumns.js";
+import testColumns from "./tests/testColumns.js";
 // import testFov from "./tests/testFov.js";
-import testUV from "./tests/testUV.js";
+// import testUV from "./tests/testUV.js";
 // import testNoise from "./tests/testNoise.js";
 
 export default function(scene, camera) {
@@ -17,5 +17,5 @@ export default function(scene, camera) {
 	);
 
 	scene.directionalLight = light;
-	scene.add(...testUV());
+	scene.add(...testColumns(1));
 }

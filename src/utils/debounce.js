@@ -1,6 +1,4 @@
 /**
- * Debounce function.
- * 
  * @param {function} callback
  * @param {number} delay
  * @callback callback

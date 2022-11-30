@@ -1,0 +1,21 @@
+{
+	"gui.done": "Done",
+	"menu.singleplayer": "Singleplayer",
+	"menu.multiplayer": "Multiplayer",
+	"menu.online": "Minecraft Realms",
+	"menu.options": "Options...",
+	"menu.quit": "Quit Game",
+	"system.error.component.unlayered": "Operation cannot be performed onto an unlayered %s.",
+	"system.error.color.invalid_hex": "Invalid Color hexadecimal value.",
+	"system.error.component.invalid_alignment": "Invalid `align` property bound to %s.",
+	"system.error.event_on_unlayered_component": "Unable to register an event for %s, because it doesn't belong to a layer.",
+	"system.error.group.contains_group": "A Group cannnot be a children of another Group.",
+	"system.error.group.invalid_alignment": "Invalid `align` property bound to Group.",
+	"system.error.group.unlayered": "Operation cannot be performed onto an unlayered Group.",
+	"system.error.invalid_component_type": "Invalid component type.",
+	"system.error.invalid_progress_length": "Invalid progress bar length received (0 is not accepted).",
+	"system.error.invalid_progress_percent": "Invalid progress bar percentage value.",
+	"system.error.invalid_text": "Received a non-string value for a Text component.",
+	"system.error.nowebgl2": "This browser doesn't support WebGL 2.0.",
+	"system.error.out_of_range_progress_percent": "Progress bar percentage out of [0, 100]."
+}

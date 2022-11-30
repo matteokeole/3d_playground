@@ -1,11 +1,12 @@
-import {keys, WINDOW} from "./constants.js";
+import {GUI, keys, WINDOW} from "./constants.js";
 import {Renderer} from "../src/Renderer.js";
 import {Scene} from "../src/Scene.js";
 import {Color} from "../src/Color.js";
 import {PerspectiveCamera} from "../src/cameras/index.js";
-import {loadTextures} from "../src/utils/index.js";
+import {loadImages, loadTextures} from "../src/utils/index.js";
 import init from "./init.js";
 import loop from "./loop.js";
+import {initGUI} from "./gui.js";
 
 /**
  * @todo Matrix attributes instead of uniforms?
@@ -23,7 +24,21 @@ await Renderer.init();
 const textures = await (await fetch("public/textures.json")).json();
 await loadTextures(Renderer.gl, textures);
 
+const images = await (await fetch("public/images.json")).json();
+await loadImages(images);
+
+function resize() {
+	GUI.width = WINDOW.width = Math.ceil(innerWidth / 2) * 2;
+	GUI.height = WINDOW.height = Math.ceil(innerHeight / 2) * 2;
+
+	Renderer.resize(camera);
+}
+
+onresize = resize;
+resize();
+
 init(scene, camera);
+initGUI();
 
 Renderer.prepareRender(scene, camera);
 loop.start();
@@ -41,13 +56,3 @@ document.addEventListener("pointerlockchange", function() {
 		keys.clear();
 	}
 });
-
-function resize() {
-	WINDOW.width = Math.ceil(innerWidth / 2) * 2;
-	WINDOW.height = Math.ceil(innerHeight / 2) * 2;
-
-	Renderer.resize(camera);
-}
-
-onresize = resize;
-resize();

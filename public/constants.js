@@ -1,8 +1,9 @@
 export const
 	SHADER_PATH = "assets/shaders/",
 	TEXTURE_PATH = "assets/textures/",
+	IMAGES = {},
 	TEXTURES = {},
-	FRAMES_PER_SECOND = 165,
+	FRAMES_PER_SECOND = 10,
 	GUI = {
 		defaultWidth: 320,
 		defaultHeight: 240,
@@ -16,6 +17,7 @@ export const
 			current: 0, // Calculated on resize
 		},
 		resizeDelay: 50,
+		layers: {},
 	},
 	Keybind = {
 		forward: "KeyW",
