@@ -54,9 +54,6 @@ export function Layer({name, background = false, components = []}) {
 	this.canvas = canvas;
 	this.ctx = ctx;
 
-	ctx.fillStyle = "orange";
-	ctx.fillRect(0, 0, 300, 300);
-
 	this.stretch = (width = GUI.width, height = GUI.height) => {
 		this.width = width;
 		this.height = height;

@@ -1,7 +1,6 @@
-import {GUI} from "../public/constants.js";
+import {GUI, IMAGES, TEXTURES} from "../public/constants.js";
 import {Matrix4, Vector3} from "./math/index.js";
 import {createProgram, linkProgram} from "./utils/index.js";
-import {TEXTURES} from "../public/constants.js";
 import {BoxGeometry} from "./geometries/index.js";
 import {Material} from "./materials/index.js";
 import {Mesh} from "./Mesh.js";
@@ -147,7 +146,7 @@ const
 		gl.clearColor(...scene.background);
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-		/*gl.useProgram(gl.program.base);
+		gl.useProgram(gl.program.base);
 		gl.bindVertexArray(gl.vao.instancing);
 
 		const cameraMatrix = Matrix4.translation(camera.distance.invert())
@@ -174,7 +173,7 @@ const
 
 		gl.bindTexture(gl.TEXTURE_2D, firstMesh.material.texture.texture);
 
-		gl.drawElementsInstanced(gl.TRIANGLES, 36, gl.UNSIGNED_BYTE, 0, length);*/
+		gl.drawElementsInstanced(gl.TRIANGLES, 36, gl.UNSIGNED_BYTE, 0, length);
 
 		gl.useProgram(gl.program.gui);
 		gl.bindVertexArray(gl.vao.gui);
@@ -189,8 +188,8 @@ const
 
 		gl.bindTexture(gl.TEXTURE_2D, gl.createTexture());
 		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, Compositor.texture);
-		// gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, Compositor.texture);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+		gl.generateMipmap(gl.TEXTURE_2D);
 
 		gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 	},

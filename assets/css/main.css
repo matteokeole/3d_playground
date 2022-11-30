@@ -10,6 +10,7 @@ canvas {
 
 div {
 	padding: .5rem;
+	right: 0;
 	position: absolute;
 	background-color: #ffffff20;
 	color: #ffffff70;

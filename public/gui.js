@@ -6,9 +6,8 @@ export function initGUI() {
 		align: ["left", "top"],
 		margin: [0, 0],
 		size: [40, 40],
-		source: "crafting_table_front.png",
+		source: "sculk.png",
 		uv: [0, 0],
-		// scale: 4
 	});
 
 	const layer = new Layer({
