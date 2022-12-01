@@ -11,13 +11,15 @@ import {GUI} from "../../../public/constants.js";
  * @param	{array}		[components=[]]		Component list
  */
 export function Layer({name, background = false, components = []}) {
+	this.width = GUI.screenWidth;
+	this.height = GUI.screenHeight;
 	this.name = name;
 	this.background = background;
 	this.components = new Set();
 	this.hoverableComponents = new Set();
 	this.clickableComponents = new Map();
 
-	const canvas = new OffscreenCanvas(GUI.screenWidth, GUI.screenHeight);
+	const canvas = new OffscreenCanvas(this.width, this.height);
 	/*canvas.addEventListener("mousemove", e => {
 		const scale = GUI.scale.desired;
 		let component, x, y, w, h, hovered;

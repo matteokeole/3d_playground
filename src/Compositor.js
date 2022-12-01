@@ -1,14 +1,26 @@
 import {GUI} from "../public/constants.js";
+import {Renderer} from "../src/Renderer.js";
 
-const layers = new Set();
-const texture = new OffscreenCanvas(GUI.screenWidth, GUI.screenHeight);
+const layerSet = new Set();
+const canvas = new OffscreenCanvas(GUI.screenWidth, GUI.screenHeight);
+const ctx = canvas.getContext("2d");
 
-const addLayer = layer => layers.add(layer);
-const removeLayer = layer => layers.delete(layer);
+const addLayer = layer => layerSet.add(layer);
+const removeLayer = layer => layerSet.delete(layer);
 
-/**
- * @todo Implement
- */
-function compose() {}
+function compose() {
+	const
+		layers = [...layerSet],
+		{length} = layers;
 
-export const Compositor = {addLayer, removeLayer, compose, texture};
+	for (let i = 0; i < length; i++) {
+		ctx.drawImage(layers[i].canvas, 0, 0, GUI.screenWidth, GUI.screenHeight);
+	}
+
+	const {gl} = Renderer;
+
+	gl.bindTexture(gl.TEXTURE_2D, gl.guiTexture);
+	gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
+}
+
+export const Compositor = {addLayer, removeLayer, compose};

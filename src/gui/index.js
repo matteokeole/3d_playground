@@ -1,7 +1,8 @@
 // import {HoverLayer, Splash} from "./gui/layers/index.js";
 
-export {Layer} from "./layers/index.js";
-export * as Component from "./components/index.js";
+import {Layer} from "./layers/index.js";
+import * as Component from "./components/index.js";
+export const GUI = {Layer, Component};
 // export {Loader} from "./Loader.js";
 // export {Color} from "./Color.js";
 // export * as Utils from "./utils/index.js";

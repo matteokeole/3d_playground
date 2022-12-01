@@ -6,13 +6,14 @@ import {Material} from "./materials/index.js";
 import {Mesh} from "./Mesh.js";
 import {Compositor} from "./Compositor.js";
 
+const canvas = document.createElement("canvas");
+
+canvas.width = GUI.screenWidth;
+canvas.height = GUI.screenHeight;
+
 const
-	canvas = document.createElement("canvas"),
 	gl = canvas.getContext("webgl2"),
 	init = async function() {
-		canvas.width = GUI.screenWidth;
-		canvas.height = GUI.screenHeight;
-
 		document.body.appendChild(canvas);
 
 		gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
@@ -20,6 +21,9 @@ const
 		gl.enable(gl.BLEND);
 		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 		gl.enable(gl.CULL_FACE);
+
+		gl.bindTexture(gl.TEXTURE_2D, gl.guiTexture = gl.createTexture());
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); // Don't generate mipmaps
 
 		const [program, vertexShader, fragmentShader] = await createProgram(gl, [
 			"main.vert",
@@ -186,10 +190,7 @@ const
 			1, -1,
 		]), gl.STATIC_DRAW);
 
-		gl.bindTexture(gl.TEXTURE_2D, gl.createTexture());
-		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, Compositor.texture);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-		gl.generateMipmap(gl.TEXTURE_2D);
+		gl.bindTexture(gl.TEXTURE_2D, gl.guiTexture);
 
 		gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 	},
@@ -203,7 +204,7 @@ const
 
 		gl.uniformMatrix4fv(gl.uniform.projectionMatrix, false, new Float32Array(camera.projectionMatrix));
 
-		gl.viewport(0, 0, GUI.width, GUI.height);
+		// gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 	};
 
 canvas.addEventListener("click", canvas.requestPointerLock);
