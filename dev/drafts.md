@@ -1,8 +1,8 @@
 ## Rendering the GUI on top of the scene
 
 ### Proposition:
-Use an OffscreenCanvas to draw the GUI on updates. At each frame, the scene renderer draws a textured quad in front of the camera with the GUI canvas content.
-__Flexible__ because we have access to the Canvas API.
+Use an OffscreenCanvas to draw the GUI on updates. At each frame, the scene renderer draws a textured quad in front of the camera with the GUI canvas content.  
+__Flexible__ because we have access to the Canvas API.  
 __Efficient__ because the final drawing is done by the WebGL context.
 
 ### Pros:
@@ -10,12 +10,12 @@ __Efficient__ because the final drawing is done by the WebGL context.
 - OffscreenCanvas doesn't rely on the DOM.
 - The 2D context is called only when the GUI content does change.
 - WebGL can quickly draw the GUI on a single quad. This can be repeated each frame to help the browser do less composition.
-- The GUI can be done in a separated worker (but will the worker messages be cheap?).
+- The GUI can be done in a separated worker (cost of 60 messages/s?).
 
 ### Cons:
-- How to make a shader that can draw both 3D cubes and 2D planes?
-- How to pass efficiently the canvas content to the WebGL context every frame?
-- OffscreenCanvas support is ~75%
+- How to make a shader that can draw both 3D cubes and 2D planes? *Make two different shaders and switch programs each frame OR after the instanced meshes, draw a GUI quad with an orthogonal camera matrix.*
+- How to pass efficiently the canvas content to the WebGL context every frame? *The GUI texture is created only once and is replaced every time the GUI does update.*
+- OffscreenCanvas support is ~75%.
 
 ***
 
@@ -26,13 +26,21 @@ Each GUI layer has its own canvas. The composition is made by a *Compositor* sin
 The composition occurs when a change is detected in a layer. The canvases used for the composition are defined on initialization, but can be changed later.
 
 ### Pros:
-- Layers are all OffscreenCanvases, including the composited layer
-- Simple architecture
+- Layers are all OffscreenCanvases, including the composited layer.
+- Simple architecture.
 
 ### Cons:
-- Many things to optimize
-- Performance cost of recompositing the GUI on frequent updates (e.g. for a text input, on a key press)
+- Many things to optimize.
+- Performance cost of recompositing the GUI on frequent updates (e.g. for a text input, on a key press).
 
 ***
 
-## Add GitHub wiki
+## Add documentation
+
+***
+
+## Project structure
+
+- /
+	- assets/
+	- index.html
