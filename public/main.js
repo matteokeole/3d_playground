@@ -8,18 +8,18 @@ import init from "./init.js";
 import loop from "./loop.js";
 import {initGUI} from "./gui.js";
 
+await Renderer.init();
+
 /**
  * @todo Matrix attributes instead of uniforms?
  * @todo Draw multiple textures on instanced geometry
  */
 export const
 	scene = new Scene({background: new Color(0x202124)}),
-	camera = new PerspectiveCamera(90, innerWidth / innerHeight, .01, 50),
+	camera = new PerspectiveCamera(90, Renderer.canvas.clientWidth / Renderer.canvas.clientHeight, .01, 50),
 	lookAround = ({movementX: x, movementY: y}) => camera.lookAround(x, y),
 	pressKeys = ({code}) => keys.add(code),
 	releaseKeys = ({code}) => keys.delete(code);
-
-await Renderer.init();
 
 const textures = await (await fetch("public/textures.json")).json();
 await loadTextures(Renderer.gl, textures);

@@ -204,7 +204,7 @@ const
 
 		gl.uniformMatrix4fv(gl.uniform.projectionMatrix, false, new Float32Array(camera.projectionMatrix));
 
-		// gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+		// gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
 	};
 
 canvas.addEventListener("click", canvas.requestPointerLock);
