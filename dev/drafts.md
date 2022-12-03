@@ -1,4 +1,4 @@
-## Rendering the GUI on top of the scene
+## Rendering the GUI above the scene
 
 ### Proposition:
 Use an OffscreenCanvas to draw the GUI on updates. At each frame, the scene renderer draws a textured quad in front of the camera with the GUI canvas content.  
@@ -30,8 +30,23 @@ The composition occurs when a change is detected in a layer. The canvases used f
 - Simple architecture.
 
 ### Cons:
-- Many things to optimize.
 - Performance cost of recompositing the GUI on frequent updates (e.g. for a text input, on a key press).
+
+***
+
+## Single-canvas GUI
+
+### Proposition:
+Avoid the compositing by having only one canvas for the entire GUI. Layers become abstract objects and are sorted by their *priority* property before rendering. When a component is updated, all the components on its position and on the layers above its are redrawn. The GUI is fully redrawn on resize events (debounced).
+
+### Pros
+- No more compositing since it's done on the spot.
+- Reduces the number of active canvases to 2: the GUI OffscreenCanvas and the renderer canvas.
+- This canvas can use WebGL to improve performance when drawing the entire GUI after a resize event.
+
+### Cons
+- All the GUI components needs to be reviewed and optimized for a single canvas use.
+- How to determine which component is above another, using abstract layers?
 
 ***
 
@@ -43,4 +58,6 @@ The composition occurs when a change is detected in a layer. The canvases used f
 
 - /
 	- assets/
+		- css/
+			- main.css
 	- index.html
