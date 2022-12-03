@@ -4,8 +4,10 @@
  * @callback callback
  */
 export function debounce(callback, delay) {
-	clearTimeout(timeout);
-	timeout = setTimeout(callback, delay);
-}
+	let timeout = 0;
 
-let timeout;
+    return function(...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => callback.apply(this, args), delay);
+    }
+}

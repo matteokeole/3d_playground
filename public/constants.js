@@ -16,7 +16,6 @@ export const
 			desired: 2,
 			current: 0, // Calculated on resize
 		},
-		resizeDelay: 50,
 		layers: {},
 	},
 	Keybind = {
@@ -33,6 +32,7 @@ export const
 	},
 	MAX_CALL_STACK_SIZE = 120557,
 	keys = new Set(),
+	FIELD_OF_VIEW = 90,
 	PLAYER_HEIGHT = 1.8,
 	SENSITIVITY = 1100,
 	VELOCITY = .15,

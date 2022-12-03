@@ -1,22 +1,38 @@
 body {
+	display: flex;
+	flex-direction: column;
+	height: 100vh;
 	margin: initial;
 	overflow: hidden;
-	background-color: #202124;
+	font-family: Arial, sans-serif;
+}
+
+noscript, .error {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 1rem;
+	justify-self: center;
+	align-self: center;
+	margin: auto 0;
+	padding: 1rem;
+	text-align: center;
 }
 
 canvas {
 	display: block;
+	width: 100vw;
+	height: 100vh;
 	position: absolute;
 }
 
-div {
-	padding: .5rem;
+#debug {
 	position: absolute;
 	background-color: #ffffff20;
 	color: #ffffff70;
 	z-index: 1;
 }
 
-div span {
+#debug span {
 	display: block;
 }

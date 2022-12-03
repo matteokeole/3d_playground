@@ -6,11 +6,16 @@
 		<link rel="icon" href="data:">
 		<link rel="stylesheet" href="assets/css/main.css">
 		<script type="module" src="public/main.js"></script>
-		<script src="assets/lib/perlin.js"></script>
+		<script src="public/lib/perlin.js"></script>
 	</head>
 
 	<body>
-		<div>
+		<noscript>
+			<img src="assets/images/js.png">
+			This page needs JavaScript enabled to run.
+		</noscript>
+
+		<div id="debug">
 			<span id="fpsSpan"></span>
 			<span id="fpsMaxSpan"></span>
 			<span id="fpsAvgSpan"></span>

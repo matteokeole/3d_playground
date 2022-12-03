@@ -17,7 +17,7 @@ function compose() {
 		ctx.drawImage(layers[i].canvas, 0, 0, GUI.screenWidth, GUI.screenHeight);
 	}
 
-	const {gl} = Renderer;
+	const gl = Renderer.getContext();
 
 	gl.bindTexture(gl.TEXTURE_2D, gl.guiTexture);
 	gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas);

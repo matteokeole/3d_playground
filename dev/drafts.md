@@ -56,8 +56,7 @@ Avoid the compositing by having only one canvas for the entire GUI. Layers becom
 
 ## Project structure
 
-- /
-	- assets/
-		- css/
-			- main.css
-	- index.html
+- assets/
+	- css/
+		- main.css
+- index.html

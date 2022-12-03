@@ -1,58 +1,43 @@
-import {GUI, keys, WINDOW} from "./constants.js";
+import {FIELD_OF_VIEW} from "./constants.js";
 import {Renderer} from "../src/Renderer.js";
 import {Scene} from "../src/Scene.js";
-import {Color} from "../src/Color.js";
 import {PerspectiveCamera} from "../src/cameras/index.js";
+import {Color} from "../src/Color.js";
 import {loadImages, loadTextures} from "../src/utils/index.js";
 import init from "./init.js";
 import loop from "./loop.js";
 import {initGUI} from "./gui.js";
+import {NoWebGL2Error} from "../src/errors/NoWebGL2Error.js";
 
-await Renderer.init();
+export let scene, camera;
 
 /**
- * @todo Matrix attributes instead of uniforms?
- * @todo Draw multiple textures on instanced geometry
+ * @todo Handle WebGL context loss event
  */
-export const
-	scene = new Scene({background: new Color(0x202124)}),
-	camera = new PerspectiveCamera(90, Renderer.canvas.clientWidth / Renderer.canvas.clientHeight, .01, 50),
-	lookAround = ({movementX: x, movementY: y}) => camera.lookAround(x, y),
-	pressKeys = ({code}) => keys.add(code),
-	releaseKeys = ({code}) => keys.delete(code);
+try {
+	Renderer.build();
 
-const textures = await (await fetch("public/textures.json")).json();
-await loadTextures(Renderer.gl, textures);
+	scene = new Scene({background: new Color(0x202124)});
+	camera = new PerspectiveCamera(FIELD_OF_VIEW, 1, .01, 50);
 
-const images = await (await fetch("public/images.json")).json();
-await loadImages(images);
+	Renderer.bindCamera(camera);
+	await Renderer.init();
 
-function resize() {
-	GUI.width = WINDOW.width = Math.ceil(innerWidth / 2) * 2;
-	GUI.height = WINDOW.height = Math.ceil(innerHeight / 2) * 2;
+	const textures = await (await fetch("public/textures.json")).json();
+	await loadTextures(Renderer.getContext(), textures);
 
-	Renderer.resize(camera);
-}
+	const images = await (await fetch("public/images.json")).json();
+	await loadImages(images);
 
-onresize = resize;
-resize();
+	init(scene, camera);
+	initGUI();
 
-init(scene, camera);
-initGUI();
+	Renderer.prepareRender(scene, camera);
+	loop.start();
+} catch (error) {
+	console.error(error);
 
-Renderer.prepareRender(scene, camera);
-loop.start();
-
-document.addEventListener("pointerlockchange", function() {
-	if (Renderer.canvas === document.pointerLockElement) {
-		addEventListener("mousemove", lookAround);
-		addEventListener("keydown", pressKeys);
-		addEventListener("keyup", releaseKeys);
-	} else {
-		removeEventListener("mousemove", lookAround);
-		removeEventListener("keydown", pressKeys);
-		removeEventListener("keyup", releaseKeys);
-
-		keys.clear();
+	if (error instanceof NoWebGL2Error) {
+		document.body.appendChild(error.getTemplate());
 	}
-});
+}

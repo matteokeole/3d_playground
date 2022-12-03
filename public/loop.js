@@ -2,6 +2,11 @@ import {FRAMES_PER_SECOND} from "./constants.js";
 import update from "./update.js";
 import render from "./render.js";
 
+const FPS_LOOKUPS = [];
+let interval, then, now, counter, counterThen, counterDiff, diff, delta, currentFrame, currentRealFrame, request;
+let FPS_AVERAGE = 0;
+let FPS_MAX = 0;
+
 export default {
 	start: () => {
 		currentFrame = currentRealFrame = 0;
@@ -15,11 +20,6 @@ export default {
 	},
 	stop: () => cancelAnimationFrame(request),
 };
-
-const FPS_LOOKUPS = [];
-let interval, then, now, counter, counterThen, counterDiff, diff, delta, currentFrame, currentRealFrame, request;
-let FPS_AVERAGE = 0;
-let FPS_MAX = 0;
 
 function loop() {
 	request = requestAnimationFrame(loop);

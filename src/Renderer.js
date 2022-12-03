@@ -1,26 +1,29 @@
-import {GUI, IMAGES, TEXTURES} from "../public/constants.js";
-import {Matrix4, Vector3} from "./math/index.js";
+import {keys} from "../public/constants.js";
+import {Matrix4} from "./math/index.js";
 import {createProgram, linkProgram} from "./utils/index.js";
-import {BoxGeometry} from "./geometries/index.js";
-import {Material} from "./materials/index.js";
-import {Mesh} from "./Mesh.js";
-import {Compositor} from "./Compositor.js";
+import {NoWebGL2Error} from "./errors/NoWebGL2Error.js";
 
-const canvas = document.createElement("canvas");
+const getCanvas = () => canvas;
+const getContext = () => gl;
+let canvas, gl;
 
-canvas.width = GUI.screenWidth;
-canvas.height = GUI.screenHeight;
+function build() {
+	canvas = document.createElement("canvas");
+	gl = canvas.getContext("webgl2");
+
+	if (!gl) throw new NoWebGL2Error();
+
+	document.body.appendChild(canvas);
+	document.body.style.backgroundColor = "#000";
+}
 
 const
-	gl = canvas.getContext("webgl2"),
 	init = async function() {
-		document.body.appendChild(canvas);
-
 		gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+		gl.enable(gl.CULL_FACE);
 		gl.enable(gl.DEPTH_TEST);
 		gl.enable(gl.BLEND);
-		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-		gl.enable(gl.CULL_FACE);
+		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); // GUI transparency
 
 		gl.bindTexture(gl.TEXTURE_2D, gl.guiTexture = gl.createTexture());
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); // Don't generate mipmaps
@@ -68,7 +71,39 @@ const
 			instancing: gl.createVertexArray(),
 			gui: gl.createVertexArray(),
 		};
+
+		try {
+			resizeObserver.observe(canvas, {
+				box: "device-pixel-content-box",
+			});
+		} catch (error) {
+			resizeObserver.observe(canvas, {
+				box: "content-box",
+			});
+		}
+
+		const
+			lookAround = ({movementX: x, movementY: y}) => camera.lookAround(x, y),
+			pressKeys = ({code}) => keys.add(code),
+			releaseKeys = ({code}) => keys.delete(code);
+
+		canvas.addEventListener("click", canvas.requestPointerLock);
+
+		document.addEventListener("pointerlockchange", function() {
+			if (canvas === document.pointerLockElement) {
+				addEventListener("mousemove", lookAround);
+				addEventListener("keydown", pressKeys);
+				addEventListener("keyup", releaseKeys);
+			} else {
+				removeEventListener("mousemove", lookAround);
+				removeEventListener("keydown", pressKeys);
+				removeEventListener("keyup", releaseKeys);
+
+				keys.clear();
+			}
+		});
 	},
+	bindCamera = newCamera => camera = newCamera,
 	prepareRender = function(scene, camera) {
 		const
 			meshes = [...scene.meshes],
@@ -193,20 +228,38 @@ const
 		gl.bindTexture(gl.TEXTURE_2D, gl.guiTexture);
 
 		gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
-	},
-	/**
-	 * @todo Fix projection matrix update
-	 */
-	resize = function(camera) {
-		camera.updateProjectionMatrix();
-
-		gl.useProgram(gl.program.base);
-
-		gl.uniformMatrix4fv(gl.uniform.projectionMatrix, false, new Float32Array(camera.projectionMatrix));
-
-		// gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
 	};
+let camera;
 
-canvas.addEventListener("click", canvas.requestPointerLock);
+const resizeObserver = new ResizeObserver(function([entry]) {
+	const canvas = entry.target;
+	let width, height, dpr = 1;
 
-export const Renderer = {canvas, gl, init, prepareRender, render, resize};
+	if (entry.devicePixelContentBoxSize) {
+		({inlineSize: width, blockSize: height} = entry.devicePixelContentBoxSize[0]);
+	} else {
+		dpr = devicePixelRatio;
+
+		if (entry.contentBoxSize) {
+			if (entry.contentBoxSize[0]) {
+				({inlineSize: width, blockSize: height} = entry.contentBoxSize[0]);
+			} else {
+				({inlineSize: width, blockSize: height} = entry.contentBoxSize);
+			}
+		} else {
+			({width, height} = entry.contentRect);
+		}
+	}
+
+	canvas.width = width * dpr | 0;
+	canvas.height = height * dpr | 0;
+
+	camera.aspect = canvas.width / canvas.height;
+	camera.updateProjectionMatrix();
+
+	gl.useProgram(gl.program.base);
+	gl.uniformMatrix4fv(gl.uniform.projectionMatrix, false, new Float32Array(camera.projectionMatrix));
+	gl.viewport(0, 0, canvas.width, canvas.height);
+});
+
+export const Renderer = {build, getCanvas, getContext, bindCamera, init, prepareRender, render};
