@@ -19,7 +19,7 @@ try {
 	Renderer.build();
 
 	scene = new Scene({background: new Color(0x202124)});
-	camera = new PerspectiveCamera(FIELD_OF_VIEW, 1, .01, 50);
+	camera = new PerspectiveCamera(FIELD_OF_VIEW, 1, .01, 1000);
 
 	Renderer.bindCamera(camera);
 	await Renderer.init();

@@ -5,7 +5,8 @@ import {Vector3} from "../src/math/index.js";
 // import testColumns from "./tests/testColumns.js";
 import testFov from "./tests/testFov.js";
 // import testUV from "./tests/testUV.js";
-// import testNoise from "./tests/testNoise.js";
+// import testChunk from "./tests/testChunk.js";
+// import testLargeChunk from "./tests/testLargeChunk.js";
 
 export default function(scene, camera) {
 	camera.position.y = camera.target.y = PLAYER_HEIGHT;
