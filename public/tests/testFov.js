@@ -8,26 +8,15 @@ export default function() {
 	const
 		meshes = [],
 		geometry = new BoxGeometry(1, 1, 1),
-		material = {
-			white: new Material({
-				texture: TEXTURES["white.png"],
-			}),
-			black: new Material({
-				texture: TEXTURES["black.png"],
-			}),
-			test: new Material({
-				texture: TEXTURES["crafting_table_front.png"],
-			}),
-		},
+		material = new Material({
+			texture: TEXTURES["misc/white.png"],
+		}),
 		scale = .85,
 		scaleVector = new Vector3(1, 1, 1).multiplyScalar(scale);
 	let mesh, i = 0;
 
 	for (; i < 26; i++) {
-		mesh = new Mesh(
-			geometry,
-			i % 2 === 0 ? material.white : material.black,
-		);
+		mesh = new Mesh(geometry, material);
 		mesh.position = new Vector3(0, 0, i * scale);
 		mesh.scale = scaleVector;
 

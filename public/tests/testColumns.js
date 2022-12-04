@@ -17,7 +17,7 @@ export default function(n = 300) {
 		const mesh = new Mesh(
 			new BoxGeometry(1, 1, 1),
 			new Material({
-				texture: TEXTURES["sculk.png"],
+				texture: TEXTURES["block/sculk.png"],
 			}),
 		);
 

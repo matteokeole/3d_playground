@@ -13,6 +13,7 @@ export let scene, camera;
 
 /**
  * @todo Handle WebGL context loss event
+ * @todo Handle Fetch API compatibility
  */
 try {
 	Renderer.build();
