@@ -1,4 +1,4 @@
-import {keys} from "../public/constants.js";
+import {keys, TEXTURES} from "../public/constants.js";
 import {Matrix4} from "./math/index.js";
 import {createProgram, linkProgram} from "./utils/index.js";
 import {NoWebGL2Error} from "./errors/NoWebGL2Error.js";
@@ -175,59 +175,92 @@ const
 		gl.enableVertexAttribArray(gl.attribute.guiPosition);
 		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.guiPosition);
 		gl.vertexAttribPointer(gl.attribute.guiPosition, 2, gl.FLOAT, false, 0, 0);
+
+		/**
+		 * @test Draw inverted crosshair
+		 */
+		gl.bindTexture(gl.TEXTURE_2D, gl.white = gl.createTexture());
+		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([255, 255, 255, 255]));
+		gl.generateMipmap(gl.TEXTURE_2D);
 	},
 	render = function(scene, camera) {
-		const
-			meshes = [...scene.meshes],
-			firstMesh = meshes[0],
-			{length} = meshes;
+		// Draw scene
+		{
+			const
+				meshes = [...scene.meshes],
+				firstMesh = meshes[0],
+				{length} = meshes;
 
-		gl.clearColor(...scene.background);
-		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+			gl.clearColor(...scene.background);
+			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-		gl.useProgram(gl.program.base);
-		gl.bindVertexArray(gl.vao.instancing);
+			gl.useProgram(gl.program.base);
+			gl.bindVertexArray(gl.vao.instancing);
 
-		const cameraMatrix = Matrix4.translation(camera.distance.invert())
-			.multiplyMatrix4(Matrix4.rotationX(-camera.rotation.x))
-			.multiplyMatrix4(Matrix4.rotationY(camera.rotation.y))
-			.multiplyMatrix4(Matrix4.rotationZ(camera.rotation.z))
-			.multiplyMatrix4(Matrix4.translation(camera.position.multiply(camera.lhcs)));
+			const cameraMatrix = Matrix4.translation(camera.distance.invert())
+				.multiplyMatrix4(Matrix4.rotationX(-camera.rotation.x))
+				.multiplyMatrix4(Matrix4.rotationY(camera.rotation.y))
+				.multiplyMatrix4(Matrix4.rotationZ(camera.rotation.z))
+				.multiplyMatrix4(Matrix4.translation(camera.position.multiply(camera.lhcs)));
 
-		gl.uniformMatrix4fv(gl.uniform.cameraMatrix, false, new Float32Array(cameraMatrix));
+			gl.uniformMatrix4fv(gl.uniform.cameraMatrix, false, new Float32Array(cameraMatrix));
 
-		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.worldMatrix);
-		gl.bufferSubData(gl.ARRAY_BUFFER, 0, gl.worldMatrixData);
+			gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.worldMatrix);
+			gl.bufferSubData(gl.ARRAY_BUFFER, 0, gl.worldMatrixData);
 
-		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, firstMesh.geometry.indices, gl.STATIC_DRAW);
+			gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, firstMesh.geometry.indices, gl.STATIC_DRAW);
 
-		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.position);
-		gl.bufferData(gl.ARRAY_BUFFER, firstMesh.geometry.vertices, gl.STATIC_DRAW);
+			gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.position);
+			gl.bufferData(gl.ARRAY_BUFFER, firstMesh.geometry.vertices, gl.STATIC_DRAW);
 
-		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.normal);
-		gl.bufferData(gl.ARRAY_BUFFER, firstMesh.geometry.normals, gl.STATIC_DRAW);
+			gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.normal);
+			gl.bufferData(gl.ARRAY_BUFFER, firstMesh.geometry.normals, gl.STATIC_DRAW);
 
-		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.uv);
-		gl.bufferData(gl.ARRAY_BUFFER, firstMesh.geometry.uvs, gl.STATIC_DRAW);
+			gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.uv);
+			gl.bufferData(gl.ARRAY_BUFFER, firstMesh.geometry.uvs, gl.STATIC_DRAW);
 
-		gl.bindTexture(gl.TEXTURE_2D, firstMesh.material.texture.texture);
+			gl.bindTexture(gl.TEXTURE_2D, firstMesh.material.texture);
 
-		gl.drawElementsInstanced(gl.TRIANGLES, 36, gl.UNSIGNED_BYTE, 0, length);
+			gl.drawElementsInstanced(gl.TRIANGLES, 36, gl.UNSIGNED_BYTE, 0, length);
+		}
 
 		gl.useProgram(gl.program.gui);
 		gl.bindVertexArray(gl.vao.gui);
 
-		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.guiPosition);
-		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-			1, 1,
-			-1, 1,
-			-1, -1,
-			1, -1,
-		]), gl.STATIC_DRAW);
+		/**
+		 * @todo Draw inverted crosshair
+		 */
+		{
+			gl.blendFunc(gl.ONE_MINUS_DST_COLOR, gl.ONE_MINUS_SRC_COLOR);
 
-		gl.bindTexture(gl.TEXTURE_2D, gl.guiTexture);
+			gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.guiPosition);
+			gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+				 .05,  .05,
+				-.05,  .05,
+				-.05, -.05,
+				 .05, -.05,
+			]), gl.STATIC_DRAW);
 
-		gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+			gl.bindTexture(gl.TEXTURE_2D, gl.white);
+
+			gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+		}
+
+		// Draw GUI
+		{
+			gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+			gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+				 1,  1,
+				-1,  1,
+				-1, -1,
+				 1, -1,
+			]), gl.STATIC_DRAW);
+
+			gl.bindTexture(gl.TEXTURE_2D, gl.guiTexture);
+
+			gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+		}
 	};
 let camera;
 

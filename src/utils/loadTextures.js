@@ -27,6 +27,6 @@ export async function loadTextures(gl, paths) {
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
-		TEXTURES[path] = {image, texture};
+		TEXTURES[path] = texture;
 	}
 }

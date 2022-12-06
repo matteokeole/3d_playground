@@ -3,7 +3,7 @@ export const
 	TEXTURE_PATH = "assets/textures/",
 	IMAGES = {},
 	TEXTURES = {},
-	FRAMES_PER_SECOND = 60,
+	FRAMES_PER_SECOND = 30,
 	GUI = {
 		defaultWidth: 320,
 		defaultHeight: 240,
