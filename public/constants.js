@@ -26,10 +26,6 @@ export const
 		up: "Space",
 		down: "ControlLeft",
 	},
-	WINDOW = {
-		width: 0, // Calculated on resize
-		height: 0, // Calculated on resize
-	},
 	keys = new Set(),
 	FIELD_OF_VIEW = 90,
 	PLAYER_HEIGHT = 1.8,
