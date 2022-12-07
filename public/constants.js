@@ -3,7 +3,7 @@ export const
 	TEXTURE_PATH = "assets/textures/",
 	IMAGES = {},
 	TEXTURES = {},
-	FRAMES_PER_SECOND = 30,
+	FRAMES_PER_SECOND = 60,
 	GUI = {
 		defaultWidth: 320,
 		defaultHeight: 240,
@@ -30,7 +30,6 @@ export const
 		width: 0, // Calculated on resize
 		height: 0, // Calculated on resize
 	},
-	MAX_CALL_STACK_SIZE = 120557,
 	keys = new Set(),
 	FIELD_OF_VIEW = 90,
 	PLAYER_HEIGHT = 1.8,
@@ -38,6 +37,7 @@ export const
 	VELOCITY = .15,
 	VELOCITY_SQRT1_2 = VELOCITY * Math.SQRT1_2,
 	CAMERA_LERP_FACTOR = .7,
+	/** @todo Remove this constant */
 	SCALE = .85,
 	NOISE_AMPLITUDE = 12,
 	NOISE_INC = .05;

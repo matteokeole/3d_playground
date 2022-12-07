@@ -59,4 +59,16 @@ Avoid the compositing by having only one canvas for the entire GUI. Layers becom
 - assets/
 	- css/
 		- main.css
+	- font/
+	- images/
+		- js.png
+		- webgl.png
+	- lang/
+		- en_us.json
+	- shaders/
+	- textures/
+- .gitignore
+- favicon.ico
 - index.html
+- LICENSE
+- README.md

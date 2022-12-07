@@ -26,6 +26,7 @@ canvas {
 	position: absolute;
 }
 
+/* Todo: remove when GUI is ready */
 #debug {
 	position: absolute;
 	background-color: #ffffff20;
