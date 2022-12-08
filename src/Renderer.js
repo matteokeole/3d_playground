@@ -3,9 +3,12 @@ import {Matrix4} from "./math/index.js";
 import {createProgram, linkProgram} from "./utils/index.js";
 import {NoWebGL2Error} from "./errors/NoWebGL2Error.js";
 
+let canvas, gl, camera, crosshair;
+
 const getCanvas = () => canvas;
 const getContext = () => gl;
-let canvas, gl;
+const bindCamera = newCamera => camera = newCamera;
+const bindCrosshair = newCrosshair => crosshair = newCrosshair;
 
 function build() {
 	canvas = document.createElement("canvas");
@@ -14,7 +17,6 @@ function build() {
 	if (!gl) throw new NoWebGL2Error();
 
 	document.body.appendChild(canvas);
-	document.body.style.backgroundColor = "#000";
 }
 
 async function init() {
@@ -104,8 +106,6 @@ async function init() {
 	});
 }
 
-const bindCamera = newCamera => camera = newCamera;
-
 function prepareRender(scene, camera) {
 	const
 		meshes = [...scene.meshes],
@@ -179,6 +179,7 @@ function prepareRender(scene, camera) {
 	gl.vertexAttribPointer(gl.attribute.guiPosition, 2, gl.FLOAT, false, 0, 0);
 
 	gl.uniform.resolution = gl.getUniformLocation(gl.program.gui, "u_resolution");
+	gl.uniform2f(gl.uniform.resolution, canvas.width, canvas.height);
 
 	/**
 	 * @test Draw inverted crosshair
@@ -246,14 +247,11 @@ function render(scene, camera) {
 		gl.blendFunc(gl.ONE_MINUS_DST_COLOR, gl.ONE_MINUS_SRC_COLOR);
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.guiPosition);
-		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-			 9,  9,
-			-9,  9,
-			-9, -9,
-			 9, -9,
-		]), gl.STATIC_DRAW);
+		gl.bufferData(gl.ARRAY_BUFFER, crosshair.vertices, gl.STATIC_DRAW);
+		// gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.guiUv);
+		// gl.bufferData(gl.ARRAY_BUFFER, crosshair.uvs, gl.STATIC_DRAW);
 
-		gl.bindTexture(gl.TEXTURE_2D, gl.white);
+		gl.bindTexture(gl.TEXTURE_2D, crosshair.texture);
 
 		gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 	}
@@ -261,9 +259,8 @@ function render(scene, camera) {
 	// Draw GUI
 	{
 		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-		return;
 
-		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+		/*gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
 			 1,  1,
 			-1,  1,
 			-1, -1,
@@ -272,11 +269,9 @@ function render(scene, camera) {
 
 		gl.bindTexture(gl.TEXTURE_2D, gl.guiTexture);
 
-		gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+		gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);*/
 	}
 }
-
-let camera;
 
 const resizeObserver = new ResizeObserver(function([entry]) {
 	const canvas = entry.target;
@@ -313,4 +308,4 @@ const resizeObserver = new ResizeObserver(function([entry]) {
 	gl.uniform2f(gl.uniform.resolution, canvas.width, canvas.height);
 });
 
-export const Renderer = {build, getCanvas, getContext, bindCamera, init, prepareRender, render};
+export const Renderer = {build, getCanvas, getContext, bindCamera, bindCrosshair, init, prepareRender, render};
