@@ -11,10 +11,7 @@ import {NoWebGL2Error} from "../src/errors/NoWebGL2Error.js";
 
 export let scene, camera;
 
-/**
- * @todo Handle WebGL context loss event
- * @todo Handle Fetch API compatibility
- */
+/** @todo Handle WebGL context loss event */
 try {
 	Renderer.build();
 
@@ -24,11 +21,9 @@ try {
 	Renderer.bindCamera(camera);
 	await Renderer.init();
 
-	const textures = await (await fetch("public/textures.json")).json();
+	const textures = await (await fetch("assets/textures/textures.json")).json();
 	await loadTextures(Renderer.getContext(), textures);
-
-	const images = await (await fetch("public/images.json")).json();
-	await loadImages(images);
+	await loadImages(["gui/widgets.png"]);
 
 	init(scene, camera);
 	initGUI();
