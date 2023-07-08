@@ -1,39 +1,9 @@
-body {
-	display: flex;
-	flex-direction: column;
-	height: 100vh;
-	margin: initial;
-	overflow: hidden;
-	font-family: Arial, sans-serif;
-}
+@import url(debug.css);
 
-noscript, .error {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: 1rem;
-	justify-self: center;
-	align-self: center;
-	margin: auto 0;
-	padding: 1rem;
-	text-align: center;
+body {
+	margin: initial;
 }
 
 canvas {
-	display: block;
-	width: 100vw;
-	height: 100vh;
-	position: absolute;
-}
-
-/* Todo: remove when GUI is ready */
-#debug {
-	position: absolute;
-	background-color: #ffffff20;
-	color: #ffffff70;
-	z-index: 1;
-}
-
-#debug span {
 	display: block;
 }

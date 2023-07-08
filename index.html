@@ -3,24 +3,20 @@
 <html lang="en">
 	<head>
 		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<link rel="icon" href="data:">
 		<link rel="stylesheet" href="assets/css/main.css">
 		<script type="module" src="public/main.js"></script>
-		<script src="public/lib/perlin.js"></script>
+		<!-- <script src="public/lib/perlin.js"></script> -->
 	</head>
 
 	<body>
-		<noscript>
-			<img src="assets/images/js.png">
-			This page needs JavaScript enabled to run.
-		</noscript>
-
 		<div id="debug">
-			<span id="fpsSpan"></span>
-			<span id="fpsMaxSpan"></span>
-			<span id="fpsAvgSpan"></span>
-			<span id="deltaSpan"></span>
-			<span id="timerSpan"></span>
+			<span id="debugFps"></span>
+			<span id="debugFpsMax"></span>
+			<span id="debugFpsAvg"></span>
+			<span id="debugDelta"></span>
+			<span id="debugElapsed"></span>
 		</div>
 	</body>
 </html>
