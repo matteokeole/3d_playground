@@ -35,6 +35,6 @@ export default function() {
 }
 
 const createMesh = () => new Mesh(
-	new BoxGeometry(1, 1, 1),
+	new BoxGeometry(new Vector3(1, 1, 1)),
 	new Material({texture: TEXTURES["block/sculk.png"]}),
 );

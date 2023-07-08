@@ -9,7 +9,7 @@ import testColumns from "./tests/testColumns.js";
 // import testLargeChunk from "./tests/testLargeChunk.js";
 
 export default function(scene, camera) {
-	camera.position.y = camera.target.y = PLAYER_HEIGHT;
+	camera.position[1] = camera.target[1] = PLAYER_HEIGHT;
 
 	const light = new DirectionalLight(
 		new Vector3(.8, .2, .15),

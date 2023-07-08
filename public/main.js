@@ -12,7 +12,7 @@ export let scene, camera;
 Renderer.build();
 
 scene = new Scene({background: new Color(0x202124)});
-camera = new PerspectiveCamera(FIELD_OF_VIEW, innerWidth / innerHeight, .01, 1000);
+camera = new PerspectiveCamera(FIELD_OF_VIEW, innerWidth / innerHeight, .01, 1000, .5);
 
 Renderer.bindCamera(camera);
 await Renderer.init();

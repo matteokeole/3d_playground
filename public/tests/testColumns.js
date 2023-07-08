@@ -4,18 +4,17 @@ import {BoxGeometry} from "../../src/geometries/index.js";
 import {Material} from "../../src/materials/index.js";
 import {Mesh} from "../../src/Mesh.js";
 
-// Windows Chrome (max. 165): 165 FPS with 120k instanced meshes
-// Ubuntu Firefox (max. 60): 38 FPS with 120k instanced meshes (slowness on other applications)
+// CURR/MAX FPS - 120K instanced meshes
+// Windows 10/Chrome: 165/165 FPS
+// Ubuntu/Firefox: 38/60 FPS
 export default function(n = 300) {
-	const
-		meshes = [],
-		geometry = new BoxGeometry(1, 1, 1);
+	const meshes = [];
 	let i, j, k;
 	i = j = k = 0;
 
 	for (; i < n; i++) {
 		const mesh = new Mesh(
-			new BoxGeometry(1, 1, 1),
+			new BoxGeometry(new Vector3(1, 1, 1)),
 			new Material({
 				texture: TEXTURES["block/sculk.png"],
 			}),

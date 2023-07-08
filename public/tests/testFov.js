@@ -7,7 +7,7 @@ import {Mesh} from "../../src/Mesh.js";
 export default function() {
 	const
 		meshes = [],
-		geometry = new BoxGeometry(1, 1, 1),
+		geometry = new BoxGeometry(new Vector3(1, 1, 1)),
 		material = new Material({
 			texture: TEXTURES["misc/white.png"],
 		}),

@@ -2,12 +2,11 @@ import {keys} from "../public/constants.js";
 import {Matrix4} from "./math/index.js";
 import {createProgram, linkProgram} from "./utils/index.js";
 
-let canvas, gl, camera, crosshair;
+let canvas, gl, camera;
 
 const getCanvas = () => canvas;
 const getContext = () => gl;
 const bindCamera = newCamera => camera = newCamera;
-const bindCrosshair = newCrosshair => crosshair = newCrosshair;
 
 function build() {
 	canvas = document.createElement("canvas");
@@ -87,10 +86,9 @@ async function init() {
 }
 
 function prepareRender(scene, camera) {
-	const
-		meshes = [...scene.meshes],
-		{length} = meshes;
-	let i, j, loc, mesh;
+	const meshes = [...scene.meshes];
+	const length = meshes.length;
+	let i, loc;
 
 	gl.useProgram(gl.program.scene);
 
@@ -112,28 +110,7 @@ function prepareRender(scene, camera) {
 	gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.uv);
 	gl.vertexAttribPointer(gl.attribute.uv, 2, gl.FLOAT, true, 0, 0);
 
-	gl.worldData = new Float32Array(length * 16);
-	gl.worldMatrices = [];
-
-	for (i = 0; i < length; i++) {
-		gl.worldMatrices.push(new Float32Array(
-			gl.worldData.buffer,
-			i * 64,
-			16,
-		));
-
-		mesh = meshes[i];
-
-		const position = mesh.position.clone().multiply(camera.lhcs).multiplyScalar(-1);
-		const world = Matrix4.translation(position)
-			.multiply(Matrix4.scale(mesh.scale));
-
-		for (j = 0; j < 16; j++) gl.worldMatrices[i][j] = world[j];
-	}
-
-	// Allocate space on the matrix buffer
 	gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.world);
-	gl.bufferData(gl.ARRAY_BUFFER, gl.worldData.byteLength, gl.DYNAMIC_DRAW);
 
 	for (i = 0; i < 4; i++) {
 		loc = gl.attribute.world + i;
@@ -147,19 +124,8 @@ function prepareRender(scene, camera) {
 	gl.uniform3fv(gl.uniform.lightDirection, scene.directionalLight.direction);
 	gl.uniform3fv(gl.uniform.lightColor, scene.directionalLight.color.normalized.splice(0, 3));
 	gl.uniform1f(gl.uniform.lightIntensity, scene.directionalLight.intensity);
-
-	/**
-	 * @test Draw inverted crosshair
-	 */
-	// gl.bindTexture(gl.TEXTURE_2D, gl.white = gl.createTexture());
-	// gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([255, 255, 255, 255]));
-	// gl.generateMipmap(gl.TEXTURE_2D);
 }
 
-/**
- * @param {Scene} scene
- * @param {Camera} camera
- */
 function render(scene, camera) {
 	gl.clearColor(...scene.background);
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -167,39 +133,48 @@ function render(scene, camera) {
 	gl.useProgram(gl.program.scene);
 	gl.bindVertexArray(gl.vao.instancing);
 
-	// Draw scene
-	{
-		const
-			meshes = [...scene.meshes],
-			firstMesh = meshes[0],
-			{length} = meshes;
+	const meshes = [...scene.meshes];
+	const length = meshes.length;
+	const firstMesh = meshes[0];
 
-		const cameraMatrix = Matrix4
-			.translation(camera.distance.clone().multiplyScalar(-1))
-			.multiply(Matrix4.rotation(camera.rotation))
-			.multiply(Matrix4.translation(camera.position.clone().multiply(camera.lhcs)));
+	const cameraMatrix = Matrix4
+		.translation(camera.distance.clone().multiplyScalar(-1))
+		.multiply(Matrix4.rotation(camera.rotation))
+		.multiply(Matrix4.translation(camera.position.clone().multiply(camera.lhcs)));
 
-		/** @todo Switch to a matrix attribute */
-		gl.uniformMatrix4fv(gl.uniform.cameraMatrix, false, cameraMatrix);
+	/** @todo Switch to a matrix attribute */
+	gl.uniformMatrix4fv(gl.uniform.cameraMatrix, false, cameraMatrix);
 
-		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.world);
-		gl.bufferSubData(gl.ARRAY_BUFFER, 0, gl.worldData);
+	const worlds = new Float32Array(length * 16);
 
-		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, firstMesh.geometry.indices, gl.STATIC_DRAW);
+	for (let i = 0, mesh; i < length; i++) {
+		mesh = meshes[i];
 
-		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.vertex);
-		gl.bufferData(gl.ARRAY_BUFFER, firstMesh.geometry.vertices, gl.STATIC_DRAW);
+		const position = mesh.position.clone().multiply(camera.lhcs).multiplyScalar(-1);
+		const translation = Matrix4.translation(position);
+		const scale = Matrix4.scale(mesh.scale);
+		const world = translation.multiply(scale);
 
-		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.normal);
-		gl.bufferData(gl.ARRAY_BUFFER, firstMesh.geometry.normals, gl.STATIC_DRAW);
-
-		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.uv);
-		gl.bufferData(gl.ARRAY_BUFFER, firstMesh.geometry.uvs, gl.STATIC_DRAW);
-
-		gl.bindTexture(gl.TEXTURE_2D, firstMesh.material.texture);
-
-		gl.drawElementsInstanced(gl.TRIANGLES, 36, gl.UNSIGNED_BYTE, 0, length);
+		worlds.set(world, i * 16);
 	}
+
+	gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.world);
+	gl.bufferData(gl.ARRAY_BUFFER, worlds, gl.STATIC_DRAW);
+
+	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, firstMesh.geometry.indices, gl.STATIC_DRAW);
+
+	gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.vertex);
+	gl.bufferData(gl.ARRAY_BUFFER, firstMesh.geometry.vertices, gl.STATIC_DRAW);
+
+	gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.normal);
+	gl.bufferData(gl.ARRAY_BUFFER, firstMesh.geometry.normals, gl.STATIC_DRAW);
+
+	gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.uv);
+	gl.bufferData(gl.ARRAY_BUFFER, firstMesh.geometry.uvs, gl.STATIC_DRAW);
+
+	gl.bindTexture(gl.TEXTURE_2D, firstMesh.material.texture);
+
+	gl.drawElementsInstanced(gl.TRIANGLES, 36, gl.UNSIGNED_BYTE, 0, length);
 }
 
-export const Renderer = {build, getCanvas, getContext, bindCamera, bindCrosshair, init, prepareRender, render};
+export const Renderer = {build, getCanvas, getContext, bindCamera, init, prepareRender, render};

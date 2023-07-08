@@ -6,7 +6,7 @@ import {Mesh} from "../../src/Mesh.js";
 
 export default function() {
 	const mesh = new Mesh(
-		new BoxGeometry(1, 1, 1),
+		new BoxGeometry(new Vector3(1, 1, 1)),
 		new Material({texture: TEXTURES["block/crafting_table_top.png"]}),
 	);
 
