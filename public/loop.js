@@ -1,14 +1,17 @@
+import {Renderer} from "../src/Renderer.js";
 import {FRAMES_PER_SECOND} from "./constants.js";
 import update from "./update.js";
-import render from "./render.js";
 
 const FPS_LOOKUPS = [];
 let interval, then, now, counter, counterThen, counterDiff, diff, delta, currentFrame, currentRealFrame, request;
+let scene, camera;
 let FPS_AVERAGE = 0;
 let FPS_MAX = 0;
 
 export default {
-	start: () => {
+	start: (_scene, _camera) => {
+		scene = _scene;
+		camera = _camera;
 		currentFrame = currentRealFrame = 0;
 		interval = 1000 / FRAMES_PER_SECOND;
 		delta = 30 / FRAMES_PER_SECOND;
@@ -35,8 +38,8 @@ function loop() {
 		currentFrame++;
 		currentRealFrame++;
 
-		update(delta);
-		render();
+		update(camera, delta);
+		Renderer.render(scene, camera);
 	}
 
 	if (counterDiff > 1000) {

@@ -1,6 +1,6 @@
 import {keys} from "../public/constants.js";
 import {Matrix4} from "./math/index.js";
-import {createProgram, linkProgram} from "./utils/index.js";
+// import {createProgram, linkProgram} from "./utils/index.js";
 
 let canvas, gl, camera;
 
@@ -120,6 +120,21 @@ function prepareRender(scene, camera) {
 		gl.vertexAttribDivisor(loc, 1);
 	}
 
+	const worlds = new Float32Array(length * 16);
+
+	for (let i = 0, mesh; i < length; i++) {
+		mesh = meshes[i];
+
+		const position = mesh.position.clone().multiply(camera.lhcs).multiplyScalar(-1);
+		const translation = Matrix4.translation(position);
+		const scale = Matrix4.scale(mesh.scale);
+		const world = translation.multiply(scale);
+
+		worlds.set(world, i * 16);
+	}
+
+	gl.bufferData(gl.ARRAY_BUFFER, worlds, gl.STATIC_DRAW);
+
 	gl.uniformMatrix4fv(gl.uniform.projectionMatrix, false, camera.projectionMatrix);
 	gl.uniform3fv(gl.uniform.lightDirection, scene.directionalLight.direction);
 	gl.uniform3fv(gl.uniform.lightColor, scene.directionalLight.color.normalized.splice(0, 3));
@@ -144,22 +159,6 @@ function render(scene, camera) {
 
 	/** @todo Switch to a matrix attribute */
 	gl.uniformMatrix4fv(gl.uniform.cameraMatrix, false, cameraMatrix);
-
-	const worlds = new Float32Array(length * 16);
-
-	for (let i = 0, mesh; i < length; i++) {
-		mesh = meshes[i];
-
-		const position = mesh.position.clone().multiply(camera.lhcs).multiplyScalar(-1);
-		const translation = Matrix4.translation(position);
-		const scale = Matrix4.scale(mesh.scale);
-		const world = translation.multiply(scale);
-
-		worlds.set(world, i * 16);
-	}
-
-	gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.world);
-	gl.bufferData(gl.ARRAY_BUFFER, worlds, gl.STATIC_DRAW);
 
 	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, firstMesh.geometry.indices, gl.STATIC_DRAW);
 

@@ -2,11 +2,12 @@ import {Vector3} from "../math/index.js";
 
 /** @param {Vector3} size */
 export function BoxGeometry(size) {
-	this.width = size[0];
-	this.height = size[1];
-	this.depth = size[2];
+	// this.width = size[0];
+	// this.height = size[1];
+	// this.depth = size[2];
 
-	const [w, h, d] = size.multiplyScalar(.5);
+	// const [w, h, d] = size.multiplyScalar(.5);
+	const w = 1, h = 1, d = 1;
 
 	this.indices = Uint8Array.of(
 		0,  2,  1,		2,  3,  1,

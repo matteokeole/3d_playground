@@ -14,11 +14,11 @@ export const
 	},
 	keys = new Set(),
 	FIELD_OF_VIEW = 90,
-	PLAYER_HEIGHT = 1.8,
+	ENTITY_HEIGHT_STAND = 1.8,
 	SENSITIVITY = 800,
 	VELOCITY = .15,
 	VELOCITY_SQRT1_2 = VELOCITY * Math.SQRT1_2,
 	CAMERA_LERP_FACTOR = .9,
-	SCALE = .85, // Required for Minecraft blocks
+	BLOCK_SCALE = .425, // Required for Minecraft blocks (.85 * .5)
 	NOISE_AMPLITUDE = 12,
 	NOISE_INC = .05;

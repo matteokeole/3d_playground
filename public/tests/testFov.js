@@ -1,21 +1,21 @@
-import {TEXTURES} from "../constants.js";
+import {BLOCK_SCALE} from "../constants.js";
 import {Vector3} from "../../src/math/index.js";
 import {BoxGeometry} from "../../src/geometries/index.js";
 import {Material} from "../../src/materials/index.js";
 import {Mesh} from "../../src/Mesh.js";
 
-export default function() {
+export default function(textures) {
 	const
 		meshes = [],
 		geometry = new BoxGeometry(new Vector3(1, 1, 1)),
 		material = new Material({
-			texture: TEXTURES["misc/white.png"],
+			texture: textures["misc/white.png"],
 		}),
 		scale = .85,
-		scaleVector = new Vector3(1, 1, 1).multiplyScalar(scale);
-	let mesh, i = 0;
+		scaleVector = new Vector3(BLOCK_SCALE, BLOCK_SCALE, BLOCK_SCALE);
+	let mesh, i;
 
-	for (; i < 26; i++) {
+	for (i = 0; i < 26; i++) {
 		mesh = new Mesh(geometry, material);
 		mesh.position = new Vector3(0, 0, i * scale);
 		mesh.scale = scaleVector;

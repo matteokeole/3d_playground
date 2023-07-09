@@ -1,7 +1,6 @@
 import {Keybind, keys, VELOCITY, VELOCITY_SQRT1_2, CAMERA_LERP_FACTOR} from "./constants.js";
-import {camera} from "./main.js";
 
-export default function(delta) {
+export default function(camera, delta) {
 	// Cancel diagonal speed boost
 	const v = (diagonalMovement() ? VELOCITY_SQRT1_2 : VELOCITY) * delta;
 

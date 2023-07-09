@@ -1,10 +1,10 @@
-import {NOISE_AMPLITUDE, NOISE_INC, SCALE, TEXTURES} from "../constants.js";
+import {BLOCK_SCALE, NOISE_AMPLITUDE, NOISE_INC} from "../constants.js";
 import {Vector3} from "../../src/math/index.js";
 import {BoxGeometry} from "../../src/geometries/index.js";
 import {Material} from "../../src/materials/index.js";
 import {Mesh} from "../../src/Mesh.js";
 
-export default function() {
+export default function(textures) {
 	const
 		meshes = [],
 		seed = .6389044591913386,
@@ -17,7 +17,7 @@ export default function() {
 	noise.seed(seed);
 
 	for (i = 0; i < chunkSizeSquared; i++) {
-		mesh = createMesh();
+		mesh = createMesh(textures);
 
 		if (i % chunkSize === 0) j++;
 
@@ -25,8 +25,8 @@ export default function() {
 		z = j % chunkSize;
 		y = Math.round(noise.perlin2(x * NOISE_INC, z * NOISE_INC) * NOISE_AMPLITUDE) + yOffset;
 
-		mesh.position = new Vector3(x, y, z).substractScalar(chunkCenter).multiplyScalar(SCALE);
-		mesh.scale = new Vector3(1, 1, 1).multiplyScalar(SCALE);
+		mesh.position = new Vector3(x, y, z).subtractScalar(chunkCenter).multiplyScalar(.85);
+		mesh.scale = new Vector3(BLOCK_SCALE, BLOCK_SCALE, BLOCK_SCALE);
 
 		meshes.push(mesh);
 	}
@@ -34,7 +34,7 @@ export default function() {
 	return meshes;
 }
 
-const createMesh = () => new Mesh(
+const createMesh = textures => new Mesh(
 	new BoxGeometry(new Vector3(1, 1, 1)),
-	new Material({texture: TEXTURES["block/sculk.png"]}),
+	new Material({texture: textures["block/sculk.png"]}),
 );

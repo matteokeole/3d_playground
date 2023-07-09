@@ -1,4 +1,4 @@
-import {NOISE_AMPLITUDE, NOISE_INC, SCALE, TEXTURES} from "../constants.js";
+import {BLOCK_SCALE, NOISE_AMPLITUDE, NOISE_INC, TEXTURES} from "../constants.js";
 import {Vector3} from "../../src/math/index.js";
 import {BoxGeometry} from "../../src/geometries/index.js";
 import {Material} from "../../src/materials/index.js";
@@ -24,8 +24,8 @@ export default function() {
 		z = j % chunkSize;
 		y = Math.round(noise.perlin2(x * NOISE_INC, z * NOISE_INC) * NOISE_AMPLITUDE);
 
-		mesh.position = new Vector3(x, y, z).substractScalar(chunkCenter).multiplyScalar(SCALE);
-		mesh.scale = new Vector3(1, 1, 1).multiplyScalar(SCALE);
+		mesh.position = new Vector3(x, y, z).subtractScalar(chunkCenter).multiplyScalar(.85);
+		mesh.scale = new Vector3(BLOCK_SCALE, BLOCK_SCALE, BLOCK_SCALE);
 
 		meshes.push(mesh);
 	}
