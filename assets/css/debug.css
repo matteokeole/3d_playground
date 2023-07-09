@@ -18,18 +18,6 @@
 	font-style: italic;
 }
 
-#debug #debugFps::before {
-	content: "FPS (curr): ";
-}
-#debug #debugFpsMax::before {
-	content: "FPS (max): ";
-}
-#debug #debugFpsAvg::before {
-	content: "FPS (avg): ";
-}
 #debug #debugDelta::before {
 	content: "Δt: ";
-}
-#debug #debugElapsed::before {
-	content: "Elapsed: ";
 }

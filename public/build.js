@@ -9,7 +9,10 @@ import testColumns from "./tests/testColumns.js";
 // import testChunk from "./tests/testChunk.js";
 // import testLargeChunk from "./tests/testLargeChunk.js";
 
-export default function(scene, camera, textures) {
+export function build(renderer) {
+	const scene = renderer.scene;
+	const camera = renderer.camera;
+
 	camera.position[1] = camera.target[1] = ENTITY_HEIGHT_STAND;
 
 	const light = new DirectionalLight(
@@ -19,5 +22,5 @@ export default function(scene, camera, textures) {
 	);
 
 	scene.directionalLight = light;
-	scene.meshes = testColumns(textures);
+	scene.meshes = testColumns(renderer.textures);
 }

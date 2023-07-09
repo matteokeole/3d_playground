@@ -1,17 +1,20 @@
 import {Keybind, keys, VELOCITY, VELOCITY_SQRT1_2, CAMERA_LERP_FACTOR} from "./constants.js";
 
-export default function(camera, delta) {
-	// Cancel diagonal speed boost
-	const v = (diagonalMovement() ? VELOCITY_SQRT1_2 : VELOCITY) * delta;
+export function update(delta, renderer) {
+	const camera = renderer.camera;
+	const velocity = (diagonalMovement() ? VELOCITY_SQRT1_2 : VELOCITY) * delta;
 
-	if (keys.has(Keybind.forward)) camera.moveTargetZ(v);
-	if (keys.has(Keybind.backward)) camera.moveTargetZ(-v);
-	if (keys.has(Keybind.left)) camera.moveTargetX(-v);
-	if (keys.has(Keybind.right)) camera.moveTargetX(v);
-	if (keys.has(Keybind.up)) camera.moveTargetY(v);
-	if (keys.has(Keybind.down)) camera.moveTargetY(-v);
+	if (keys.has("KeyW")) camera.moveZ(velocity);
+	if (keys.has("KeyS")) camera.moveZ(-velocity);
+	if (keys.has("KeyA")) camera.truck(-velocity);
+	if (keys.has("KeyD")) camera.truck(velocity);
+	if (keys.has("Space")) camera.moveY(velocity);
+	if (keys.has("ControlLeft")) camera.moveY(-velocity);
 
-	camera.position = camera.target.clone().lerp(camera.position, CAMERA_LERP_FACTOR);
+	camera.position.set(camera.target.clone().lerp(camera.position, CAMERA_LERP_FACTOR));
+	camera.update();
+
+	debugDelta.textContent = delta.toFixed(2);
 };
 
 const diagonalMovement = () =>

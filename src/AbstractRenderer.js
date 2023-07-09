@@ -57,6 +57,21 @@ export class AbstractRenderer {
 	/** @type {?AbstractCamera} */
 	camera = null;
 
+	/** @type {?Function} */
+	update = null;
+
+	/** @type {Number} */
+	#frames = 0;
+
+	/** @type {?Number} */
+	#framesPerSecond = null;
+
+	/** @type {?Number} */
+	#frameInterval = null;
+
+	/** @type {?Number} */
+	#then = null;
+
 	/**
 	 * @returns {HTMLCanvasElement}
 	 * @throws {ReferenceError}
@@ -115,6 +130,32 @@ export class AbstractRenderer {
 	/** @returns {Object.<String, WebGLTexture>} */
 	get textures() {
 		return this.#textures;
+	}
+
+	/** @type {Number} */
+	get frames() {
+		return this.#frames;
+	}
+
+	/** @returns {?Number} */
+	get framesPerSecond() {
+		return this.#framesPerSecond;
+	}
+
+	get locked() {
+		return document.pointerLockElement === this.#canvas;
+	}
+
+	/**
+	 * @param {Number} framesPerSecond
+	 * @returns {AbstractRenderer}
+	 */
+	set framesPerSecond(framesPerSecond) {
+		this.#framesPerSecond = framesPerSecond;
+		this.#frameInterval = framesPerSecond === 0 ? 0 : 1000 / framesPerSecond;
+		this.#then = 0;
+
+		return this;
 	}
 
 	/** Initializes the canvas and its WebGL context. */
@@ -191,17 +232,22 @@ export class AbstractRenderer {
 
 			try {
 				await image.decode();
-			} catch (error) {
+			} catch (_) {
 				continue;
 			}
 
-			gl.bindTexture(gl.TEXTURE_2D, texture = gl.createTexture());
+			texture = gl.createTexture();
+			gl.bindTexture(gl.TEXTURE_2D, texture);
 			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image);
 			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 			gl.generateMipmap(gl.TEXTURE_2D);
 
 			this.#textures[path] = texture;
 		}
+	}
+
+	lock() {
+		this.#canvas.requestPointerLock();
 	}
 
 	resize() {
@@ -215,6 +261,27 @@ export class AbstractRenderer {
 			canvas.width = viewport[2],
 			canvas.height = viewport[3],
 		);
+	}
+
+	loop() {
+		const requestId = requestAnimationFrame(this.loop.bind(this));
+		const now = performance.now();
+		const delta = now - this.#then;
+
+		if (this.#frames === 0 || delta > this.#frameInterval) {
+			this.#then = now - delta / this.#frameInterval;
+
+			try {
+				this.update(delta, this);
+				this.render();
+			} catch (error) {
+				console.error(error);
+
+				cancelAnimationFrame(requestId);
+			}
+
+			this.#frames++;
+		}
 	}
 
 	/** @abstract */

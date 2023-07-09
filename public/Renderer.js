@@ -1,5 +1,5 @@
 import {AbstractRenderer} from "../src/index.js";
-import {Matrix4} from "../src/math/index.js";
+import {Matrix4, Vector3} from "../src/math/index.js";
 
 export class Renderer extends AbstractRenderer {
 	async build() {
@@ -17,9 +17,11 @@ export class Renderer extends AbstractRenderer {
 		const buffers = this.buffers;
 		const uniforms = this.uniforms;
 
+		gl.frontFace(gl.CW);
 		gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 		gl.enable(gl.CULL_FACE);
 		gl.enable(gl.DEPTH_TEST);
+		// gl.depthFunc(gl.GEQUAL);
 
 		vaos.main = gl.createVertexArray();
 
@@ -31,8 +33,8 @@ export class Renderer extends AbstractRenderer {
 		gl.enableVertexAttribArray(5);
 		gl.enableVertexAttribArray(6);
 
-		uniforms.projection = gl.getUniformLocation(programs.main, "u_projection");
-		uniforms.view = gl.getUniformLocation(programs.main, "u_view");
+		uniforms.projectionInverse = gl.getUniformLocation(programs.main, "u_projection_inverse");
+		uniforms.viewInverse = gl.getUniformLocation(programs.main, "u_view_inverse");
 		uniforms.lightDirection = gl.getUniformLocation(programs.main, "u_light_direction");
 		uniforms.lightColor = gl.getUniformLocation(programs.main, "u_light_color");
 		uniforms.lightIntensity = gl.getUniformLocation(programs.main, "u_light_intensity");
@@ -81,22 +83,20 @@ export class Renderer extends AbstractRenderer {
 		gl.useProgram(programs.main);
 		gl.bindVertexArray(vaos.main);
 
-		gl.uniformMatrix4fv(uniforms.projection, false, camera.projectionMatrix);
+		/* const view = Matrix4
+			.translation(camera.distance.clone().multiplyScalar(-1))
+			.multiply(Matrix4.rotation(camera.rotation))
+			.multiply(Matrix4.translation(camera.position.clone().multiply(camera.lhcs))); */
+
+		gl.uniformMatrix4fv(uniforms.projectionInverse, false, camera.projectionInverse);
+		gl.uniformMatrix4fv(uniforms.viewInverse, false, camera.viewInverse);
 		gl.uniform3fv(uniforms.lightDirection, scene.directionalLight.direction);
-		gl.uniform3fv(uniforms.lightColor, scene.directionalLight.color.normalized.splice(0, 3));
+		gl.uniform3fv(uniforms.lightColor, [...scene.directionalLight.color.normalized].splice(0, 3));
 		gl.uniform1f(uniforms.lightIntensity, scene.directionalLight.intensity);
 
 		const meshes = scene.meshes;
 		const length = meshes.length;
 		const firstMesh = meshes[0];
-
-		const view = Matrix4
-			.translation(camera.distance.clone().multiplyScalar(-1))
-			.multiply(Matrix4.rotation(camera.rotation))
-			.multiply(Matrix4.translation(camera.position.clone().multiply(camera.lhcs)));
-
-		/** @todo Switch to a matrix attribute */
-		gl.uniformMatrix4fv(uniforms.view, false, view);
 
 		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, firstMesh.geometry.indices, gl.STATIC_DRAW);
 
@@ -108,7 +108,7 @@ export class Renderer extends AbstractRenderer {
 		for (let i = 0, mesh; i < length; i++) {
 			mesh = meshes[i];
 
-			const position = mesh.position.clone().multiply(camera.lhcs).multiplyScalar(-1);
+			const position = mesh.position.clone().multiply(new Vector3(-1, -1, 1)).multiplyScalar(-1);
 			const translation = Matrix4.translation(position);
 			const scale = Matrix4.scale(mesh.scale);
 			const world = translation.multiply(scale);
