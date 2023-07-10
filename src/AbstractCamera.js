@@ -6,13 +6,13 @@ export class AbstractCamera {
 	 * @private
 	 * @type {Matrix4}
 	 */
-	#projectionInverse = new Matrix4();
+	#projection = new Matrix4();
 
 	/**
 	 * @private
 	 * @type {Matrix4}
 	 */
-	#viewInverse = new Matrix4();
+	#view = new Matrix4();
 
 	/** @type {Vector3} */
 	position = new Vector3();
@@ -57,13 +57,13 @@ export class AbstractCamera {
 	lerpFactor = 1;
 
 	/** @returns {Matrix4} */
-	get projectionInverse() {
-		return this.#projectionInverse;
+	get projection() {
+		return this.#projection;
 	}
 
 	/** @returns {Matrix4} */
-	get viewInverse() {
-		return this.#viewInverse;
+	get view() {
+		return this.#view;
 	}
 
 	/** @param {Number} x */
@@ -120,14 +120,14 @@ export class AbstractCamera {
 	};
 
 	update() {
-		this.#projectionInverse = Matrix4.perspective(
+		this.#projection = Matrix4.perspective(
 			this.fieldOfView * PI / 180,
 			this.aspectRatio,
 			this.near,
 			this.far,
 			1,
 		);
-		this.#viewInverse = Matrix4.lookAt(
+		this.#view = Matrix4.lookAt(
 			this.position,
 			this.position.clone().add(this.forward),
 			this.up,

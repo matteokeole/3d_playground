@@ -33,8 +33,8 @@ export class Renderer extends AbstractRenderer {
 		gl.enableVertexAttribArray(5);
 		gl.enableVertexAttribArray(6);
 
-		uniforms.projectionInverse = gl.getUniformLocation(programs.main, "u_projection_inverse");
-		uniforms.viewInverse = gl.getUniformLocation(programs.main, "u_view_inverse");
+		uniforms.projection = gl.getUniformLocation(programs.main, "u_projection");
+		uniforms.view = gl.getUniformLocation(programs.main, "u_view");
 		uniforms.lightDirection = gl.getUniformLocation(programs.main, "u_light_direction");
 		uniforms.lightColor = gl.getUniformLocation(programs.main, "u_light_color");
 		uniforms.lightIntensity = gl.getUniformLocation(programs.main, "u_light_intensity");
@@ -83,15 +83,10 @@ export class Renderer extends AbstractRenderer {
 		gl.useProgram(programs.main);
 		gl.bindVertexArray(vaos.main);
 
-		/* const view = Matrix4
-			.translation(camera.distance.clone().multiplyScalar(-1))
-			.multiply(Matrix4.rotation(camera.rotation))
-			.multiply(Matrix4.translation(camera.position.clone().multiply(camera.lhcs))); */
-
-		gl.uniformMatrix4fv(uniforms.projectionInverse, false, camera.projectionInverse);
-		gl.uniformMatrix4fv(uniforms.viewInverse, false, camera.viewInverse);
+		gl.uniformMatrix4fv(uniforms.projection, false, camera.projection);
+		gl.uniformMatrix4fv(uniforms.view, false, camera.view);
 		gl.uniform3fv(uniforms.lightDirection, scene.directionalLight.direction);
-		gl.uniform3fv(uniforms.lightColor, [...scene.directionalLight.color.normalized].splice(0, 3));
+		gl.uniform3fv(uniforms.lightColor, scene.directionalLight.color);
 		gl.uniform1f(uniforms.lightIntensity, scene.directionalLight.intensity);
 
 		const meshes = scene.meshes;

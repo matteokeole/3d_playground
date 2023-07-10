@@ -1,5 +1,4 @@
 import {ENTITY_HEIGHT_STAND} from "./constants.js";
-import {Color} from "../src/Color.js";
 import {DirectionalLight} from "../src/lights/index.js";
 import {Vector3} from "../src/math/index.js";
 
@@ -17,7 +16,7 @@ export function build(renderer) {
 
 	const light = new DirectionalLight(
 		new Vector3(.8, .2, .15),
-		new Color(0xffffff),
+		new Vector3(1, 1, 1), // RGB
 		1,
 	);
 
