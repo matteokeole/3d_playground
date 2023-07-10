@@ -1,5 +1,5 @@
-import {AbstractRenderer} from "../src/index.js";
-import {Matrix4, Vector3} from "../src/math/index.js";
+import {AbstractRenderer} from "src";
+import {Matrix4} from "src/math";
 
 export class Renderer extends AbstractRenderer {
 	async build() {
@@ -21,7 +21,6 @@ export class Renderer extends AbstractRenderer {
 		gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 		gl.enable(gl.CULL_FACE);
 		gl.enable(gl.DEPTH_TEST);
-		// gl.depthFunc(gl.GEQUAL);
 
 		vaos.main = gl.createVertexArray();
 
@@ -85,7 +84,7 @@ export class Renderer extends AbstractRenderer {
 
 		gl.uniformMatrix4fv(uniforms.projection, false, camera.projection);
 		gl.uniformMatrix4fv(uniforms.view, false, camera.view);
-		gl.uniform3fv(uniforms.lightDirection, scene.directionalLight.direction);
+		gl.uniform3fv(uniforms.lightDirection, scene.directionalLight.direction.clone().multiplyScalar(-1));
 		gl.uniform3fv(uniforms.lightColor, scene.directionalLight.color);
 		gl.uniform1f(uniforms.lightIntensity, scene.directionalLight.intensity);
 
@@ -103,8 +102,7 @@ export class Renderer extends AbstractRenderer {
 		for (let i = 0, mesh; i < length; i++) {
 			mesh = meshes[i];
 
-			const position = mesh.position.clone().multiply(new Vector3(-1, -1, 1)).multiplyScalar(-1);
-			const translation = Matrix4.translation(position);
+			const translation = Matrix4.translation(mesh.position);
 			const scale = Matrix4.scale(mesh.scale);
 			const world = translation.multiply(scale);
 

@@ -1,7 +1,7 @@
 import {clamp, Matrix4, PI, Vector2, Vector3} from "./math/index.js";
 
 /** @abstract */
-export class AbstractCamera {
+export class Camera {
 	/**
 	 * @private
 	 * @type {Matrix4}

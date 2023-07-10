@@ -1,6 +1,6 @@
-import {ENTITY_HEIGHT_STAND} from "./constants.js";
-import {DirectionalLight} from "../src/lights/index.js";
-import {Vector3} from "../src/math/index.js";
+import {DirectionalLight} from "src/lights";
+import {Vector3} from "src/math";
+import {ENTITY_HEIGHT_STAND} from "./main.js";
 
 import testColumns from "./tests/testColumns.js";
 // import testFov from "./tests/testFov.js";
@@ -12,14 +12,13 @@ export function build(renderer) {
 	const scene = renderer.scene;
 	const camera = renderer.camera;
 
-	camera.position[1] = camera.target[1] = ENTITY_HEIGHT_STAND;
+	camera.position[1] = ENTITY_HEIGHT_STAND;
+	camera.target[1] = ENTITY_HEIGHT_STAND;
 
-	const light = new DirectionalLight(
-		new Vector3(.8, .2, .15),
-		new Vector3(1, 1, 1), // RGB
-		1,
-	);
-
-	scene.directionalLight = light;
+	scene.directionalLight = new DirectionalLight({
+		color: new Vector3(1, 1, 1),
+		intensity: 1,
+		direction: new Vector3(-.8, -.2, .15),
+	});
 	scene.meshes = testColumns(renderer.textures);
 }

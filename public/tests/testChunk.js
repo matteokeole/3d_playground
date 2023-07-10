@@ -1,10 +1,10 @@
-import {BLOCK_SCALE, NOISE_AMPLITUDE, NOISE_INC, TEXTURES} from "../constants.js";
-import {Vector3} from "../../src/math/index.js";
-import {BoxGeometry} from "../../src/geometries/index.js";
-import {Material} from "../../src/materials/index.js";
-import {Mesh} from "../../src/Mesh.js";
+import {Mesh} from "src";
+import {BoxGeometry} from "src/geometries";
+import {TextureMaterial} from "src/materials";
+import {Vector3} from "src/math";
+import {BLOCK_SCALE, NOISE_AMPLITUDE, NOISE_INC} from "../main.js";
 
-export default function() {
+export default function(textures) {
 	const
 		meshes = [],
 		seed = .6389044591913386,
@@ -16,7 +16,7 @@ export default function() {
 	noise.seed(seed);
 
 	for (i = 0; i < chunkSizeSquared; i++) {
-		mesh = createMesh();
+		mesh = createMesh(textures);
 
 		if (i % chunkSize === 0) j++;
 
@@ -33,7 +33,7 @@ export default function() {
 	return meshes;
 }
 
-const createMesh = () => new Mesh(
+const createMesh = textures => new Mesh(
 	new BoxGeometry(new Vector3(1, 1, 1)),
-	new Material({texture: TEXTURES["block/sculk.png"]}),
+	new TextureMaterial({texture: textures["block/sculk.png"]}),
 );

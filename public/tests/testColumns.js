@@ -1,8 +1,8 @@
-import {BLOCK_SCALE} from "../constants.js";
-import {Vector3} from "../../src/math/index.js";
-import {BoxGeometry} from "../../src/geometries/index.js";
-import {Material} from "../../src/materials/index.js";
-import {Mesh} from "../../src/Mesh.js";
+import {Mesh} from "src";
+import {BoxGeometry} from "src/geometries";
+import {TextureMaterial} from "src/materials";
+import {Vector3} from "src/math";
+import {BLOCK_SCALE} from "../main.js";
 
 // CURR/MAX FPS - 120K instanced meshes
 // Windows 10/Chrome: 165/165 FPS
@@ -15,7 +15,7 @@ export default function(textures, n = 300) {
 	for (; i < n; i++) {
 		const mesh = new Mesh(
 			new BoxGeometry(new Vector3(1, 1, 1)),
-			new Material({
+			new TextureMaterial({
 				texture: textures["block/sculk.png"],
 			}),
 		);

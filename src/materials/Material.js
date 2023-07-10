@@ -1,3 +1,2 @@
-export function Material({texture}) {
-	this.texture = texture;
-}
+/** @abstract */
+export class Material {}

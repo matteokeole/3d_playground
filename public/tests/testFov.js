@@ -1,14 +1,14 @@
-import {BLOCK_SCALE} from "../constants.js";
-import {Vector3} from "../../src/math/index.js";
-import {BoxGeometry} from "../../src/geometries/index.js";
-import {Material} from "../../src/materials/index.js";
-import {Mesh} from "../../src/Mesh.js";
+import {Mesh} from "src";
+import {BoxGeometry} from "src/geometries";
+import {TextureMaterial} from "src/materials";
+import {Vector3} from "src/math";
+import {BLOCK_SCALE} from "../main.js";
 
 export default function(textures) {
 	const
 		meshes = [],
 		geometry = new BoxGeometry(new Vector3(1, 1, 1)),
-		material = new Material({
+		material = new TextureMaterial({
 			texture: textures["misc/white.png"],
 		}),
 		scale = .85,

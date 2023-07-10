@@ -1,8 +1,16 @@
-import {Vector2} from "../src/math/index.js";
-import {keys} from "./constants.js";
+import {Vector2} from "src/math";
 
 const movement = new Vector2();
 
+export const keys = new Set();
+export const Keybind = {
+	forward: "KeyW",
+	backward: "KeyS",
+	left: "KeyA",
+	right: "KeyD",
+	up: "Space",
+	down: "ControlLeft",
+};
 export function listen(renderer) {
 	const keydown = event => keys.add(event.code);
 	const keyup = event => keys.delete(event.code);

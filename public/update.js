@@ -1,4 +1,9 @@
-import {Keybind, keys, VELOCITY, VELOCITY_SQRT1_2, CAMERA_LERP_FACTOR} from "./constants.js";
+import {VELOCITY, VELOCITY_SQRT1_2, CAMERA_LERP_FACTOR} from "./main.js";
+import {Keybind, keys} from "./events.js";
+
+const diagonalMovement = () =>
+	(keys.has(Keybind.forward) || keys.has(Keybind.backward)) &&
+	(keys.has(Keybind.left) || keys.has(Keybind.right));
 
 export function update(delta, renderer) {
 	const camera = renderer.camera;
@@ -16,7 +21,3 @@ export function update(delta, renderer) {
 
 	debugDelta.textContent = delta.toFixed(2);
 };
-
-const diagonalMovement = () =>
-	(keys.has(Keybind.forward) || keys.has(Keybind.backward)) &&
-	(keys.has(Keybind.left) || keys.has(Keybind.right));

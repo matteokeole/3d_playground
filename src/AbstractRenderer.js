@@ -1,4 +1,4 @@
-import {AbstractCamera, AbstractScene} from "./index.js";
+import {Camera, Scene} from "./index.js";
 import {Vector4} from "./math/index.js";
 
 /** @abstract */
@@ -51,10 +51,10 @@ export class AbstractRenderer {
 	 */
 	#textures = {};
 
-	/** @type {?AbstractScene} */
+	/** @type {?Scene} */
 	scene = null;
 
-	/** @type {?AbstractCamera} */
+	/** @type {?Camera} */
 	camera = null;
 
 	/** @type {?Function} */
