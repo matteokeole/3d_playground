@@ -44,4 +44,6 @@ renderer.update = update;
 
 build(renderer);
 listen(renderer);
+
+renderer.prerender();
 renderer.loop();
