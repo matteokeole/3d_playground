@@ -14,5 +14,5 @@ void main() {
 
 	gl_Position = vec4(vertex, 0, 1);
 
-	v_uv = (vertex + 1.) * .5;
+	v_uv = vertex;
 }

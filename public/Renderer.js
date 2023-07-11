@@ -69,9 +69,6 @@ export class Renderer extends AbstractRenderer {
 
 		this.buildGBuffer();
 
-		gl.useProgram(programs.screen);
-		gl.bindVertexArray(vaos.screen);
-
 		gl.bindVertexArray(null);
 		gl.useProgram(null);
 	}
@@ -96,7 +93,6 @@ export class Renderer extends AbstractRenderer {
 			gl.COLOR_ATTACHMENT0,
 			gl.COLOR_ATTACHMENT1,
 			gl.COLOR_ATTACHMENT2,
-			gl.COLOR_ATTACHMENT3,
 		]);
 
 		if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) throw Error("Invalid framebuffer.");
@@ -110,13 +106,19 @@ export class Renderer extends AbstractRenderer {
 
 		const texture = gl.createTexture();
 		gl.bindTexture(gl.TEXTURE_2D, texture);
-		gl.texStorage2D(
+		gl.texImage2D(
 			gl.TEXTURE_2D,
-			1,
-			gl.RGB8,
+			0,
+			gl.RGBA8,
 			viewport[2],
 			viewport[3],
+			0,
+			gl.RGBA,
+			gl.UNSIGNED_BYTE,
+			null,
 		);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
 		return texture;
 	}
@@ -130,14 +132,16 @@ export class Renderer extends AbstractRenderer {
 		gl.texImage2D(
 			gl.TEXTURE_2D,
 			0,
-			gl.DEPTH_COMPONENT16,
+			gl.DEPTH_COMPONENT24,
 			viewport[2],
 			viewport[3],
 			0,
 			gl.DEPTH_COMPONENT,
-			gl.UNSIGNED_SHORT,
+			gl.UNSIGNED_INT,
 			null,
 		);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
 		return texture;
 	}
@@ -189,9 +193,10 @@ export class Renderer extends AbstractRenderer {
 		const meshes = scene.meshes;
 		const camera = this.camera;
 
+		gl.enable(gl.DEPTH_TEST);
+
 		// G-Buffer
 		{
-			gl.enable(gl.DEPTH_TEST);
 			gl.useProgram(programs.gBuffer);
 			gl.bindVertexArray(vaos.gBuffer);
 			gl.bindFramebuffer(gl.FRAMEBUFFER, this.gBuffer.framebuffer);
@@ -218,7 +223,6 @@ export class Renderer extends AbstractRenderer {
 			gl.drawElementsInstanced(gl.TRIANGLES, 36, gl.UNSIGNED_BYTE, 0, meshes.length);
 
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-			gl.disable(gl.DEPTH_TEST);
 		}
 
 		gl.enable(gl.SCISSOR_TEST);
@@ -258,18 +262,9 @@ export class Renderer extends AbstractRenderer {
 		{
 			gl.scissor(viewportHalf[2], 0, viewportHalf[2], viewportHalf[3]);
 
-			gl.clearColor(0, 0, 0, 0);
-			gl.clearDepth(1);
-			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-			gl.depthFunc(gl.LEQUAL);
-			gl.depthMask(true);
-
 			gl.bindTexture(gl.TEXTURE_2D, this.gBuffer.depth);
 
 			gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
-
-			gl.depthMask(false);
 		}
 
 		gl.bindVertexArray(null);

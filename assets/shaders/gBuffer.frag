@@ -5,17 +5,16 @@ precision mediump float;
 in vec4 v_position;
 in vec3 v_normal;
 in vec2 v_uv;
+in float v_depth;
 
 uniform sampler2D u_sampler;
 uniform vec3 u_light_direction;
 uniform vec3 u_light_color;
 uniform float u_light_intensity;
 
-out vec4 FragData[4];
+out vec4 FragData[3];
 
 void main() {
-	vec4 color = texture(u_sampler, v_uv);
-
 	vec3 normal = normalize(v_normal);
 	vec3 light_direction = normalize(u_light_direction);
 
@@ -25,12 +24,8 @@ void main() {
 	FragData[0] = v_position;
 
 	// Normal
-	FragData[1] = vec4(abs(normal), 1);
+	FragData[1] = vec4(normal, 1);
 
 	// Color
 	FragData[2] = vec4(texture(u_sampler, v_uv).xyz, 1);
-
-	// Depth
-	FragData[3] = vec4(1);
-	// FragData[3].rgb *= u_light_color * u_light_intensity * light;
 }
