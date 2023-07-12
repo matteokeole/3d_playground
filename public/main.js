@@ -27,12 +27,12 @@ await renderer.loadTextures("assets/textures/", paths);
 document.body.appendChild(renderer.canvas);
 
 const scene = new Scene();
-scene.background = new Vector4(.13, .13, .14, 1);
+scene.background = new Vector4(.125, .129, .141, 1);
 
 const camera = new Camera();
 camera.fieldOfView = FIELD_OF_VIEW;
 camera.aspectRatio = viewport[0] / viewport[1];
-camera.near = 1;
+camera.near = .01;
 camera.far = 1000;
 camera.bias = 0;
 camera.turnVelocity = .001;

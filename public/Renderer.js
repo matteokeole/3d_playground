@@ -17,6 +17,12 @@ export class Renderer extends AbstractRenderer {
 			await (await fetch("assets/shaders/screen.frag")).text(),
 		);
 
+		this.createProgram(
+			"lighting",
+			await (await fetch("assets/shaders/lighting.vert")).text(),
+			await (await fetch("assets/shaders/lighting.frag")).text(),
+		);
+
 		const gl = this.gl;
 		const programs = this.programs;
 		const vaos = this.vaos;
@@ -31,6 +37,7 @@ export class Renderer extends AbstractRenderer {
 
 		vaos.gBuffer = gl.createVertexArray();
 		vaos.screen = gl.createVertexArray();
+		vaos.lighting = gl.createVertexArray();
 
 		gl.useProgram(programs.gBuffer);
 		gl.bindVertexArray(vaos.gBuffer);
@@ -42,9 +49,6 @@ export class Renderer extends AbstractRenderer {
 
 		uniforms.projection = gl.getUniformLocation(programs.gBuffer, "u_projection");
 		uniforms.view = gl.getUniformLocation(programs.gBuffer, "u_view");
-		uniforms.lightDirection = gl.getUniformLocation(programs.gBuffer, "u_light_direction");
-		uniforms.lightColor = gl.getUniformLocation(programs.gBuffer, "u_light_color");
-		uniforms.lightIntensity = gl.getUniformLocation(programs.gBuffer, "u_light_intensity");
 
 		buffers.index = gl.createBuffer();
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.index);
@@ -70,6 +74,17 @@ export class Renderer extends AbstractRenderer {
 		gl.vertexAttribPointer(6, 2, gl.FLOAT, true, 0, 0);
 
 		this.buildGBuffer();
+
+		gl.useProgram(programs.lighting);
+		gl.bindVertexArray(vaos.lighting);
+
+		uniforms.positionSampler = gl.getUniformLocation(programs.lighting, "u_position_sampler");
+		uniforms.normalSampler = gl.getUniformLocation(programs.lighting, "u_normal_sampler");
+		uniforms.colorSampler = gl.getUniformLocation(programs.lighting, "u_color_sampler");
+		uniforms.depthSampler = gl.getUniformLocation(programs.lighting, "u_depth_sampler");
+		uniforms.lightDirection = gl.getUniformLocation(programs.lighting, "u_light_direction");
+		uniforms.lightColor = gl.getUniformLocation(programs.lighting, "u_light_color");
+		uniforms.lightIntensity = gl.getUniformLocation(programs.lighting, "u_light_intensity");
 
 		gl.bindVertexArray(null);
 		gl.useProgram(null);
@@ -165,10 +180,6 @@ export class Renderer extends AbstractRenderer {
 		gl.useProgram(programs.gBuffer);
 		gl.bindVertexArray(vaos.gBuffer);
 
-		gl.uniform3fv(uniforms.lightDirection, directionalLight.direction.clone().multiplyScalar(-1));
-		gl.uniform3fv(uniforms.lightColor, directionalLight.color);
-		gl.uniform1f(uniforms.lightIntensity, directionalLight.intensity);
-
 		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.world);
 		const worlds = new Float32Array(length * 16);
 		for (let i = 0, mesh; i < length; i++) {
@@ -182,6 +193,17 @@ export class Renderer extends AbstractRenderer {
 		}
 		gl.bufferData(gl.ARRAY_BUFFER, worlds, gl.STATIC_DRAW);
 
+		gl.useProgram(programs.lighting);
+		gl.bindVertexArray(vaos.lighting);
+
+		gl.uniform1i(uniforms.positionSampler, 0);
+		gl.uniform1i(uniforms.normalSampler, 1);
+		gl.uniform1i(uniforms.colorSampler, 2);
+		gl.uniform1i(uniforms.depthSampler, 3);
+		gl.uniform3fv(uniforms.lightDirection, directionalLight.direction.clone().multiplyScalar(-1));
+		gl.uniform3fv(uniforms.lightColor, directionalLight.color);
+		gl.uniform1f(uniforms.lightIntensity, directionalLight.intensity);
+
 		gl.bindVertexArray(null);
 		gl.useProgram(null);
 	}
@@ -194,6 +216,8 @@ export class Renderer extends AbstractRenderer {
 		const vaos = this.vaos;
 		const buffers = this.buffers;
 		const uniforms = this.uniforms;
+		const viewport = this.viewport;
+		const viewportHalf = viewport.clone().multiplyScalar(.5);
 		const scene = this.scene;
 		const meshes = scene.meshes;
 		const camera = this.camera;
@@ -228,11 +252,9 @@ export class Renderer extends AbstractRenderer {
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		}
 
-		gl.enable(gl.SCISSOR_TEST);
+		/* gl.enable(gl.SCISSOR_TEST);
 		gl.useProgram(programs.screen);
 		gl.bindVertexArray(vaos.screen);
-
-		const viewportHalf = this.viewport.clone().multiplyScalar(.5);
 
 		// Position
 		{
@@ -268,10 +290,37 @@ export class Renderer extends AbstractRenderer {
 			gl.bindTexture(gl.TEXTURE_2D, this.gBuffer.depthRGB);
 
 			gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+		} */
+
+		// Lighting
+		{
+			gl.useProgram(programs.lighting);
+			gl.bindVertexArray(vaos.lighting);
+
+			// gl.scissor(100, 100, viewport[2] - 200, viewport[3] - 200);
+
+			gl.activeTexture(gl.TEXTURE0);
+			gl.bindTexture(gl.TEXTURE_2D, this.gBuffer.position);
+			gl.activeTexture(gl.TEXTURE1);
+			gl.bindTexture(gl.TEXTURE_2D, this.gBuffer.normal);
+			gl.activeTexture(gl.TEXTURE2);
+			gl.bindTexture(gl.TEXTURE_2D, this.gBuffer.color);
+			gl.activeTexture(gl.TEXTURE3);
+			gl.bindTexture(gl.TEXTURE_2D, this.gBuffer.depthRGB);
+
+			gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+
+			gl.bindTexture(gl.TEXTURE_2D, null);
+			gl.activeTexture(gl.TEXTURE2);
+			gl.bindTexture(gl.TEXTURE_2D, null);
+			gl.activeTexture(gl.TEXTURE1);
+			gl.bindTexture(gl.TEXTURE_2D, null);
+			gl.activeTexture(gl.TEXTURE0);
+			gl.bindTexture(gl.TEXTURE_2D, null);
 		}
 
+		// gl.disable(gl.SCISSOR_TEST);
 		gl.bindVertexArray(null);
 		gl.useProgram(null);
-		gl.disable(gl.SCISSOR_TEST);
 	}
 }
