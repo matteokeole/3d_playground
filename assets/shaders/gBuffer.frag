@@ -12,7 +12,7 @@ uniform vec3 u_light_direction;
 uniform vec3 u_light_color;
 uniform float u_light_intensity;
 
-out vec4 FragData[3];
+out vec4 FragData[4];
 
 void main() {
 	vec3 normal = normalize(v_normal);
@@ -28,4 +28,7 @@ void main() {
 
 	// Color
 	FragData[2] = vec4(texture(u_sampler, v_uv).xyz, 1);
+
+	// Depth
+	FragData[3] = vec4(vec3(v_depth), 1);
 }

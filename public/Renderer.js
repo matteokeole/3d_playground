@@ -26,6 +26,8 @@ export class Renderer extends AbstractRenderer {
 		gl.frontFace(gl.CW);
 		gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 		gl.enable(gl.CULL_FACE);
+		gl.enable(gl.DEPTH_TEST);
+		gl.depthFunc(gl.LEQUAL);
 
 		vaos.gBuffer = gl.createVertexArray();
 		vaos.screen = gl.createVertexArray();
@@ -82,17 +84,20 @@ export class Renderer extends AbstractRenderer {
 			normal: this.buildGBufferTexture(),
 			color: this.buildGBufferTexture(),
 			depth: this.buildGBufferDepthTexture(),
+			depthRGB: this.buildGBufferTexture(),
 		};
 
 		gl.bindFramebuffer(gl.FRAMEBUFFER, this.gBuffer.framebuffer);
 		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.gBuffer.position, 0);
 		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT1, gl.TEXTURE_2D, this.gBuffer.normal, 0);
 		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT2, gl.TEXTURE_2D, this.gBuffer.color, 0);
+		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT3, gl.TEXTURE_2D, this.gBuffer.depthRGB, 0);
 		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, this.gBuffer.depth, 0);
 		gl.drawBuffers([
 			gl.COLOR_ATTACHMENT0,
 			gl.COLOR_ATTACHMENT1,
 			gl.COLOR_ATTACHMENT2,
+			gl.COLOR_ATTACHMENT3,
 		]);
 
 		if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) throw Error("Invalid framebuffer.");
@@ -193,8 +198,6 @@ export class Renderer extends AbstractRenderer {
 		const meshes = scene.meshes;
 		const camera = this.camera;
 
-		gl.enable(gl.DEPTH_TEST);
-
 		// G-Buffer
 		{
 			gl.useProgram(programs.gBuffer);
@@ -262,7 +265,7 @@ export class Renderer extends AbstractRenderer {
 		{
 			gl.scissor(viewportHalf[2], 0, viewportHalf[2], viewportHalf[3]);
 
-			gl.bindTexture(gl.TEXTURE_2D, this.gBuffer.depth);
+			gl.bindTexture(gl.TEXTURE_2D, this.gBuffer.depthRGB);
 
 			gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 		}
