@@ -1,18 +1,28 @@
 import {Mesh} from "src";
 import {BoxGeometry} from "src/geometries";
+import {DirectionalLight} from "src/lights";
 import {TextureMaterial} from "src/materials";
 import {Vector3} from "src/math";
-import {BLOCK_SCALE} from "../main.js";
+import {BLOCK_SCALE, ENTITY_HEIGHT_STAND} from "../main.js";
 
 // CURR/MAX FPS - 120K instanced meshes
 // Windows 10/Chrome: 165/165 FPS
 // Ubuntu/Firefox: 38/60 FPS
-export default function(textures, n = 300) {
-	const meshes = [];
-	let i, j, k;
-	i = j = k = 0;
+export function setup(renderer) {
+	const {scene, camera, textures} = renderer;
 
-	for (; i < n; i++) {
+	camera.position[1] = ENTITY_HEIGHT_STAND;
+	camera.target[1] = ENTITY_HEIGHT_STAND;
+
+	scene.directionalLight = new DirectionalLight({
+		color: new Vector3(1, 1, 1),
+		intensity: 1,
+		direction: new Vector3(-.8, -.2, .15),
+	});
+
+	const n = 300;
+
+	for (let i = 0, j = 0, k = 0; i < n; i++) {
 		const mesh = new Mesh(
 			new BoxGeometry(new Vector3(1, 1, 1)),
 			new TextureMaterial({
@@ -26,8 +36,6 @@ export default function(textures, n = 300) {
 		mesh.position = new Vector3(i % 10 - 4.5, 1 - k, j % 10 - 4.5);
 		mesh.scale = new Vector3(BLOCK_SCALE, BLOCK_SCALE, BLOCK_SCALE);
 
-		meshes.push(mesh);
+		scene.meshes.push(mesh);
 	}
-
-	return meshes;
 }

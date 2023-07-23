@@ -252,52 +252,51 @@ export class Renderer extends AbstractRenderer {
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		}
 
-		/* gl.enable(gl.SCISSOR_TEST);
-		gl.useProgram(programs.screen);
-		gl.bindVertexArray(vaos.screen);
+		if (this.debug) {
+			gl.enable(gl.SCISSOR_TEST);
+			gl.useProgram(programs.screen);
+			gl.bindVertexArray(vaos.screen);
 
-		// Position
-		{
-			gl.scissor(0, viewportHalf[3], viewportHalf[2], viewportHalf[3]);
+			// Position
+			{
+				gl.scissor(0, viewportHalf[3], viewportHalf[2], viewportHalf[3]);
 
-			gl.bindTexture(gl.TEXTURE_2D, this.gBuffer.position);
+				gl.bindTexture(gl.TEXTURE_2D, this.gBuffer.position);
 
-			gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
-		}
+				gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+			}
 
-		// Normal
-		{
-			gl.scissor(viewportHalf[2], viewportHalf[3], viewportHalf[2], viewportHalf[3]);
+			// Normal
+			{
+				gl.scissor(viewportHalf[2], viewportHalf[3], viewportHalf[2], viewportHalf[3]);
 
-			gl.bindTexture(gl.TEXTURE_2D, this.gBuffer.normal);
+				gl.bindTexture(gl.TEXTURE_2D, this.gBuffer.normal);
 
-			gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
-		}
+				gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+			}
 
-		// Color
-		{
-			gl.scissor(0, 0, viewportHalf[2], viewportHalf[3]);
+			// Color
+			{
+				gl.scissor(0, 0, viewportHalf[2], viewportHalf[3]);
 
-			gl.bindTexture(gl.TEXTURE_2D, this.gBuffer.color);
+				gl.bindTexture(gl.TEXTURE_2D, this.gBuffer.color);
 
-			gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
-		}
+				gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+			}
 
-		// Depth
-		{
-			gl.scissor(viewportHalf[2], 0, viewportHalf[2], viewportHalf[3]);
+			// Depth
+			{
+				gl.scissor(viewportHalf[2], 0, viewportHalf[2], viewportHalf[3]);
 
-			gl.bindTexture(gl.TEXTURE_2D, this.gBuffer.depthRGB);
+				gl.bindTexture(gl.TEXTURE_2D, this.gBuffer.depthRGB);
 
-			gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
-		} */
+				gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+			}
 
-		// Lighting
-		{
+			gl.disable(gl.SCISSOR_TEST);
+		} else {
 			gl.useProgram(programs.lighting);
 			gl.bindVertexArray(vaos.lighting);
-
-			// gl.scissor(100, 100, viewport[2] - 200, viewport[3] - 200);
 
 			gl.activeTexture(gl.TEXTURE0);
 			gl.bindTexture(gl.TEXTURE_2D, this.gBuffer.position);
@@ -319,7 +318,6 @@ export class Renderer extends AbstractRenderer {
 			gl.bindTexture(gl.TEXTURE_2D, null);
 		}
 
-		// gl.disable(gl.SCISSOR_TEST);
 		gl.bindVertexArray(null);
 		gl.useProgram(null);
 	}

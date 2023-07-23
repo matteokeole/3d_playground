@@ -1,5 +1,5 @@
 import {VELOCITY, VELOCITY_SQRT1_2, CAMERA_LERP_FACTOR} from "./main.js";
-import {Keybind, keys} from "./events.js";
+import {Keybind, keys} from "./input.js";
 
 const diagonalMovement = () =>
 	(keys.has(Keybind.forward) || keys.has(Keybind.backward)) &&
@@ -19,5 +19,5 @@ export function update(delta, renderer) {
 	camera.position.set(camera.target.clone().lerp(camera.position, CAMERA_LERP_FACTOR));
 	camera.update();
 
-	debugDelta.textContent = delta.toFixed(2);
+	DebugDelta.textContent = delta.toFixed(2);
 };

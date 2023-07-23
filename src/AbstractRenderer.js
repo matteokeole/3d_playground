@@ -72,6 +72,9 @@ export class AbstractRenderer {
 	/** @type {?Number} */
 	#then = null;
 
+	/** @type {Number} */
+	debug = false;
+
 	/**
 	 * @returns {HTMLCanvasElement}
 	 * @throws {ReferenceError}

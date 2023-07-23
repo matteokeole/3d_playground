@@ -1,8 +1,9 @@
 import {Camera, Scene} from "src";
 import {Vector2, Vector4} from "src/math";
 import {Renderer} from "./Renderer.js";
-import {build} from "./build.js";
-import {listen} from "./events.js";
+import {setup} from "./tests/instancing.js";
+import {debug} from "./debug.js";
+import {listen} from "./input.js";
 import {update} from "./update.js";
 
 export const FRAMES_PER_SECOND = 165;
@@ -42,7 +43,8 @@ renderer.camera = camera;
 renderer.framesPerSecond = FRAMES_PER_SECOND;
 renderer.update = update;
 
-build(renderer);
+setup(renderer);
+debug(renderer);
 listen(renderer);
 
 renderer.prerender();
