@@ -2,36 +2,27 @@ import {PI, Vector3} from "src/math";
 import {CAMERA_LERP_FACTOR, VELOCITY} from "./index.js";
 import {keys} from "./input.js";
 
-const direction = new Vector3();
-
 export function update(delta, renderer) {
 	const {camera, player, wall} = renderer;
 
-	direction[0] = keys.KeyA + keys.KeyD;
-	direction[1] = keys.Space + keys.ControlLeft;
-	direction[2] = keys.KeyW + keys.KeyS;
-	direction.normalize().multiplyScalar(VELOCITY);
+	// Camera-space direction (not normalized)
+	const direction = new Vector3(
+		keys.KeyA + keys.KeyD,
+		keys.ControlLeft + keys.Space,
+		keys.KeyW + keys.KeyS,
+	);
 
-	const hasMoved = direction[0] !== 0 || direction[1] !== 0 || direction[2] !== 0;
-
-	// No vertical movement
-	camera.position[0] = player.position[0];
-	camera.position[2] = player.position[2];
-	camera.target = direction;
+	const hasMoved = !(direction[0] === 0 && direction[1] === 0 && direction[2] === 0);
 
 	if (hasMoved) {
 		const relativeVelocity = camera.relativeVelocity;
 
 		if (wall == null || collide(relativeVelocity, player, wall)) {
-			camera.position = camera.target.clone().add(relativeVelocity);
-			// camera.position = camera.target.clone().lerp(camera.position, CAMERA_LERP_FACTOR); 
+			camera.move(direction.normalize().multiplyScalar(VELOCITY));
 		}
 	}
 
 	camera.update();
-
-	// Reset direction
-	direction.multiplyScalar(0);
 
 	DebugPosition.textContent = [...camera.position].map(e => e.toFixed(2)).join(' ');
 	DebugRotation.textContent = [...camera.rotation].map(e => (e / PI).toFixed(2)).join(' ');

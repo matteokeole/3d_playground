@@ -20,7 +20,7 @@ export async function setup(renderer) {
 
 	camera.position = position;
 	camera.target = position;
-	// camera.rotation = new Vector3(-Math.PI / 6, 0, 0);
+	camera.rotation = new Vector3(-Math.PI / 6, 0, 0);
 	camera.distance = new Vector3(0, 0, -64);
 
 	renderer.player = new Mesh(

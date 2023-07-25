@@ -13,7 +13,7 @@
 .debug span {
 	display: block;
 }
-.debug span::before {
+.debug span::before, .debug label::before {
 	color: #aaa;
 	font-style: italic;
 }
