@@ -1,5 +1,5 @@
 import {PI, Vector3} from "src/math";
-import {VELOCITY} from "./index.js";
+import {CAMERA_LERP_FACTOR, VELOCITY} from "./index.js";
 import {keys} from "./input.js";
 
 const direction = new Vector3();
@@ -22,7 +22,7 @@ export function update(delta, renderer) {
 	if (hasMoved) {
 		const relativeVelocity = camera.relativeVelocity;
 
-		if (collide(relativeVelocity)) {
+		if (wall == null || collide(relativeVelocity, player, wall)) {
 			camera.position = camera.target.clone().add(relativeVelocity);
 			// camera.position = camera.target.clone().lerp(camera.position, CAMERA_LERP_FACTOR); 
 		}
@@ -33,15 +33,15 @@ export function update(delta, renderer) {
 	// Reset direction
 	direction.multiplyScalar(0);
 
-	// debugPosition.textContent = [...camera.position].map(e => e.toFixed(2)).join(' ');
-	// debugRotation.textContent = [...camera.rotation].map(e => (e / PI).toFixed(2)).join(' ');
+	DebugPosition.textContent = [...camera.position].map(e => e.toFixed(2)).join(' ');
+	DebugRotation.textContent = [...camera.rotation].map(e => (e / PI).toFixed(2)).join(' ');
 }
 
-function collide(velocity) {
-	player.box.velocity = velocity;
+function collide(velocity, player, wall) {
+	player.hitbox.velocity = velocity;
 
 	const wallNormal = new Vector3();
-	const time = player.box.sweptAABB(wall.box, wallNormal);
+	const time = player.hitbox.sweptAABB(wall.hitbox, wallNormal);
 	const position = player.position;
 
 	if (time === 0) return false;
@@ -51,7 +51,7 @@ function collide(velocity) {
 	position[1] = 8;
 
 	player.position = position;
-	player.box.position = position;
+	player.hitbox.position = position;
 
 	return true;
 }

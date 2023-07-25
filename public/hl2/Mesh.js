@@ -6,6 +6,12 @@ import {HitBox} from "./HitBox.js";
 import {SSDPlaneGeometry} from "./SSDPlaneGeometry.js";
 
 export class Mesh extends AbstractMesh {
+	/**
+	 * @private
+	 * @type {?HitBox}
+	 */
+	#hitbox;
+
 	static fromJSON(json, textures) {
 		const {anchors} = json;
 
@@ -42,12 +48,17 @@ export class Mesh extends AbstractMesh {
 		);
 	}
 
+	/** @returns {?HitBox} */
+	get hitbox() {
+		return this.#hitbox;
+	}
+
 	buildHitBox() {
 		if (!(this.geometry instanceof BoxGeometry)) {
 			throw Error("Can't initialize the hitbox of a non-3D mesh.");
 		}
 
-		this.hitbox = new HitBox({
+		this.#hitbox = new HitBox({
 			position: this.position,
 			size: this.geometry.size,
 		});

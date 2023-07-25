@@ -1,5 +1,6 @@
 import {AbstractMesh, AbstractRenderer} from "src";
 import {ColorMaterial, TextureMaterial} from "src/materials";
+import {SSDPlaneGeometry} from "./SSDPlaneGeometry.js";
 
 export class Renderer extends AbstractRenderer {
 	/**
@@ -138,6 +139,8 @@ export class Renderer extends AbstractRenderer {
 		for (let i = 0; i < length; i++) {
 			const mesh = meshes[i];
 			const {geometry, material} = mesh;
+
+			if (!(geometry instanceof SSDPlaneGeometry)) continue;
 
 			gl.bindBuffer(gl.ARRAY_BUFFER, buffers.vertex);
 			gl.bufferData(gl.ARRAY_BUFFER, geometry.vertices, gl.STATIC_DRAW);

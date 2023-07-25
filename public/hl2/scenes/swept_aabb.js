@@ -20,7 +20,7 @@ export async function setup(renderer) {
 
 	camera.position = position;
 	camera.target = position;
-	camera.rotation = new Vector3(-Math.PI / 6, 0, 0);
+	// camera.rotation = new Vector3(-Math.PI / 6, 0, 0);
 	camera.distance = new Vector3(0, 0, -64);
 
 	renderer.player = new Mesh(
@@ -45,13 +45,13 @@ export async function setup(renderer) {
 	renderer.wall.position = new Vector3(0, 32, 64);
 	renderer.wall.buildHitBox();
 
-	scene.add(renderer.player, renderer.wall);
+	scene.meshes.push(renderer.player, renderer.wall);
 
 	const meshes = await (await fetch("public/hl2/scenes/swept_aabb.json")).json();
 
 	for (let i = meshes.length - 1, json; i >= 0; i--) {
 		if (meshes[i].label == null) continue;
 
-		scene.add(Mesh.fromJSON(meshes[i], renderer.textures));
+		scene.meshes.push(Mesh.fromJSON(meshes[i], renderer.textures));
 	}
 }

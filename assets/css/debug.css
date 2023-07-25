@@ -18,9 +18,15 @@
 	font-style: italic;
 }
 
-.debug#DebugTest1 #DebugVisualizeStepsLabel::before {
+#DebugTest1 #DebugPosition::before {
+	content: "Position: ";
+}
+#DebugTest1 #DebugRotation::before {
+	content: "Rotation: ";
+}
+#DebugTest2 #DebugVisualizeStepsLabel::before {
 	content: "Visualize Steps: ";
 }
-.debug#DebugTest1 #DebugDelta::before {
+#DebugTest2 #DebugDelta::before {
 	content: "Δt: ";
 }

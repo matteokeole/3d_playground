@@ -4,7 +4,7 @@ export function debug(renderer) {
 	const visualizeSteps = document.createElement("input");
 	const deltaTime = document.createElement("span");
 
-	container.id = "DebugTest1";
+	container.id = "DebugTest2";
 	container.className = "debug";
 	visualizeStepsLabel.id = "DebugVisualizeStepsLabel";
 	visualizeSteps.id = "DebugVisualizeSteps";

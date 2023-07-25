@@ -28,6 +28,7 @@ export async function setup(renderer) {
 		}),
 	);
 	renderer.player.position = position.clone();
+	renderer.player.buildHitBox();
 
 	camera.distance = new Vector3(0, 0, 64);
 	camera.position = position;
