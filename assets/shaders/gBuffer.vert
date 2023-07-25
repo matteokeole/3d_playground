@@ -7,13 +7,20 @@ layout(location = 6) in vec2 a_uv;
 
 uniform mat4 u_projection;
 uniform mat4 u_view;
+uniform mat4 u_view_inverse_transpose;
 
+out vec4 v_position;
 out vec3 v_normal;
 out vec2 v_uv;
+out float v_depth;
 
 void main() {
-	gl_Position = u_projection * u_view * a_world * a_vertex;
+	vec4 position = u_view * a_world * a_vertex;
 
-	v_normal = a_normal;
+	gl_Position = u_projection * position;
+
+	v_position = position;
+	v_normal = a_vertex.xyz * a_normal;
 	v_uv = a_uv;
+	v_depth = gl_Position.z / gl_Position.w;
 }

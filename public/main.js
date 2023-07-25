@@ -27,7 +27,7 @@ await renderer.loadTextures("assets/textures/", paths);
 document.body.appendChild(renderer.canvas);
 
 const scene = new Scene();
-scene.background = new Vector4(.13, .13, .14, 1);
+scene.background = new Vector4(.125, .129, .141, 1);
 
 const camera = new Camera();
 camera.fieldOfView = FIELD_OF_VIEW;
@@ -44,4 +44,6 @@ renderer.update = update;
 
 build(renderer);
 listen(renderer);
+
+renderer.prerender();
 renderer.loop();
