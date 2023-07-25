@@ -1,6 +1,6 @@
-import {Geometry} from "./Geometry.js";
+import {AbstractGeometry} from "./AbstractGeometry.js";
 
-export class BoxGeometry extends Geometry {
+export class BoxGeometry extends AbstractGeometry {
 	constructor() {
 		super({
 			indices: Uint8Array.of(

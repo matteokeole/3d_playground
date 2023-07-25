@@ -1,0 +1,11 @@
+[
+	{
+		"label": "floor",
+		"anchors": [-32, 0, 0, -32, 0, 64, 32, 0, 64],
+		"texture": "tile/tilefloor018a.jpg",
+		"normal_map": "tile/tilefloor018a_normal.jpg",
+		"uv": [0, 0],
+		"uv_rotation": 0,
+		"uv_scale": [0.25, 0.25]
+	}
+]

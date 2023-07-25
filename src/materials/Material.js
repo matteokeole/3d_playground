@@ -1,2 +1,0 @@
-/** @abstract */
-export class Material {}

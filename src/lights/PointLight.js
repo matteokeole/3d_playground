@@ -1,7 +1,13 @@
 import {AbstractLight} from "./AbstractLight.js";
 import {Vector3} from "../math/index.js";
 
-export class DirectionalLight extends AbstractLight {
+export class PointLight extends AbstractLight {
+	/**
+	 * @private
+	 * @type {Vector3}
+	 */
+	#position;
+
 	/**
 	 * @private
 	 * @type {Vector3}
@@ -12,12 +18,19 @@ export class DirectionalLight extends AbstractLight {
 	 * @param {Object} options
 	 * @param {Vector3} options.color
 	 * @param {Number} options.intensity
+	 * @param {Vector3} options.position
 	 * @param {Vector3} options.direction
 	 */
-	constructor({color, intensity, direction}) {
+	constructor({color, intensity, position, direction}) {
 		super({color, intensity});
 
+		this.#position = position;
 		this.#direction = direction;
+	}
+
+	/** @returns {Vector3} */
+	get position() {
+		return this.#position;
 	}
 
 	/** @returns {Vector3} */

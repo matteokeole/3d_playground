@@ -1,4 +1,4 @@
-import {Camera, Scene} from "./index.js";
+import {AbstractCamera, AbstractScene, Texture} from "./index.js";
 import {Vector4} from "./math/index.js";
 
 /** @abstract */
@@ -47,14 +47,14 @@ export class AbstractRenderer {
 
 	/**
 	 * @private
-	 * @type {Object.<String, WebGLTexture>}
+	 * @type {Object.<String, Texture>}
 	 */
 	#textures = {};
 
-	/** @type {?Scene} */
+	/** @type {?AbstractScene} */
 	scene = null;
 
-	/** @type {?Camera} */
+	/** @type {?AbstractCamera} */
 	camera = null;
 
 	/** @type {?Function} */
@@ -130,7 +130,7 @@ export class AbstractRenderer {
 		return this.#uniforms;
 	}
 
-	/** @returns {Object.<String, WebGLTexture>} */
+	/** @returns {Object.<String, Texture>} */
 	get textures() {
 		return this.#textures;
 	}
@@ -245,7 +245,7 @@ export class AbstractRenderer {
 			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 			gl.generateMipmap(gl.TEXTURE_2D);
 
-			this.#textures[path] = texture;
+			this.#textures[path] = new Texture(texture, image);
 		}
 	}
 
