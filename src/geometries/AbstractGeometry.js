@@ -25,17 +25,25 @@ export class AbstractGeometry {
 	#uvs;
 
 	/**
+	 * @protected
+	 * @type {?Vector3}
+	 */
+	#size;
+
+	/**
 	 * @param {Object} options
 	 * @param {Uint8Array} options.indices
 	 * @param {Float32Array} options.vertices
 	 * @param {Float32Array} options.normals
 	 * @param {Float32Array} options.uvs
+	 * @param {?Vector3} options.size
 	 */
-	constructor({indices, vertices, normals, uvs}) {
+	constructor({indices, vertices, normals, uvs, size}) {
 		this.#indices = indices;
 		this.#vertices = vertices;
 		this.#normals = normals;
 		this.#uvs = uvs;
+		this.#size = size;
 	}
 
 	/** @returns {Uint8Array} */
@@ -56,5 +64,10 @@ export class AbstractGeometry {
 	/** @returns {Float32Array} */
 	get uvs() {
 		return this.#uvs;
+	}
+
+	/** @returns {?Vector3} */
+	get size() {
+		return this.#size;
 	}
 }

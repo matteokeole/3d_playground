@@ -15,10 +15,16 @@ export function update(delta, renderer) {
 	const hasMoved = !(direction[0] === 0 && direction[1] === 0 && direction[2] === 0);
 
 	if (hasMoved) {
-		const relativeVelocity = camera.relativeVelocity;
+		const relativeVelocity = camera.getRelativeVelocity(
+			direction.normalize().multiplyScalar(VELOCITY),
+		);
+
+		camera.target.add(relativeVelocity);
 
 		if (wall == null || collide(relativeVelocity, player, wall)) {
-			camera.move(direction.normalize().multiplyScalar(VELOCITY));
+			camera.position = camera.position
+				.clone()
+				.lerp(camera.target, camera.lerpFactor);
 		}
 	}
 

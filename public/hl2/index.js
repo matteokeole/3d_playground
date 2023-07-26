@@ -1,7 +1,8 @@
-import {AbstractCamera, AbstractScene} from "src";
+import {AbstractScene} from "src";
 import {PI, Vector2, Vector4} from "src/math";
 import {Renderer} from "./Renderer.js";
-import {setup} from "./scenes/swept_aabb.js";
+import {Camera} from "./Camera.js";
+import {setup} from "./scenes/building_entrance.js";
 import {debug} from "./debug.js";
 import {listen} from "./input.js";
 import {update} from "./update.js";
@@ -30,13 +31,14 @@ export default async function() {
 	const scene = new AbstractScene();
 	scene.background = new Vector4(1, 1, 1, 1);
 
-	const camera = new AbstractCamera();
+	const camera = new Camera();
 	camera.fieldOfView = FIELD_OF_VIEW;
 	camera.aspectRatio = viewport[0] / viewport[1];
 	camera.near = .5;
 	camera.far = 1000;
 	camera.bias = PI * .545; // Try with ~1.712?
 	camera.turnVelocity = SENSITIVITY;
+	camera.lerpFactor = CAMERA_LERP_FACTOR;
 
 	renderer.scene = scene;
 	renderer.camera = camera;

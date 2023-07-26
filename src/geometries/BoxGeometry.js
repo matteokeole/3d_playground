@@ -1,7 +1,9 @@
 import {AbstractGeometry} from "./AbstractGeometry.js";
+import {Vector3} from "../math/index.js";
 
 export class BoxGeometry extends AbstractGeometry {
-	constructor() {
+	/** @param {Vector3} size */
+	constructor(size) {
 		super({
 			indices: Uint8Array.of(
 				0,  2,  1,		2,  3,  1,
@@ -35,6 +37,7 @@ export class BoxGeometry extends AbstractGeometry {
 				1, 1,	0, 1,	1, 0,	0, 0,
 				1, 1,	0, 1,	1, 0,	0, 0,
 			),
+			size,
 		});
 	}
 }

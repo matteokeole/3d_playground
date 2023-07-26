@@ -66,18 +66,6 @@ export class AbstractCamera {
 		return this.#view;
 	}
 
-	/** @param {Vector3} direction */
-	move(direction) {
-		const right = this.right.clone();
-		const up = this.up.clone();
-		const forward = this.right.cross(new Vector3(0, 1, 0));
-
-		this.target
-			.add(right.multiplyScalar(direction[0]))
-			.add(up.multiplyScalar(direction[1]))
-			.add(forward.multiplyScalar(direction[2]));
-	}
-
 	/** @param {Number} x */
 	truck(x) {
 		const right = this.right.clone();

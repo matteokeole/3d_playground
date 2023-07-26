@@ -30,6 +30,12 @@ export class Renderer extends AbstractRenderer {
 			await (await fetch("public/hl2/shaders/main.frag")).text(),
 		);
 
+		this.createProgram(
+			"crosshair",
+			await (await fetch("public/hl2/shaders/crosshair.vert")).text(),
+			await (await fetch("public/hl2/shaders/crosshair.frag")).text(),
+		);
+
 		const {gl, programs, vaos, buffers, uniforms} = this;
 
 		gl.frontFace(gl.CW);
@@ -39,6 +45,7 @@ export class Renderer extends AbstractRenderer {
 		this.#defaultColor = Float32Array.of(1, 1, 1);
 
 		vaos.main = gl.createVertexArray();
+		vaos.crosshair = gl.createVertexArray();
 
 		gl.useProgram(programs.main);
 		gl.bindVertexArray(vaos.main);
@@ -69,6 +76,9 @@ export class Renderer extends AbstractRenderer {
 
 		this.createDefaultTexture();
 
+		gl.bindVertexArray(null);
+		gl.useProgram(null);
+
 		uniforms.projection = gl.getUniformLocation(programs.main, "u_projection");
 		uniforms.view = gl.getUniformLocation(programs.main, "u_view");
 		uniforms.cameraPosition = gl.getUniformLocation(programs.main, "u_camera_position");
@@ -80,9 +90,9 @@ export class Renderer extends AbstractRenderer {
 		uniforms.normalMap = gl.getUniformLocation(programs.main, "u_normal_map");
 		uniforms.lightColor = gl.getUniformLocation(programs.main, "u_light_color");
 		uniforms.lightIntensity = gl.getUniformLocation(programs.main, "u_light_intensity");
-
-		gl.bindVertexArray(null);
-		gl.useProgram(null);
+		uniforms.crosshair = {
+			viewport: gl.getUniformLocation(programs.crosshair, "u_viewport"),
+		};
 	}
 
 	createDefaultTexture() {
@@ -103,16 +113,25 @@ export class Renderer extends AbstractRenderer {
 		);
 	}
 
+	setupTexture(image) {
+		const {gl} = this;
+
+		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+	}
+
 	prerender() {
-		const {gl, programs, vaos, uniforms} = this;
+		const {gl, programs, vaos, uniforms, viewport} = this;
 
 		gl.useProgram(programs.main);
-		gl.bindVertexArray(vaos.main);
 
 		gl.uniform1i(uniforms.textureMap, 0);
 		gl.uniform1i(uniforms.normalMap, 1);
 
-		gl.bindVertexArray(null);
+		gl.useProgram(programs.crosshair);
+
+		gl.uniform2f(uniforms.crosshair.viewport, viewport[2], viewport[3]);
+
 		gl.useProgram(null);
 	}
 
@@ -176,6 +195,10 @@ export class Renderer extends AbstractRenderer {
 		}
 
 		gl.bindVertexArray(null);
+		gl.useProgram(programs.crosshair);
+
+		gl.drawArrays(gl.POINTS, 0, 5);
+
 		gl.useProgram(null);
 	}
 }

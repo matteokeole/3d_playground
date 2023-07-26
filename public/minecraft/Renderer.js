@@ -160,6 +160,14 @@ export class Renderer extends AbstractRenderer {
 		return texture;
 	}
 
+	setupTexture(image) {
+		const {gl} = this;
+
+		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+		gl.generateMipmap(gl.TEXTURE_2D);
+	}
+
 	prerender() {
 		const {gl, programs, vaos, buffers, uniforms, scene} = this;
 		const {meshes, lights} = scene;
