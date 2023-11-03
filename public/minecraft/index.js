@@ -20,13 +20,13 @@ export default async function() {
 	const viewport = new Vector2(innerWidth, innerHeight);
 
 	const renderer = new Renderer();
-	renderer.viewport.set(viewport, 2);
+	renderer.getViewport().set(viewport, 2);
 	await renderer.build();
 
 	const paths = await (await fetch("public/minecraft/textures/textures.json")).json();
 	await renderer.loadTextures("public/minecraft/textures/", paths);
 
-	document.body.appendChild(renderer.canvas);
+	document.body.appendChild(renderer.getCanvas());
 
 	const scene = new AbstractScene();
 	scene.background = new Vector4(.125, .129, .141, 1);

@@ -8,17 +8,17 @@ export class AbstractRenderer {
 	/**
 	 * @type {?HTMLCanvasElement}
 	 */
-	#canvas = null;
+	#canvas;
 
 	/**
 	 * @type {?WebGL2RenderingContext}
 	 */
-	#gl = null;
+	_context;
 
 	/**
 	 * @type {Vector4}
 	 */
-	#viewport = new Vector4(0, 0, 300, 150);
+	_viewport;
 
 	/**
 	 * @type {Object.<String, WebGLProgram>}
@@ -85,41 +85,31 @@ export class AbstractRenderer {
 	 */
 	debug = false;
 
-	/**
-	 * @returns {HTMLCanvasElement}
-	 * @throws {ReferenceError}
-	 */
-	get canvas() {
-		if (this.#canvas === null) throw ReferenceError("canvas is not defined");
-
-		return this.#canvas;
+	constructor() {
+		this.#canvas = null;
+		this._context = null;
+		this._viewport = new Vector4(0, 0, 300, 150);
 	}
 
 	/**
-	 * @returns {WebGL2RenderingContext}
-	 * @throws {ReferenceError}
+	 * @returns {?HTMLCanvasElement}
 	 */
-	get gl() {
-		if (this.#gl === null) throw ReferenceError("gl is not defined");
-
-		return this.#gl;
+	getCanvas() {
+		return this.#canvas;
 	}
 
 	/**
 	 * @returns {Vector4}
 	 */
-	get viewport() {
-		return this.#viewport;
+	getViewport() {
+		return this._viewport;
 	}
 
 	/**
 	 * @param {Vector4} viewport
-	 * @returns {AbstractRenderer}
 	 */
-	set viewport(viewport) {
-		this.#viewport.set(viewport);
-
-		return this;
+	setViewport(viewport) {
+		this._viewport.set(viewport);
 	}
 
 	/**
@@ -171,10 +161,6 @@ export class AbstractRenderer {
 		return this.#framesPerSecond;
 	}
 
-	get locked() {
-		return document.pointerLockElement === this.#canvas;
-	}
-
 	/**
 	 * @param {Number} framesPerSecond
 	 * @returns {AbstractRenderer}
@@ -187,16 +173,14 @@ export class AbstractRenderer {
 		return this;
 	}
 
-	/** Initializes the canvas and its WebGL context. */
+	/**
+	 * Initializes the canvas and its WebGL context.
+	 */
 	build() {
-		const viewport = this.#viewport;
-		const canvas = document.createElement("canvas");
-
-		canvas.width = viewport[2];
-		canvas.height = viewport[3];
-
-		this.#gl = canvas.getContext("webgl2");
-		this.#canvas = canvas;
+		this.#canvas = document.createElement("canvas");
+		this.#canvas.width = this._viewport[2];
+		this.#canvas.height = this._viewport[3];
+		this._context = this.#canvas.getContext("webgl2");
 	}
 
 	/**
@@ -209,25 +193,24 @@ export class AbstractRenderer {
 	 * @throws {Error}
 	 */
 	createProgram(programName, vertexShaderSource, fragmentShaderSource) {
-		const gl = this.#gl;
 		const programs = this.#programs;
 
-		const vertexShader = this.createShader(gl.VERTEX_SHADER, vertexShaderSource);
-		const fragmentShader = this.createShader(gl.FRAGMENT_SHADER, fragmentShaderSource);
+		const vertexShader = this.createShader(this._context.VERTEX_SHADER, vertexShaderSource);
+		const fragmentShader = this.createShader(this._context.FRAGMENT_SHADER, fragmentShaderSource);
 
-		const program = gl.createProgram();
-		gl.attachShader(program, vertexShader);
-		gl.attachShader(program, fragmentShader);
-		gl.linkProgram(program);
+		const program = this._context.createProgram();
+		this._context.attachShader(program, vertexShader);
+		this._context.attachShader(program, fragmentShader);
+		this._context.linkProgram(program);
 
-		if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-			const vertexShaderLog = gl.getShaderInfoLog(vertexShader);
+		if (!this._context.getProgramParameter(program, this._context.LINK_STATUS)) {
+			const vertexShaderLog = this._context.getShaderInfoLog(vertexShader);
 			if (vertexShaderLog !== '') console.warn(`Vertex shader log:\n${vertexShaderLog}`);
 
-			const fragmentShaderLog = gl.getShaderInfoLog(fragmentShader);
+			const fragmentShaderLog = this._context.getShaderInfoLog(fragmentShader);
 			if (fragmentShaderLog !== '') console.warn(`Fragment shader log:\n${fragmentShaderLog}`);
 
-			throw Error(gl.getProgramInfoLog(program));
+			throw Error(this._context.getProgramInfoLog(program));
 		}
 
 		programs[programName] = program;
@@ -241,11 +224,10 @@ export class AbstractRenderer {
 	 * @returns {WebGLShader}
 	 */
 	createShader(shaderType, shaderSource) {
-		const gl = this.#gl;
+		const shader = this._context.createShader(shaderType);
 
-		const shader = gl.createShader(shaderType);
-		gl.shaderSource(shader, shaderSource);
-		gl.compileShader(shader);
+		this._context.shaderSource(shader, shaderSource);
+		this._context.compileShader(shader);
 
 		return shader;
 	}
@@ -254,8 +236,6 @@ export class AbstractRenderer {
 	 * @param {String[]} paths
 	 */
 	async loadTextures(basePath, paths) {
-		const gl = this.gl;
-
 		for (let i = 0, l = paths.length, path, image, texture; i < l; i++) {
 			path = paths[i];
 			image = new Image();
@@ -267,8 +247,8 @@ export class AbstractRenderer {
 				continue;
 			}
 
-			texture = gl.createTexture();
-			gl.bindTexture(gl.TEXTURE_2D, texture);
+			texture = this._context.createTexture();
+			this._context.bindTexture(this._context.TEXTURE_2D, texture);
 
 			this.setupTexture(image);
 
@@ -282,20 +262,15 @@ export class AbstractRenderer {
 	 */
 	setupTexture(image) {}
 
-	lock() {
-		this.#canvas.requestPointerLock();
-	}
-
 	resize() {
-		const canvas = this.#canvas;
-		const gl = this.#gl;
-		const viewport = this.#viewport;
+		this.#canvas.width = this._viewport[2];
+		this.#canvas.height = this._viewport[3];
 
-		gl.viewport(
-			viewport[0],
-			viewport[1],
-			canvas.width = viewport[2],
-			canvas.height = viewport[3],
+		this._context.viewport(
+			this._viewport[0],
+			this._viewport[1],
+			this._viewport[2],
+			this._viewport[3],
 		);
 	}
 

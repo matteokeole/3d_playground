@@ -41,14 +41,14 @@ export function listen(renderer) {
 	}
 
 	addEventListener("click", function(event) {
-		if (event.target !== renderer.canvas) return;
+		if (event.target !== renderer.getCanvas()) return;
 
-		renderer.lock();
+		renderer.getCanvas().requestPointerLock();
 	});
 
 	// `window.addEventListener("pointerlockchange")` doesn't fire in some browsers
 	document.addEventListener("pointerlockchange", function() {
-		const listener = renderer.locked ? addEventListener : removeEventListener;
+		const listener = renderer.getCanvas() === document.pointerLockElement ? addEventListener : removeEventListener;
 
 		listener("keydown", keydown);
 		listener("keyup", keyup);
@@ -61,7 +61,7 @@ export function listen(renderer) {
 		renderer.camera.aspect = viewport[0] / viewport[1];
 		renderer.camera.update();
 
-		renderer.viewport.set(viewport, 2);
+		renderer.getViewport().set(viewport, 2);
 		renderer.resize();
 	});
 }

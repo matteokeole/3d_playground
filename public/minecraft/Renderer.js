@@ -23,74 +23,72 @@ export class Renderer extends AbstractRenderer {
 			await (await fetch("public/minecraft/shaders/lighting.frag")).text(),
 		);
 
-		const {gl, programs, vaos, buffers, uniforms} = this;
+		const {programs, vaos, buffers, uniforms} = this;
 
-		gl.frontFace(gl.CW);
-		gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-		gl.enable(gl.CULL_FACE);
-		gl.enable(gl.DEPTH_TEST);
-		gl.depthFunc(gl.LEQUAL);
+		this._context.frontFace(this._context.CW);
+		this._context.pixelStorei(this._context.UNPACK_FLIP_Y_WEBGL, true);
+		this._context.enable(this._context.CULL_FACE);
+		this._context.enable(this._context.DEPTH_TEST);
+		this._context.depthFunc(this._context.LEQUAL);
 
-		vaos.gBuffer = gl.createVertexArray();
-		vaos.screen = gl.createVertexArray();
-		vaos.lighting = gl.createVertexArray();
+		vaos.gBuffer = this._context.createVertexArray();
+		vaos.screen = this._context.createVertexArray();
+		vaos.lighting = this._context.createVertexArray();
 
-		gl.useProgram(programs.gBuffer);
-		gl.bindVertexArray(vaos.gBuffer);
+		this._context.useProgram(programs.gBuffer);
+		this._context.bindVertexArray(vaos.gBuffer);
 
-		gl.enableVertexAttribArray(0);
-		gl.enableVertexAttribArray(1);
-		gl.enableVertexAttribArray(5);
-		gl.enableVertexAttribArray(6);
+		this._context.enableVertexAttribArray(0);
+		this._context.enableVertexAttribArray(1);
+		this._context.enableVertexAttribArray(5);
+		this._context.enableVertexAttribArray(6);
 
-		uniforms.projection = gl.getUniformLocation(programs.gBuffer, "u_projection");
-		uniforms.view = gl.getUniformLocation(programs.gBuffer, "u_view");
+		uniforms.projection = this._context.getUniformLocation(programs.gBuffer, "u_projection");
+		uniforms.view = this._context.getUniformLocation(programs.gBuffer, "u_view");
 
-		buffers.index = gl.createBuffer();
-		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.index);
+		buffers.index = this._context.createBuffer();
+		this._context.bindBuffer(this._context.ELEMENT_ARRAY_BUFFER, buffers.index);
 
-		buffers.vertex = gl.createBuffer();
-		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.vertex);
-		gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
+		buffers.vertex = this._context.createBuffer();
+		this._context.bindBuffer(this._context.ARRAY_BUFFER, buffers.vertex);
+		this._context.vertexAttribPointer(0, 3, this._context.FLOAT, false, 0, 0);
 
-		buffers.world = gl.createBuffer();
-		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.world);
+		buffers.world = this._context.createBuffer();
+		this._context.bindBuffer(this._context.ARRAY_BUFFER, buffers.world);
 		for (let i = 0, index = 1; i < 4; i++, index++) {
-			gl.enableVertexAttribArray(index);
-			gl.vertexAttribPointer(index, 4, gl.FLOAT, false, 64, i * 16);
-			gl.vertexAttribDivisor(index, 1);
+			this._context.enableVertexAttribArray(index);
+			this._context.vertexAttribPointer(index, 4, this._context.FLOAT, false, 64, i * 16);
+			this._context.vertexAttribDivisor(index, 1);
 		}
 
-		buffers.normal = gl.createBuffer();
-		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.normal);
-		gl.vertexAttribPointer(5, 3, gl.FLOAT, false, 0, 0); // Normalize?
+		buffers.normal = this._context.createBuffer();
+		this._context.bindBuffer(this._context.ARRAY_BUFFER, buffers.normal);
+		this._context.vertexAttribPointer(5, 3, this._context.FLOAT, false, 0, 0); // Normalize?
 
-		buffers.uv = gl.createBuffer();
-		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.uv);
-		gl.vertexAttribPointer(6, 2, gl.FLOAT, true, 0, 0);
+		buffers.uv = this._context.createBuffer();
+		this._context.bindBuffer(this._context.ARRAY_BUFFER, buffers.uv);
+		this._context.vertexAttribPointer(6, 2, this._context.FLOAT, true, 0, 0);
 
 		this.buildGBuffer();
 
-		gl.useProgram(programs.lighting);
-		gl.bindVertexArray(vaos.lighting);
+		this._context.useProgram(programs.lighting);
+		this._context.bindVertexArray(vaos.lighting);
 
-		uniforms.positionSampler = gl.getUniformLocation(programs.lighting, "u_position_sampler");
-		uniforms.normalSampler = gl.getUniformLocation(programs.lighting, "u_normal_sampler");
-		uniforms.colorSampler = gl.getUniformLocation(programs.lighting, "u_color_sampler");
-		uniforms.depthSampler = gl.getUniformLocation(programs.lighting, "u_depth_sampler");
-		uniforms.lightDirection = gl.getUniformLocation(programs.lighting, "u_light_direction");
-		uniforms.lightColor = gl.getUniformLocation(programs.lighting, "u_light_color");
-		uniforms.lightIntensity = gl.getUniformLocation(programs.lighting, "u_light_intensity");
+		uniforms.positionSampler = this._context.getUniformLocation(programs.lighting, "u_position_sampler");
+		uniforms.normalSampler = this._context.getUniformLocation(programs.lighting, "u_normal_sampler");
+		uniforms.colorSampler = this._context.getUniformLocation(programs.lighting, "u_color_sampler");
+		uniforms.depthSampler = this._context.getUniformLocation(programs.lighting, "u_depth_sampler");
+		uniforms.lightDirection = this._context.getUniformLocation(programs.lighting, "u_light_direction");
+		uniforms.lightColor = this._context.getUniformLocation(programs.lighting, "u_light_color");
+		uniforms.lightIntensity = this._context.getUniformLocation(programs.lighting, "u_light_intensity");
 
-		gl.bindVertexArray(null);
-		gl.useProgram(null);
+		this._context.bindVertexArray(null);
+		this._context.useProgram(null);
 	}
 
 	buildGBuffer() {
-		const {gl} = this;
-
 		this.gBuffer = {
-			framebuffer: gl.createFramebuffer(),
+			framebuffer: this._context.createFramebuffer(),
 			position: this.buildGBufferTexture(),
 			normal: this.buildGBufferTexture(),
 			color: this.buildGBufferTexture(),
@@ -98,85 +96,79 @@ export class Renderer extends AbstractRenderer {
 			depthRGB: this.buildGBufferTexture(),
 		};
 
-		gl.bindFramebuffer(gl.FRAMEBUFFER, this.gBuffer.framebuffer);
-		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.gBuffer.position, 0);
-		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT1, gl.TEXTURE_2D, this.gBuffer.normal, 0);
-		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT2, gl.TEXTURE_2D, this.gBuffer.color, 0);
-		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT3, gl.TEXTURE_2D, this.gBuffer.depthRGB, 0);
-		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, this.gBuffer.depth, 0);
-		gl.drawBuffers([
-			gl.COLOR_ATTACHMENT0,
-			gl.COLOR_ATTACHMENT1,
-			gl.COLOR_ATTACHMENT2,
-			gl.COLOR_ATTACHMENT3,
+		this._context.bindFramebuffer(this._context.FRAMEBUFFER, this.gBuffer.framebuffer);
+		this._context.framebufferTexture2D(this._context.FRAMEBUFFER, this._context.COLOR_ATTACHMENT0, this._context.TEXTURE_2D, this.gBuffer.position, 0);
+		this._context.framebufferTexture2D(this._context.FRAMEBUFFER, this._context.COLOR_ATTACHMENT1, this._context.TEXTURE_2D, this.gBuffer.normal, 0);
+		this._context.framebufferTexture2D(this._context.FRAMEBUFFER, this._context.COLOR_ATTACHMENT2, this._context.TEXTURE_2D, this.gBuffer.color, 0);
+		this._context.framebufferTexture2D(this._context.FRAMEBUFFER, this._context.COLOR_ATTACHMENT3, this._context.TEXTURE_2D, this.gBuffer.depthRGB, 0);
+		this._context.framebufferTexture2D(this._context.FRAMEBUFFER, this._context.DEPTH_ATTACHMENT, this._context.TEXTURE_2D, this.gBuffer.depth, 0);
+		this._context.drawBuffers([
+			this._context.COLOR_ATTACHMENT0,
+			this._context.COLOR_ATTACHMENT1,
+			this._context.COLOR_ATTACHMENT2,
+			this._context.COLOR_ATTACHMENT3,
 		]);
 
-		if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) throw Error("Invalid framebuffer.");
+		if (this._context.checkFramebufferStatus(this._context.FRAMEBUFFER) !== this._context.FRAMEBUFFER_COMPLETE) throw Error("Invalid framebuffer.");
 
-		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		this._context.bindFramebuffer(this._context.FRAMEBUFFER, null);
 	}
 
 	buildGBufferTexture() {
-		const {gl, viewport} = this;
-
-		const texture = gl.createTexture();
-		gl.bindTexture(gl.TEXTURE_2D, texture);
-		gl.texImage2D(
-			gl.TEXTURE_2D,
+		const texture = this._context.createTexture();
+		this._context.bindTexture(this._context.TEXTURE_2D, texture);
+		this._context.texImage2D(
+			this._context.TEXTURE_2D,
 			0,
-			gl.RGBA8,
-			viewport[2],
-			viewport[3],
+			this._context.RGBA8,
+			this._viewport[2],
+			this._viewport[3],
 			0,
-			gl.RGBA,
-			gl.UNSIGNED_BYTE,
+			this._context.RGBA,
+			this._context.UNSIGNED_BYTE,
 			null,
 		);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+		this._context.texParameteri(this._context.TEXTURE_2D, this._context.TEXTURE_MIN_FILTER, this._context.NEAREST);
+		this._context.texParameteri(this._context.TEXTURE_2D, this._context.TEXTURE_MAG_FILTER, this._context.NEAREST);
 
 		return texture;
 	}
 
 	buildGBufferDepthTexture() {
-		const {gl, viewport} = this;
-
-		const texture = gl.createTexture();
-		gl.bindTexture(gl.TEXTURE_2D, texture);
-		gl.texImage2D(
-			gl.TEXTURE_2D,
+		const texture = this._context.createTexture();
+		this._context.bindTexture(this._context.TEXTURE_2D, texture);
+		this._context.texImage2D(
+			this._context.TEXTURE_2D,
 			0,
-			gl.DEPTH_COMPONENT24,
-			viewport[2],
-			viewport[3],
+			this._context.DEPTH_COMPONENT24,
+			this._viewport[2],
+			this._viewport[3],
 			0,
-			gl.DEPTH_COMPONENT,
-			gl.UNSIGNED_INT,
+			this._context.DEPTH_COMPONENT,
+			this._context.UNSIGNED_INT,
 			null,
 		);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+		this._context.texParameteri(this._context.TEXTURE_2D, this._context.TEXTURE_MIN_FILTER, this._context.NEAREST);
+		this._context.texParameteri(this._context.TEXTURE_2D, this._context.TEXTURE_MAG_FILTER, this._context.NEAREST);
 
 		return texture;
 	}
 
 	setupTexture(image) {
-		const {gl} = this;
-
-		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-		gl.generateMipmap(gl.TEXTURE_2D);
+		this._context.texImage2D(this._context.TEXTURE_2D, 0, this._context.RGB, this._context.RGB, this._context.UNSIGNED_BYTE, image);
+		this._context.texParameteri(this._context.TEXTURE_2D, this._context.TEXTURE_MAG_FILTER, this._context.NEAREST);
+		this._context.generateMipmap(this._context.TEXTURE_2D);
 	}
 
 	prerender() {
-		const {gl, programs, vaos, buffers, uniforms, scene} = this;
+		const {programs, vaos, buffers, uniforms, scene} = this;
 		const {meshes, lights} = scene;
 		const {length} = meshes;
 
-		gl.useProgram(programs.gBuffer);
-		gl.bindVertexArray(vaos.gBuffer);
+		this._context.useProgram(programs.gBuffer);
+		this._context.bindVertexArray(vaos.gBuffer);
 
-		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.world);
+		this._context.bindBuffer(this._context.ARRAY_BUFFER, buffers.world);
 		const worlds = new Float32Array(length * 16);
 		for (let i = 0, mesh; i < length; i++) {
 			mesh = meshes[i];
@@ -187,127 +179,127 @@ export class Renderer extends AbstractRenderer {
 
 			worlds.set(world, i * 16);
 		}
-		gl.bufferData(gl.ARRAY_BUFFER, worlds, gl.STATIC_DRAW);
+		this._context.bufferData(this._context.ARRAY_BUFFER, worlds, this._context.STATIC_DRAW);
 
-		gl.useProgram(programs.lighting);
-		gl.bindVertexArray(vaos.lighting);
+		this._context.useProgram(programs.lighting);
+		this._context.bindVertexArray(vaos.lighting);
 
-		gl.uniform1i(uniforms.positionSampler, 0);
-		gl.uniform1i(uniforms.normalSampler, 1);
-		gl.uniform1i(uniforms.colorSampler, 2);
-		gl.uniform1i(uniforms.depthSampler, 3);
-		gl.uniform3fv(uniforms.lightDirection, lights[0].direction.clone().multiplyScalar(-1));
-		gl.uniform3fv(uniforms.lightColor, lights[0].color);
-		gl.uniform1f(uniforms.lightIntensity, lights[0].intensity);
+		this._context.uniform1i(uniforms.positionSampler, 0);
+		this._context.uniform1i(uniforms.normalSampler, 1);
+		this._context.uniform1i(uniforms.colorSampler, 2);
+		this._context.uniform1i(uniforms.depthSampler, 3);
+		this._context.uniform3fv(uniforms.lightDirection, lights[0].direction.clone().multiplyScalar(-1));
+		this._context.uniform3fv(uniforms.lightColor, lights[0].color);
+		this._context.uniform1f(uniforms.lightIntensity, lights[0].intensity);
 
-		gl.bindVertexArray(null);
-		gl.useProgram(null);
+		this._context.bindVertexArray(null);
+		this._context.useProgram(null);
 	}
 
 	render() {
 		super.render();
 
-		const {gl, programs, vaos, buffers, uniforms, viewport, scene, camera} = this;
-		const viewportHalf = viewport.clone().divideScalar(2);
+		const {programs, vaos, buffers, uniforms, scene, camera} = this;
+		const viewportHalf = this._viewport.clone().divideScalar(2);
 		const {meshes} = scene;
 
 		// G-Buffer
 		{
-			gl.useProgram(programs.gBuffer);
-			gl.bindVertexArray(vaos.gBuffer);
-			gl.bindFramebuffer(gl.FRAMEBUFFER, this.gBuffer.framebuffer);
+			this._context.useProgram(programs.gBuffer);
+			this._context.bindVertexArray(vaos.gBuffer);
+			this._context.bindFramebuffer(this._context.FRAMEBUFFER, this.gBuffer.framebuffer);
 
-			gl.clearColor(...scene.background);
-			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+			this._context.clearColor(...scene.background);
+			this._context.clear(this._context.COLOR_BUFFER_BIT | this._context.DEPTH_BUFFER_BIT);
 
-			gl.uniformMatrix4fv(uniforms.projection, false, camera.projection);
-			gl.uniformMatrix4fv(uniforms.view, false, camera.view);
+			this._context.uniformMatrix4fv(uniforms.projection, false, camera.projection);
+			this._context.uniformMatrix4fv(uniforms.view, false, camera.view);
 
-			gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, meshes[0].geometry.indices, gl.STATIC_DRAW);
+			this._context.bufferData(this._context.ELEMENT_ARRAY_BUFFER, meshes[0].geometry.indices, this._context.STATIC_DRAW);
 
-			gl.bindBuffer(gl.ARRAY_BUFFER, buffers.vertex);
-			gl.bufferData(gl.ARRAY_BUFFER, meshes[0].geometry.vertices, gl.STATIC_DRAW);
+			this._context.bindBuffer(this._context.ARRAY_BUFFER, buffers.vertex);
+			this._context.bufferData(this._context.ARRAY_BUFFER, meshes[0].geometry.vertices, this._context.STATIC_DRAW);
 
-			gl.bindBuffer(gl.ARRAY_BUFFER, buffers.normal);
-			gl.bufferData(gl.ARRAY_BUFFER, meshes[0].geometry.normals, gl.STATIC_DRAW);
+			this._context.bindBuffer(this._context.ARRAY_BUFFER, buffers.normal);
+			this._context.bufferData(this._context.ARRAY_BUFFER, meshes[0].geometry.normals, this._context.STATIC_DRAW);
 
-			gl.bindBuffer(gl.ARRAY_BUFFER, buffers.uv);
-			gl.bufferData(gl.ARRAY_BUFFER, meshes[0].geometry.uvs, gl.STATIC_DRAW);
+			this._context.bindBuffer(this._context.ARRAY_BUFFER, buffers.uv);
+			this._context.bufferData(this._context.ARRAY_BUFFER, meshes[0].geometry.uvs, this._context.STATIC_DRAW);
 
-			gl.bindTexture(gl.TEXTURE_2D, meshes[0].material.texture.texture);
+			this._context.bindTexture(this._context.TEXTURE_2D, meshes[0].material.texture.texture);
 
-			gl.drawElementsInstanced(gl.TRIANGLES, 36, gl.UNSIGNED_BYTE, 0, meshes.length);
+			this._context.drawElementsInstanced(this._context.TRIANGLES, 36, this._context.UNSIGNED_BYTE, 0, meshes.length);
 
-			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+			this._context.bindFramebuffer(this._context.FRAMEBUFFER, null);
 		}
 
 		if (this.debug) {
-			gl.enable(gl.SCISSOR_TEST);
-			gl.useProgram(programs.screen);
-			gl.bindVertexArray(vaos.screen);
+			this._context.enable(this._context.SCISSOR_TEST);
+			this._context.useProgram(programs.screen);
+			this._context.bindVertexArray(vaos.screen);
 
 			// Position
 			{
-				gl.scissor(0, viewportHalf[3], viewportHalf[2], viewportHalf[3]);
+				this._context.scissor(0, viewportHalf[3], viewportHalf[2], viewportHalf[3]);
 
-				gl.bindTexture(gl.TEXTURE_2D, this.gBuffer.position);
+				this._context.bindTexture(this._context.TEXTURE_2D, this.gBuffer.position);
 
-				gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+				this._context.drawArrays(this._context.TRIANGLE_FAN, 0, 4);
 			}
 
 			// Normal
 			{
-				gl.scissor(viewportHalf[2], viewportHalf[3], viewportHalf[2], viewportHalf[3]);
+				this._context.scissor(viewportHalf[2], viewportHalf[3], viewportHalf[2], viewportHalf[3]);
 
-				gl.bindTexture(gl.TEXTURE_2D, this.gBuffer.normal);
+				this._context.bindTexture(this._context.TEXTURE_2D, this.gBuffer.normal);
 
-				gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+				this._context.drawArrays(this._context.TRIANGLE_FAN, 0, 4);
 			}
 
 			// Color
 			{
-				gl.scissor(0, 0, viewportHalf[2], viewportHalf[3]);
+				this._context.scissor(0, 0, viewportHalf[2], viewportHalf[3]);
 
-				gl.bindTexture(gl.TEXTURE_2D, this.gBuffer.color);
+				this._context.bindTexture(this._context.TEXTURE_2D, this.gBuffer.color);
 
-				gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+				this._context.drawArrays(this._context.TRIANGLE_FAN, 0, 4);
 			}
 
 			// Depth
 			{
-				gl.scissor(viewportHalf[2], 0, viewportHalf[2], viewportHalf[3]);
+				this._context.scissor(viewportHalf[2], 0, viewportHalf[2], viewportHalf[3]);
 
-				gl.bindTexture(gl.TEXTURE_2D, this.gBuffer.depthRGB);
+				this._context.bindTexture(this._context.TEXTURE_2D, this.gBuffer.depthRGB);
 
-				gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+				this._context.drawArrays(this._context.TRIANGLE_FAN, 0, 4);
 			}
 
-			gl.disable(gl.SCISSOR_TEST);
+			this._context.disable(this._context.SCISSOR_TEST);
 		} else {
-			gl.useProgram(programs.lighting);
-			gl.bindVertexArray(vaos.lighting);
+			this._context.useProgram(programs.lighting);
+			this._context.bindVertexArray(vaos.lighting);
 
-			gl.activeTexture(gl.TEXTURE0);
-			gl.bindTexture(gl.TEXTURE_2D, this.gBuffer.position);
-			gl.activeTexture(gl.TEXTURE1);
-			gl.bindTexture(gl.TEXTURE_2D, this.gBuffer.normal);
-			gl.activeTexture(gl.TEXTURE2);
-			gl.bindTexture(gl.TEXTURE_2D, this.gBuffer.color);
-			gl.activeTexture(gl.TEXTURE3);
-			gl.bindTexture(gl.TEXTURE_2D, this.gBuffer.depthRGB);
+			this._context.activeTexture(this._context.TEXTURE0);
+			this._context.bindTexture(this._context.TEXTURE_2D, this.gBuffer.position);
+			this._context.activeTexture(this._context.TEXTURE1);
+			this._context.bindTexture(this._context.TEXTURE_2D, this.gBuffer.normal);
+			this._context.activeTexture(this._context.TEXTURE2);
+			this._context.bindTexture(this._context.TEXTURE_2D, this.gBuffer.color);
+			this._context.activeTexture(this._context.TEXTURE3);
+			this._context.bindTexture(this._context.TEXTURE_2D, this.gBuffer.depthRGB);
 
-			gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+			this._context.drawArrays(this._context.TRIANGLE_FAN, 0, 4);
 
-			gl.bindTexture(gl.TEXTURE_2D, null);
-			gl.activeTexture(gl.TEXTURE2);
-			gl.bindTexture(gl.TEXTURE_2D, null);
-			gl.activeTexture(gl.TEXTURE1);
-			gl.bindTexture(gl.TEXTURE_2D, null);
-			gl.activeTexture(gl.TEXTURE0);
-			gl.bindTexture(gl.TEXTURE_2D, null);
+			this._context.bindTexture(this._context.TEXTURE_2D, null);
+			this._context.activeTexture(this._context.TEXTURE2);
+			this._context.bindTexture(this._context.TEXTURE_2D, null);
+			this._context.activeTexture(this._context.TEXTURE1);
+			this._context.bindTexture(this._context.TEXTURE_2D, null);
+			this._context.activeTexture(this._context.TEXTURE0);
+			this._context.bindTexture(this._context.TEXTURE_2D, null);
 		}
 
-		gl.bindVertexArray(null);
-		gl.useProgram(null);
+		this._context.bindVertexArray(null);
+		this._context.useProgram(null);
 	}
 }

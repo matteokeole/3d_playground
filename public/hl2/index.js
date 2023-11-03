@@ -20,13 +20,13 @@ export default async function() {
 	const viewport = new Vector2(innerWidth, innerHeight);
 
 	const renderer = new Renderer();
-	renderer.viewport.set(viewport, 2);
+	renderer.getViewport().set(viewport, 2);
 	await renderer.build();
 
 	const paths = await (await fetch("public/hl2/textures/textures.json")).json();
 	await renderer.loadTextures("public/hl2/textures/", paths);
 
-	document.body.appendChild(renderer.canvas);
+	document.body.appendChild(renderer.getCanvas());
 
 	const scene = new AbstractScene();
 	scene.background = new Vector4(1, 1, 1, 1);
