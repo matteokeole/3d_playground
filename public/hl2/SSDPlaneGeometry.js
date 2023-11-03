@@ -1,5 +1,5 @@
-import {AbstractGeometry} from "src/geometries";
-import {Vector2, Vector3} from "src/math";
+import {AbstractGeometry} from "../../src/geometries/index.js";
+import {Vector2, Vector3} from "../../src/math/index.js";
 
 export class SSDPlaneGeometry extends AbstractGeometry {
 	static fromAnchors(anchors) {

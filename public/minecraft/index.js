@@ -1,5 +1,5 @@
-import {AbstractCamera, AbstractScene} from "src";
-import {Vector2, Vector4} from "src/math";
+import {AbstractCamera, AbstractScene} from "../../src/index.js";
+import {Vector2, Vector4} from "../../src/math/index.js";
 import {Renderer} from "./Renderer.js";
 import {setup} from "./scenes/instancing.js";
 import {debug} from "./debug.js";

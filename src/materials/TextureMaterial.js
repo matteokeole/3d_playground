@@ -4,19 +4,16 @@ import {Matrix3} from "../math/index.js";
 
 export class TextureMaterial extends AbstractMaterial {
 	/**
-	 * @private
 	 * @type {Matrix3}
 	 */
 	#textureMatrix;
 
 	/**
-	 * @private
 	 * @type {Texture}
 	 */
 	#texture;
 
 	/**
-	 * @private
 	 * @type {Texture}
 	 */
 	#normalMap;
@@ -35,17 +32,23 @@ export class TextureMaterial extends AbstractMaterial {
 		this.#normalMap = normalMap;
 	}
 
-	/** @returns {Matrix3} */
+	/**
+	 * @returns {Matrix3}
+	 */
 	get textureMatrix() {
 		return this.#textureMatrix;
 	}
 
-	/** @returns {Texture} */
+	/**
+	 * @returns {Texture}
+	 */
 	get texture() {
 		return this.#texture;
 	}
 
-	/** @returns {Texture} */
+	/**
+	 * @returns {Texture}
+	 */
 	get normalMap() {
 		return this.#normalMap;
 	}

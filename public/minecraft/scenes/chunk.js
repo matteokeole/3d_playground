@@ -1,8 +1,8 @@
-import {AbstractMesh as Mesh} from "src";
-import {BoxGeometry} from "src/geometries";
-import {DirectionalLight} from "src/lights";
-import {TextureMaterial} from "src/materials";
-import {Vector3} from "src/math";
+import {AbstractMesh as Mesh} from "../../../src/index.js";
+import {BoxGeometry} from "../../../src/geometries/index.js";
+import {DirectionalLight} from "../../../src/lights/index.js";
+import {TextureMaterial} from "../../../src/materials/index.js";
+import {Vector3} from "../../../src/math/index.js";
 import {BLOCK_SCALE, ENTITY_HEIGHT_STAND, NOISE_AMPLITUDE, NOISE_INC} from "../index.js";
 
 export function setup(renderer) {

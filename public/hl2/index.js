@@ -1,5 +1,5 @@
-import {AbstractScene} from "src";
-import {PI, Vector2, Vector4} from "src/math";
+import {AbstractScene} from "../../src/index.js";
+import {PI, Vector2, Vector4} from "../../src/math/index.js";
 import {Renderer} from "./Renderer.js";
 import {Camera} from "./Camera.js";
 import {setup} from "./scenes/building_entrance.js";

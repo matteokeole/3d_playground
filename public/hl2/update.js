@@ -1,4 +1,4 @@
-import {PI, Vector3} from "src/math";
+import {PI, Vector3} from "../../src/math/index.js";
 import {CAMERA_LERP_FACTOR, VELOCITY} from "./index.js";
 import {keys} from "./input.js";
 

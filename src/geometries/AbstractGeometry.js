@@ -1,31 +1,31 @@
-/** @abstract */
+import {Vector3} from "../math/index.js";
+
+/**
+ * 
+ * @abstract
+ */
 export class AbstractGeometry {
 	/**
-	 * @protected
 	 * @type {Uint8Array}
 	 */
 	#indices;
 
 	/**
-	 * @protected
 	 * @type {Float32Array}
 	 */
 	#vertices;
 
 	/**
-	 * @protected
 	 * @type {Float32Array}
 	 */
 	#normals;
 
 	/**
-	 * @protected
 	 * @type {Float32Array}
 	 */
 	#uvs;
 
 	/**
-	 * @protected
 	 * @type {?Vector3}
 	 */
 	#size;
@@ -46,27 +46,37 @@ export class AbstractGeometry {
 		this.#size = size;
 	}
 
-	/** @returns {Uint8Array} */
+	/**
+	 * @returns {Uint8Array}
+	 */
 	get indices() {
 		return this.#indices;
 	}
 
-	/** @returns {Float32Array} */
+	/**
+	 * @returns {Float32Array}
+	 */
 	get vertices() {
 		return this.#vertices;
 	}
 
-	/** @returns {Float32Array} */
+	/**
+	 * @returns {Float32Array}
+	 */
 	get normals() {
 		return this.#normals;
 	}
 
-	/** @returns {Float32Array} */
+	/**
+	 * @returns {Float32Array}
+	 */
 	get uvs() {
 		return this.#uvs;
 	}
 
-	/** @returns {?Vector3} */
+	/**
+	 * @returns {?Vector3}
+	 */
 	get size() {
 		return this.#size;
 	}

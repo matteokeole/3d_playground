@@ -1,5 +1,5 @@
-import {AbstractCamera} from "src";
-import {Vector3} from "src/math";
+import {AbstractCamera} from "../../src/index.js";
+import {Vector3} from "../../src/math/index.js";
 
 export class Camera extends AbstractCamera {
 	getRelativeVelocity(direction) {

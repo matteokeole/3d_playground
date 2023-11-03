@@ -1,78 +1,88 @@
 import {AbstractCamera, AbstractScene, Texture} from "./index.js";
 import {Vector4} from "./math/index.js";
 
-/** @abstract */
+/**
+ * @abstract
+ */
 export class AbstractRenderer {
 	/**
-	 * @private
 	 * @type {?HTMLCanvasElement}
 	 */
 	#canvas = null;
 
 	/**
-	 * @private
 	 * @type {?WebGL2RenderingContext}
 	 */
 	#gl = null;
 
 	/**
-	 * @private
 	 * @type {Vector4}
 	 */
 	#viewport = new Vector4(0, 0, 300, 150);
 
 	/**
-	 * @private
 	 * @type {Object.<String, WebGLProgram>}
 	 */
 	#programs = {};
 
 	/**
-	 * @private
 	 * @type {Object.<String, WebGLVertexArrayObject>}
 	 */
 	#vaos = {};
 
 	/**
-	 * @private
 	 * @type {Object.<String, WebGLBuffer>}
 	 */
 	#buffers = {};
 
 	/**
-	 * @private
 	 * @type {Object.<String, WebGLUniformLocation>}
 	 */
 	#uniforms = {};
 
 	/**
-	 * @private
 	 * @type {Object.<String, Texture>}
 	 */
 	#textures = {};
 
-	/** @type {?AbstractScene} */
+	/**
+	 * @type {?AbstractScene}
+	 */
 	scene = null;
 
-	/** @type {?AbstractCamera} */
+	/**
+	 * @type {?AbstractCamera}
+	 */
 	camera = null;
 
-	/** @type {?Function} */
+	/**
+	 * @type {?Function}
+	 */
 	update = null;
 
-	/** @type {Number} */
+	/**
+	 * @type {Number}
+	 */
 	#frames = 0;
 
-	/** @type {?Number} */
+	/**
+	 * @type {?Number}
+	 */
 	#framesPerSecond = null;
 
-	/** @type {?Number} */
+	/**
+	 * @type {?Number}
+	 */
 	#frameInterval = null;
 
-	/** @type {?Number} */
+	/**
+	 * @type {?Number}
+	 */
 	#then = null;
 
-	/** @type {Number} */
+	/**
+	 * @type {Number}
+	 */
 	debug = false;
 
 	/**
@@ -95,7 +105,9 @@ export class AbstractRenderer {
 		return this.#gl;
 	}
 
-	/** @returns {Vector4} */
+	/**
+	 * @returns {Vector4}
+	 */
 	get viewport() {
 		return this.#viewport;
 	}
@@ -110,37 +122,51 @@ export class AbstractRenderer {
 		return this;
 	}
 
-	/** @returns {Object.<String, WebGLProgram>} */
+	/**
+	 * @returns {Object.<String, WebGLProgram>}
+	 */
 	get programs() {
 		return this.#programs;
 	}
 
-	/** @returns {Object.<String, WebGLVertexArrayObject>} */
+	/**
+	 * @returns {Object.<String, WebGLVertexArrayObject>}
+	 */
 	get vaos() {
 		return this.#vaos;
 	}
 
-	/** @returns {Object.<String, WebGLBuffer>} */
+	/**
+	 * @returns {Object.<String, WebGLBuffer>}
+	 */
 	get buffers() {
 		return this.#buffers;
 	}
 
-	/** @returns {Object.<String, WebGLUniformLocation>} */
+	/**
+	 * @returns {Object.<String, WebGLUniformLocation>}
+	 */
 	get uniforms() {
 		return this.#uniforms;
 	}
 
-	/** @returns {Object.<String, Texture>} */
+	/**
+	 * @returns {Object.<String, Texture>}
+	 */
 	get textures() {
 		return this.#textures;
 	}
 
-	/** @type {Number} */
+	/**
+	 * @type {Number}
+	 */
 	get frames() {
 		return this.#frames;
 	}
 
-	/** @returns {?Number} */
+	/**
+	 * @returns {?Number}
+	 */
 	get framesPerSecond() {
 		return this.#framesPerSecond;
 	}
@@ -224,7 +250,9 @@ export class AbstractRenderer {
 		return shader;
 	}
 
-	/** @param {String[]} paths */
+	/**
+	 * @param {String[]} paths
+	 */
 	async loadTextures(basePath, paths) {
 		const gl = this.gl;
 
@@ -292,6 +320,8 @@ export class AbstractRenderer {
 		}
 	}
 
-	/** @abstract */
+	/**
+	 * @abstract
+	 */
 	render() {}
 }

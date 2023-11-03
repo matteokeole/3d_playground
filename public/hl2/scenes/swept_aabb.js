@@ -1,7 +1,7 @@
-import {BoxGeometry} from "src/geometries";
-import {PointLight} from "src/lights";
-import {TextureMaterial} from "src/materials";
-import {Matrix3, Vector3} from "src/math";
+import {BoxGeometry} from "../../../src/geometries/index.js";
+import {PointLight} from "../../../src/lights/index.js";
+import {TextureMaterial} from "../../../src/materials/index.js";
+import {Matrix3, Vector3} from "../../../src/math/index.js";
 import {Mesh} from "../Mesh.js";
 
 export async function setup(renderer) {

@@ -1,105 +1,149 @@
 import {clamp, Matrix4, PI, Vector2, Vector3} from "./math/index.js";
 
-/** @abstract */
+/**
+ * @abstract
+ */
 export class AbstractCamera {
 	/**
-	 * @private
 	 * @type {Matrix4}
 	 */
 	#projection = new Matrix4();
 
 	/**
-	 * @private
 	 * @type {Matrix4}
 	 */
 	#view = new Matrix4();
 
-	/** @type {Vector3} */
+	/**
+	 * @type {Vector3}
+	 */
 	position = new Vector3();
 
-	/** @type {Vector3} */
+	/**
+	 * @type {Vector3}
+	 */
 	target = new Vector3();
 
-	/** @type {Vector3} */
+	/**
+	 * @type {Vector3}
+	 */
 	distance = new Vector3();
 
-	/** @type {Vector3} */
+	/**
+	 * @type {Vector3}
+	 */
 	rotation = new Vector3();
 
-	/** @type {Vector3} */
+	/**
+	 * @type {Vector3}
+	 */
 	forward = new Vector3(0, 0, 1);
 
-	/** @type {Vector3} */
+	/**
+	 * @type {Vector3}
+	 */
 	right = new Vector3(1, 0, 0);
 
-	/** @type {Vector3} */
+	/**
+	 * @type {Vector3}
+	 */
 	up = new Vector3(0, 1, 0);
 
-	/** @type {Number} */
+	/**
+	 * @type {Number}
+	 */
 	fieldOfView = 0;
 
-	/** @type {Number} */
+	/**
+	 * @type {Number}
+	 */
 	aspectRatio = 0;
 
-	/** @type {Number} */
+	/**
+	 * @type {Number}
+	 */
 	near = 0;
 
-	/** @type {Number} */
+	/**
+	 * @type {Number}
+	 */
 	far = 0;
 
-	/** @type {Number} */
+	/**
+	 * @type {Number}
+	 */
 	bias = 0;
 
-	/** @type {Number} */
+	/**
+	 * @type {Number}
+	 */
 	turnVelocity = 0;
 
-	/** @type {Number} */
+	/**
+	 * @type {Number}
+	 */
 	lerpFactor = 1;
 
-	/** @returns {Matrix4} */
+	/**
+	 * @returns {Matrix4}
+	 */
 	get projection() {
 		return this.#projection;
 	}
 
-	/** @returns {Matrix4} */
+	/**
+	 * @returns {Matrix4}
+	 */
 	get view() {
 		return this.#view;
 	}
 
-	/** @param {Number} x */
+	/**
+	 * @param {Number} x
+	 */
 	truck(x) {
 		const right = this.right.clone();
 
 		this.target.add(right.multiplyScalar(x));
 	}
 
-	/** @param {Number} y */
+	/**
+	 * @param {Number} y
+	 */
 	pedestal(y) {
 		const up = this.up.clone();
 
 		this.target.add(up.multiplyScalar(y));
 	}
 
-	/** @param {Number} z */
+	/**
+	 * @param {Number} z
+	 */
 	dolly(z) {
 		const forward = this.forward.clone();
 
 		this.target.add(forward.multiplyScalar(z));
 	}
 
-	/** @param {Number} y */
+	/**
+	 * @param {Number} y
+	 */
 	moveY(y) {
 		this.target[1] += y;
 	}
 
-	/** @param {Number} z */
+	/**
+	 * @param {Number} z
+	 */
 	moveZ(z) {
 		const newForward = this.right.cross(new Vector3(0, 1, 0));
 
 		this.target.add(newForward.multiplyScalar(z));
 	}
 
-	/** @param {Vector2} delta */
+	/**
+	 * @param {Vector2} delta
+	 */
 	lookAt(delta) {
 		delta.multiplyScalar(this.turnVelocity);
 

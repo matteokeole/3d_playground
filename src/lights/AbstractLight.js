@@ -1,15 +1,15 @@
 import {Vector3} from "../math/index.js";
 
-/** @abstract */
+/**
+ * @abstract
+ */
 export class AbstractLight {
 	/**
-	 * @private
 	 * @type {Vector3}
 	 */
 	#color;
 
 	/**
-	 * @private
 	 * @type {Number}
 	 */
 	#intensity;
@@ -24,12 +24,16 @@ export class AbstractLight {
 		this.#intensity = intensity;
 	}
 
-	/** @returns {Vector3} */
+	/**
+	 * @returns {Vector3}
+	 */
 	get color() {
 		return this.#color;
 	}
 
-	/** @returns {Number} */
+	/**
+	 * @returns {Number}
+	 */
 	get intensity() {
 		return this.#intensity;
 	}

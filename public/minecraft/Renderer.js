@@ -1,5 +1,5 @@
-import {AbstractRenderer} from "src";
-import {Matrix4} from "src/math";
+import {AbstractRenderer} from "../../src/index.js";
+import {Matrix4} from "../../src/math/index.js";
 
 export class Renderer extends AbstractRenderer {
 	async build() {

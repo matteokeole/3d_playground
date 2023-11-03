@@ -1,4 +1,4 @@
-import {PI, Vector3} from "src/math";
+import {PI, Vector3} from "../../src/math/index.js";
 
 export default async function initCaptureSession(camera) {
 	const session = await (await fetch("assets/capture.json")).json();

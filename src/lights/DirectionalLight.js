@@ -3,7 +3,6 @@ import {Vector3} from "../math/index.js";
 
 export class DirectionalLight extends AbstractLight {
 	/**
-	 * @private
 	 * @type {Vector3}
 	 */
 	#direction;
@@ -20,7 +19,9 @@ export class DirectionalLight extends AbstractLight {
 		this.#direction = direction;
 	}
 
-	/** @returns {Vector3} */
+	/**
+	 * @returns {Vector3}
+	 */
 	get direction() {
 		return this.#direction;
 	}

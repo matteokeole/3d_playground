@@ -3,13 +3,11 @@ import {Vector3} from "../math/index.js";
 
 export class PointLight extends AbstractLight {
 	/**
-	 * @private
 	 * @type {Vector3}
 	 */
 	#position;
 
 	/**
-	 * @private
 	 * @type {Vector3}
 	 */
 	#direction;
@@ -28,12 +26,16 @@ export class PointLight extends AbstractLight {
 		this.#direction = direction;
 	}
 
-	/** @returns {Vector3} */
+	/**
+	 * @returns {Vector3}
+	 */
 	get position() {
 		return this.#position;
 	}
 
-	/** @returns {Vector3} */
+	/**
+	 * @returns {Vector3}
+	 */
 	get direction() {
 		return this.#direction;
 	}

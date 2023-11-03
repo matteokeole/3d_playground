@@ -3,7 +3,6 @@ import {Vector3} from "../math/index.js";
 
 export class ColorMaterial extends AbstractMaterial {
 	/**
-	 * @private
 	 * @type {Vector3}
 	 */
 	#color;
@@ -18,7 +17,9 @@ export class ColorMaterial extends AbstractMaterial {
 		this.#color = color;
 	}
 
-	/** @returns {Vector3} */
+	/**
+	 * @returns {Vector3}
+	 */
 	get color() {
 		return this.#color;
 	}

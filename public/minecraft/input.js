@@ -1,4 +1,4 @@
-import {Vector2} from "src/math";
+import {Vector2} from "../../src/math/index.js";
 
 const movement = new Vector2();
 

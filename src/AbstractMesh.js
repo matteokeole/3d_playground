@@ -2,34 +2,31 @@ import {AbstractGeometry} from "./geometries/index.js";
 import {Vector3} from "./math/index.js";
 import {AbstractMaterial} from "./materials/index.js";
 
-/** @abstract */
+/**
+ * @abstract
+ */
 export class AbstractMesh {
 	/**
-	 * @private
 	 * @type {AbstractGeometry}
 	 */
 	#geometry;
 
 	/**
-	 * @private
 	 * @type {AbstractMaterial}
 	 */
 	#material;
 
 	/**
-	 * @private
 	 * @type {Vector3}
 	 */
 	#position = new Vector3(0, 0, 0);
 
 	/**
-	 * @private
 	 * @type {Vector3}
 	 */
 	#rotation = new Vector3(0, 0, 0);
 
 	/**
-	 * @private
 	 * @type {Vector3}
 	 */
 	#scale = new Vector3(1, 1, 1);
@@ -43,17 +40,23 @@ export class AbstractMesh {
 		this.#material = material;
 	}
 
-	/** @returns {AbstractGeometry} */
+	/**
+	 * @returns {AbstractGeometry}
+	 */
 	get geometry() {
 		return this.#geometry;
 	}
 
-	/** @returns {AbstractMaterial} */
+	/**
+	 * @returns {AbstractMaterial}
+	 */
 	get material() {
 		return this.#material;
 	}
 
-	/** @returns {Vector3} */
+	/**
+	 * @returns {Vector3}
+	 */
 	get position() {
 		return this.#position;
 	}
@@ -68,7 +71,9 @@ export class AbstractMesh {
 		return this;
 	}
 
-	/** @returns {Vector3} */
+	/**
+	 * @returns {Vector3}
+	 */
 	get rotation() {
 		return this.#rotation;
 	}
@@ -83,7 +88,9 @@ export class AbstractMesh {
 		return this;
 	}
 
-	/** @returns {Vector3} */
+	/**
+	 * @returns {Vector3}
+	 */
 	get scale() {
 		return this.#scale;
 	}

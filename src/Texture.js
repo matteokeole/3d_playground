@@ -1,12 +1,10 @@
 export class Texture {
 	/**
-	 * @private
 	 * @type {WebGLTexture}
 	 */
 	#texture;
 
 	/**
-	 * @private
 	 * @type {Image}
 	 */
 	#image;
@@ -20,12 +18,16 @@ export class Texture {
 		this.#image = image;
 	}
 
-	/** @returns {WebGLTexture} */
+	/**
+	 * @returns {WebGLTexture}
+	 */
 	get texture() {
 		return this.#texture;
 	}
 
-	/** @returns {Image} */
+	/**
+	 * @returns {Image}
+	 */
 	get image() {
 		return this.#image;
 	}
