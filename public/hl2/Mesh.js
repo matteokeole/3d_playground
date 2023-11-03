@@ -47,7 +47,9 @@ export class Mesh extends AbstractMesh {
 		);
 	}
 
-	/** @returns {?HitBox} */
+	/**
+	 * @returns {?HitBox}
+	 */
 	get hitbox() {
 		return this.#hitbox;
 	}

@@ -4,21 +4,23 @@ import {SSDPlaneGeometry} from "./SSDPlaneGeometry.js";
 
 export class Renderer extends AbstractRenderer {
 	/**
-	 * @private
 	 * @type {Float32Array}
 	 */
 	#defaultColor;
 
 	/**
-	 * @private
 	 * @type {WebGLTexture}
 	 */
 	#defaultTexture;
 
-	/** @type {?AbstractMesh} */
+	/**
+	 * @type {?AbstractMesh}
+	 */
 	player;
 
-	/** @type {?AbstractMesh} */
+	/**
+	 * @type {?AbstractMesh}
+	 */
 	wall;
 
 	async build() {

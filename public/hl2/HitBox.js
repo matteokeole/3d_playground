@@ -2,19 +2,16 @@ import {Vector3} from "../../src/math/index.js";
 
 export class HitBox {
 	/**
-	 * @private
 	 * @type {Vector3}
 	 */
 	#position;
 
 	/**
-	 * @private
 	 * @type {Vector3}
 	 */
 	#size;
 
 	/**
-	 * @private
 	 * @type {Vector3}
 	 */
 	#velocity;
@@ -30,32 +27,44 @@ export class HitBox {
 		this.#velocity = new Vector3();
 	}
 
-	/** @returns {Vector3} */
+	/**
+	 * @returns {Vector3}
+	 */
 	getPosition() {
 		return this.#position;
 	}
 
-	/** @param {Position} position */
+	/**
+	 * @param {Position} position
+	 */
 	setPosition(position) {
 		this.#position = position;
 	}
 
-	/** @returns {Vector3} */
+	/**
+	 * @returns {Vector3}
+	 */
 	getSize() {
 		return this.#size;
 	}
 
-	/** @param {Size} size */
+	/**
+	 * @param {Size} size
+	 */
 	setSize(size) {
 		this.#size = size;
 	}
 
-	/** @returns {Vector3} */
+	/**
+	 * @returns {Vector3}
+	 */
 	getVelocity() {
 		return this.#velocity;
 	}
 
-	/** @param {Velocity} velocity */
+	/**
+	 * @param {Velocity} velocity
+	 */
 	setVelocity(velocity) {
 		this.#velocity = velocity;
 	}

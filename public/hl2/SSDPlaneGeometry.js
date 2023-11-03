@@ -58,19 +58,16 @@ export class SSDPlaneGeometry extends AbstractGeometry {
 	}
 
 	/**
-	 * @private
 	 * @type {Vector3}
 	 */
 	#normal;
 
 	/**
-	 * @private
 	 * @type {Vector3}
 	 */
 	#tangent;
 
 	/**
-	 * @private
 	 * @type {Float32Array}
 	 */
 	#tangents;
@@ -88,17 +85,23 @@ export class SSDPlaneGeometry extends AbstractGeometry {
 		this.#tangents = tangents;
 	}
 
-	/** @returns {Vector3} */
+	/**
+	 * @returns {Vector3}
+	 */
 	get normal() {
 		return this.#normal;
 	}
 
-	/** @returns {Vector3} */
+	/**
+	 * @returns {Vector3}
+	 */
 	get tangent() {
 		return this.#tangent;
 	}
 
-	/** @returns {Float32Array} */
+	/**
+	 * @returns {Float32Array}
+	 */
 	get tangents() {
 		return this.#tangents;
 	}
