@@ -3,6 +3,11 @@ import {Vector3} from "../math/index.js";
 
 export class BoxGeometry extends Geometry {
 	/**
+	 * @type {Vector3}
+	 */
+	#size;
+
+	/**
 	 * @param {Vector3} size
 	 */
 	constructor(size) {
@@ -39,7 +44,22 @@ export class BoxGeometry extends Geometry {
 				1, 1,	0, 1,	1, 0,	0, 0,
 				1, 1,	0, 1,	1, 0,	0, 0,
 			),
-			size,
 		});
+
+		this.#size = size;
+
+		const halfSize = this.#size
+			.clone()
+			.divideScalar(2);
+
+		for (let i = 0, length = this.getVertices().length; i < length; i += 3) {
+			this.getVertices()[i + 0] *= halfSize[0];
+			this.getVertices()[i + 1] *= halfSize[1];
+			this.getVertices()[i + 2] *= halfSize[2];
+		}
+	}
+
+	getSize() {
+		return this.#size;
 	}
 }

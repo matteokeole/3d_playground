@@ -1,6 +1,6 @@
 import {Geometry} from "./geometries/index.js";
 import {Vector3} from "./math/index.js";
-import {AbstractMaterial} from "./materials/index.js";
+import {Material} from "./materials/index.js";
 
 /**
  * @abstract
@@ -12,7 +12,7 @@ export class AbstractMesh {
 	_geometry;
 
 	/**
-	 * @type {AbstractMaterial}
+	 * @type {Material}
 	 */
 	_material;
 
@@ -33,7 +33,7 @@ export class AbstractMesh {
 
 	/**
 	 * @param {Geometry} geometry
-	 * @param {AbstractMaterial} material
+	 * @param {Material} material
 	 */
 	constructor(geometry, material) {
 		this._geometry = geometry;

@@ -6,7 +6,6 @@ import {Vector3} from "../math/index.js";
  * @property {Float32Array} vertices
  * @property {Float32Array} normals
  * @property {Float32Array} uvs
- * @property {?Vector3} [size]
  */
 
 /**
@@ -34,11 +33,6 @@ export class Geometry {
 	#uvs;
 
 	/**
-	 * @type {?Vector3}
-	 */
-	#size;
-
-	/**
 	 * @type {Float32Array}
 	 */
 	_tangents;
@@ -51,7 +45,6 @@ export class Geometry {
 		this.#vertices = descriptor.vertices;
 		this.#normals = descriptor.normals;
 		this.#uvs = descriptor.uvs;
-		this.#size = descriptor.size;
 		this._tangents = Float32Array.of();
 	}
 
@@ -69,10 +62,6 @@ export class Geometry {
 
 	getUVs() {
 		return this.#uvs;
-	}
-
-	getSize() {
-		return this.#size;
 	}
 
 	getTangents() {

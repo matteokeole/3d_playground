@@ -1,8 +1,8 @@
-import {AbstractMaterial} from "./AbstractMaterial.js";
+import {Material} from "./Material.js";
 import {Texture} from "../index.js";
 import {Matrix3} from "../math/index.js";
 
-export class TextureMaterial extends AbstractMaterial {
+export class TextureMaterial extends Material {
 	/**
 	 * @type {Matrix3}
 	 */

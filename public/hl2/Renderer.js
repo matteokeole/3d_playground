@@ -171,24 +171,29 @@ export class Renderer extends AbstractRenderer {
 			this._context.uniformMatrix3fv(this._uniforms.texture, false, material.textureMatrix);
 
 			if (material instanceof ColorMaterial) {
+				// Bind default texture
 				this._context.bindTexture(this._context.TEXTURE_2D, this.#defaultTexture);
-				this._context.uniform3fv(this._uniforms.color, material.color);
-			}
 
-			if (material instanceof TextureMaterial) {
+				// Bind color
+				this._context.uniform3fv(this._uniforms.color, material.color);
+			} else if (material instanceof TextureMaterial) {
+				// Bind default color
 				this._context.uniform3fv(this._uniforms.color, this.#defaultColor);
 
+				// Bind texture
 				this._context.activeTexture(this._context.TEXTURE0);
 				this._context.bindTexture(this._context.TEXTURE_2D, material.texture.texture);
 
-				this._context.bindBuffer(this._context.ARRAY_BUFFER, this._buffers.uv);
-				this._context.bufferData(this._context.ARRAY_BUFFER, geometry.getUVs(), this._context.STATIC_DRAW);
-
+				// Bind normal map
 				this._context.activeTexture(this._context.TEXTURE1);
 				this._context.bindTexture(this._context.TEXTURE_2D, material.normalMap.texture);
+
+				// Bind UVs
+				this._context.bindBuffer(this._context.ARRAY_BUFFER, this._buffers.uv);
+				this._context.bufferData(this._context.ARRAY_BUFFER, geometry.getUVs(), this._context.STATIC_DRAW);
 			}
 
-			this._context.drawArrays(this._context.TRIANGLE_FAN, 0, 4);
+			this._context.drawArrays(this._context.TRIANGLE_FAN, 0, geometry.getVertices().length / 3);
 		}
 
 		this._context.bindVertexArray(null);

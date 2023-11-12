@@ -2,6 +2,9 @@ import {AbstractCamera} from "../../src/index.js";
 import {Vector3} from "../../src/math/index.js";
 
 export class Camera extends AbstractCamera {
+	/**
+	 * @param {Vector3} direction
+	 */
 	getRelativeVelocity(direction) {
 		const right = this.right.clone();
 		const forward = this.right.cross(new Vector3(0, 1, 0));

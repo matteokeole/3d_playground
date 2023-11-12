@@ -58,19 +58,18 @@ export class SSDPlaneGeometry extends Geometry {
 	}
 
 	/**
+	 * @todo Remove since it's unused
+	 * 
 	 * @type {Vector3}
 	 */
 	#normal;
 
 	/**
+	 * @todo Remove since it's unused
+	 * 
 	 * @type {Vector3}
 	 */
 	#tangent;
-
-	/**
-	 * @type {Float32Array}
-	 */
-	#tangents;
 
 	constructor({vertices, normal, normals, tangent, tangents, uvs}) {
 		super({
@@ -78,7 +77,6 @@ export class SSDPlaneGeometry extends Geometry {
 			vertices,
 			normals,
 			uvs,
-			size: null,
 		});
 
 		this.#normal = normal;

@@ -1,7 +1,7 @@
-import {AbstractMaterial} from "./AbstractMaterial.js";
+import {Material} from "./Material.js";
 import {Vector3} from "../math/index.js";
 
-export class ColorMaterial extends AbstractMaterial {
+export class ColorMaterial extends Material {
 	/**
 	 * @type {Vector3}
 	 */

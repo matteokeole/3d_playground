@@ -39,9 +39,10 @@ function collide(velocity, player, wall) {
 
 	const wallNormal = new Vector3();
 	const time = player.getHitbox().sweptAABB(wall.getHitbox(), wallNormal);
-	const position = player.position;
 
 	if (time === 0) return false;
+
+	const position = player.position;
 
 	velocity = velocity.clone().multiplyScalar(time);
 	position.add(velocity);
