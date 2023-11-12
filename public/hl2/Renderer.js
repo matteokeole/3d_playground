@@ -146,7 +146,7 @@ export class Renderer extends AbstractRenderer {
 
 		this._context.uniformMatrix4fv(this._uniforms.projection, false, camera.projection);
 		this._context.uniformMatrix4fv(this._uniforms.view, false, camera.view);
-		this._context.uniform3fv(this._uniforms.cameraPosition, camera.position);
+		this._context.uniform3fv(this._uniforms.cameraPosition, camera.getPhysicalPosition());
 		this._context.uniform3fv(this._uniforms.lightPosition, firstLight.position);
 		this._context.uniform3fv(this._uniforms.lightColor, firstLight.color);
 		this._context.uniform1f(this._uniforms.lightIntensity, firstLight.intensity);

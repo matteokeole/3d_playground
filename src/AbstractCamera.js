@@ -189,6 +189,29 @@ export class AbstractCamera {
 			this.up,
 		);
 	}
+
+	/**
+	 * Returns the current camera position, including the distance.
+	 * 
+	 * @returns {Vector3}
+	 */
+	getPhysicalPosition() {
+		const position = this.position.clone();
+
+		const xDistance = new Vector3(
+			Math.cos(this.rotation[1]),
+			0,
+			-Math.sin(this.rotation[1]),
+		).multiplyScalar(this.#distance[0]);
+		const yDistance = new Vector3(1, this.#distance[1], 1);
+		const zDistance = new Vector3(
+			Math.sin(this.rotation[1]),
+			0,
+			Math.cos(this.rotation[1]),
+		).multiplyScalar(this.#distance[2]);
+
+		return position.add(xDistance).add(yDistance).add(zDistance);
+	}
 }
 
 /**
