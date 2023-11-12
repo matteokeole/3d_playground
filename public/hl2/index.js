@@ -2,7 +2,7 @@ import {AbstractScene} from "../../src/index.js";
 import {PI, Vector2, Vector4} from "../../src/math/index.js";
 import {Renderer} from "./Renderer.js";
 import {Camera} from "./Camera.js";
-import {setup} from "./scenes/building_entrance.js";
+import {setup} from "./scenes/swept_aabb.js";
 import {debug} from "./debug.js";
 import {listen} from "./input.js";
 import {update} from "./update.js";

@@ -6,7 +6,7 @@ import {Vector3} from "../../../src/math/index.js";
 import {BLOCK_SCALE, ENTITY_HEIGHT_STAND} from "../index.js";
 
 export function setup(renderer) {
-	const {scene, camera, textures} = renderer;
+	const {scene, camera} = renderer;
 
 	camera.position[1] = ENTITY_HEIGHT_STAND;
 	camera.target[1] = ENTITY_HEIGHT_STAND;
@@ -22,7 +22,7 @@ export function setup(renderer) {
 	const
 		geometry = new BoxGeometry(new Vector3(1, 1, 1)),
 		material = new TextureMaterial({
-			texture: textures["misc/white.png"],
+			texture: renderer._textures["misc/white.png"],
 		}),
 		scale = .85,
 		scaleVector = new Vector3(BLOCK_SCALE, BLOCK_SCALE, BLOCK_SCALE);

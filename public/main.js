@@ -1,3 +1,3 @@
-import main from "./minecraft/index.js";
+import main from "./hl2/index.js";
 
 main();

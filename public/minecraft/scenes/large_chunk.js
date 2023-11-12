@@ -6,7 +6,7 @@ import {Vector3} from "../../../src/math/index.js";
 import {BLOCK_SCALE, ENTITY_HEIGHT_STAND, NOISE_AMPLITUDE, NOISE_INC} from "../index.js";
 
 export function setup(renderer) {
-	const {scene, camera, textures} = renderer;
+	const {scene, camera} = renderer;
 
 	camera.position[1] = ENTITY_HEIGHT_STAND;
 	camera.target[1] = ENTITY_HEIGHT_STAND;
@@ -30,7 +30,7 @@ export function setup(renderer) {
 	noise.seed(seed);
 
 	for (i = 0; i < chunkSizeSquared; i++) {
-		mesh = createMesh(textures);
+		mesh = createMesh(renderer._textures);
 
 		if (i % chunkSize === 0) j++;
 

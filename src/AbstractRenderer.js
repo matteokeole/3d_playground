@@ -23,27 +23,27 @@ export class AbstractRenderer {
 	/**
 	 * @type {Object.<String, WebGLProgram>}
 	 */
-	#programs = {};
+	_programs;
 
 	/**
 	 * @type {Object.<String, WebGLVertexArrayObject>}
 	 */
-	#vaos = {};
+	_vaos;
 
 	/**
 	 * @type {Object.<String, WebGLBuffer>}
 	 */
-	#buffers = {};
+	_buffers;
 
 	/**
 	 * @type {Object.<String, WebGLUniformLocation>}
 	 */
-	#uniforms = {};
+	_uniforms;
 
 	/**
 	 * @type {Object.<String, Texture>}
 	 */
-	#textures = {};
+	_textures;
 
 	/**
 	 * @type {?AbstractScene}
@@ -81,26 +81,26 @@ export class AbstractRenderer {
 	#then = null;
 
 	/**
-	 * @type {Number}
+	 * @type {Boolean}
 	 */
-	debug = false;
+	debug;
 
 	constructor() {
 		this.#canvas = null;
 		this._context = null;
 		this._viewport = new Vector4(0, 0, 300, 150);
+		this._programs = {};
+		this._vaos = {};
+		this._buffers = {};
+		this._uniforms = {};
+		this._textures = {};
+		this.debug = false;
 	}
 
-	/**
-	 * @returns {?HTMLCanvasElement}
-	 */
 	getCanvas() {
 		return this.#canvas;
 	}
 
-	/**
-	 * @returns {Vector4}
-	 */
 	getViewport() {
 		return this._viewport;
 	}
@@ -110,41 +110,6 @@ export class AbstractRenderer {
 	 */
 	setViewport(viewport) {
 		this._viewport.set(viewport);
-	}
-
-	/**
-	 * @returns {Object.<String, WebGLProgram>}
-	 */
-	get programs() {
-		return this.#programs;
-	}
-
-	/**
-	 * @returns {Object.<String, WebGLVertexArrayObject>}
-	 */
-	get vaos() {
-		return this.#vaos;
-	}
-
-	/**
-	 * @returns {Object.<String, WebGLBuffer>}
-	 */
-	get buffers() {
-		return this.#buffers;
-	}
-
-	/**
-	 * @returns {Object.<String, WebGLUniformLocation>}
-	 */
-	get uniforms() {
-		return this.#uniforms;
-	}
-
-	/**
-	 * @returns {Object.<String, Texture>}
-	 */
-	get textures() {
-		return this.#textures;
 	}
 
 	/**
@@ -163,14 +128,11 @@ export class AbstractRenderer {
 
 	/**
 	 * @param {Number} framesPerSecond
-	 * @returns {AbstractRenderer}
 	 */
 	set framesPerSecond(framesPerSecond) {
 		this.#framesPerSecond = framesPerSecond;
 		this.#frameInterval = framesPerSecond === 0 ? 0 : 1000 / framesPerSecond;
 		this.#then = 0;
-
-		return this;
 	}
 
 	/**
@@ -193,8 +155,6 @@ export class AbstractRenderer {
 	 * @throws {Error}
 	 */
 	createProgram(programName, vertexShaderSource, fragmentShaderSource) {
-		const programs = this.#programs;
-
 		const vertexShader = this.createShader(this._context.VERTEX_SHADER, vertexShaderSource);
 		const fragmentShader = this.createShader(this._context.FRAGMENT_SHADER, fragmentShaderSource);
 
@@ -213,7 +173,7 @@ export class AbstractRenderer {
 			throw Error(this._context.getProgramInfoLog(program));
 		}
 
-		programs[programName] = program;
+		this._programs[programName] = program;
 	}
 
 	/**
@@ -252,7 +212,7 @@ export class AbstractRenderer {
 
 			this.setupTexture(image);
 
-			this.#textures[path] = new Texture(texture, image);
+			this._textures[path] = new Texture(texture, image);
 		}
 	}
 

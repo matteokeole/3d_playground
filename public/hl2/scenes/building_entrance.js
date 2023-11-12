@@ -23,8 +23,8 @@ export async function setup(renderer) {
 		new BoxGeometry(new Vector3(16, 16, 16)),
 		new TextureMaterial({
 			textureMatrix: Matrix3.identity(),
-			texture: renderer.textures["metal/metalcombine001.jpg"],
-			normalMap: renderer.textures["metal/metalcombine001_normal.jpg"],
+			texture: renderer._textures["metal/metalcombine001.jpg"],
+			normalMap: renderer._textures["metal/metalcombine001_normal.jpg"],
 		}),
 	);
 	renderer.player.position = position.clone();
@@ -39,6 +39,6 @@ export async function setup(renderer) {
 	for (let i = meshes.length - 1; i >= 0; i--) {
 		if (meshes[i].label == null) continue;
 
-		scene.meshes.push(Mesh.fromJSON(meshes[i], renderer.textures));
+		scene.meshes.push(Mesh.fromJSON(meshes[i], renderer._textures));
 	}
 }

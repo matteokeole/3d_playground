@@ -6,7 +6,7 @@ import {Vector3} from "../../../src/math/index.js";
 import {BLOCK_SCALE, ENTITY_HEIGHT_STAND} from "../index.js";
 
 export function setup(renderer) {
-	const {scene, camera, textures} = renderer;
+	const {scene, camera} = renderer;
 
 	camera.position[1] = ENTITY_HEIGHT_STAND;
 	camera.target[1] = ENTITY_HEIGHT_STAND;
@@ -21,7 +21,7 @@ export function setup(renderer) {
 
 	const mesh = new Mesh(
 		new BoxGeometry(new Vector3(1, 1, 1)),
-		new TextureMaterial({texture: textures["block/crafting_table_top.png"]}),
+		new TextureMaterial({texture: renderer._textures["block/crafting_table_top.png"]}),
 	);
 
 	mesh.position = new Vector3(0, 1.3, 2).multiplyScalar(.85);
