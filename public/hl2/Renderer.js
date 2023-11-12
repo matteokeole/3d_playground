@@ -132,31 +132,29 @@ export class Renderer extends AbstractRenderer {
 	render() {
 		super.render();
 
-		const {scene, camera} = this;
-		const {meshes, lights} = scene;
-		const background = scene.background;
-
 		this._context.useProgram(this._programs.main);
 		this._context.bindVertexArray(this._vaos.main);
+
+		const {scene, camera} = this;
+		const {meshes} = scene;
+		const background = scene.background;
 
 		this._context.clearColor(background[0], background[1], background[2], background[3]);
 		this._context.clear(this._context.COLOR_BUFFER_BIT | this._context.DEPTH_BUFFER_BIT);
 
+		const firstLight = scene.lights[0];
+
 		this._context.uniformMatrix4fv(this._uniforms.projection, false, camera.projection);
 		this._context.uniformMatrix4fv(this._uniforms.view, false, camera.view);
 		this._context.uniform3fv(this._uniforms.cameraPosition, camera.position);
-		this._context.uniform3fv(this._uniforms.lightPosition, lights[0].position);
-		this._context.uniform3fv(this._uniforms.lightColor, lights[0].color);
-		this._context.uniform1f(this._uniforms.lightIntensity, lights[0].intensity);
+		this._context.uniform3fv(this._uniforms.lightPosition, firstLight.position);
+		this._context.uniform3fv(this._uniforms.lightColor, firstLight.color);
+		this._context.uniform1f(this._uniforms.lightIntensity, firstLight.intensity);
 
 		for (let i = 0, length = meshes.length; i < length; i++) {
 			const mesh = meshes[i];
 			const geometry = mesh.getGeometry();
 			const material = mesh.getMaterial();
-
-			/* if (!(geometry instanceof SSDPlaneGeometry)) {
-				continue;
-			} */
 
 			this._context.bindBuffer(this._context.ARRAY_BUFFER, this._buffers.vertex);
 			this._context.bufferData(this._context.ARRAY_BUFFER, geometry.getVertices(), this._context.STATIC_DRAW);
@@ -193,7 +191,14 @@ export class Renderer extends AbstractRenderer {
 				this._context.bufferData(this._context.ARRAY_BUFFER, geometry.getUVs(), this._context.STATIC_DRAW);
 			}
 
-			this._context.drawArrays(this._context.TRIANGLE_FAN, 0, geometry.getVertices().length / 3);
+			if (geometry instanceof SSDPlaneGeometry) {
+				this._context.drawArrays(this._context.TRIANGLE_FAN, 0, 4);
+			} else {
+				const indices = geometry.getIndices();
+
+				this._context.bufferData(this._context.ELEMENT_ARRAY_BUFFER, indices, this._context.STATIC_DRAW);
+				this._context.drawElements(this._context.TRIANGLES, indices.length, this._context.UNSIGNED_BYTE, 0);
+			}
 		}
 
 		this._context.bindVertexArray(null);
