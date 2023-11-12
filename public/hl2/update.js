@@ -57,7 +57,7 @@ function collide(velocity, player, wall) {
 		velocity[2],
 	));
 
-	// player.getHitbox().setPosition(player.getPosition());
+	player.getHitbox().setPosition(player.getPosition());
 
 	return false;
 }

@@ -13,7 +13,7 @@ export const ENTITY_HEIGHT_STAND = 64;
 export const ENTITY_HEIGHT_CROUCH = 28;
 export const ABSOLUTE_VELOCITY = 150;
 export const VELOCITY = ABSOLUTE_VELOCITY / FRAMES_PER_SECOND;
-export const CAMERA_LERP_FACTOR = .3;
+export const CAMERA_LERP_FACTOR = 1;
 export const SENSITIVITY = .0012;
 
 export default async function() {
@@ -29,7 +29,7 @@ export default async function() {
 	document.body.appendChild(renderer.getCanvas());
 
 	const scene = new AbstractScene();
-	scene.background = new Vector4(1, 1, 1, 1);
+	scene.background = new Vector4(0, 0, 0, 1);
 
 	const camera = new Camera();
 	camera.fieldOfView = FIELD_OF_VIEW;
@@ -48,6 +48,8 @@ export default async function() {
 	await setup(renderer);
 	debug(renderer);
 	listen(renderer);
+
+	camera.lookAt(new Vector2());
 
 	renderer.prerender();
 	renderer.loop();
