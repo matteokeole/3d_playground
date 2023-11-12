@@ -27,7 +27,7 @@ export class AbstractCamera {
 	/**
 	 * @type {Vector3}
 	 */
-	distance = new Vector3();
+	#distance;
 
 	/**
 	 * @type {Vector3}
@@ -84,6 +84,10 @@ export class AbstractCamera {
 	 */
 	lerpFactor = 1;
 
+	constructor() {
+		this.#distance = new Vector3();
+	}
+
 	/**
 	 * @returns {Matrix4}
 	 */
@@ -96,6 +100,13 @@ export class AbstractCamera {
 	 */
 	get view() {
 		return this.#view;
+	}
+
+	/**
+	 * @param {Vector3} distance
+	 */
+	setDistance(distance) {
+		this.#distance = distance;
 	}
 
 	/**
@@ -170,7 +181,8 @@ export class AbstractCamera {
 			this.near,
 			this.far,
 			1,
-		);
+		).multiply(Matrix4.translation(this.#distance.clone().multiplyScalar(-1)));
+
 		this.#view = Matrix4.lookAt(
 			this.position,
 			this.position.clone().add(this.forward),

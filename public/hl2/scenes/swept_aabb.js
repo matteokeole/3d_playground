@@ -11,7 +11,7 @@ export async function setup(renderer) {
 		new PointLight({
 			color: new Vector3(1, 1, 1),
 			intensity: .5,
-			position: new Vector3(0, 64, 128),
+			position: new Vector3(0, 64, -128),
 			direction: new Vector3(),
 		}),
 	);
@@ -21,7 +21,7 @@ export async function setup(renderer) {
 	camera.position = position.clone();
 	camera.target = position.clone();
 	camera.rotation = new Vector3(-Math.PI / 6, 0, 0);
-	camera.distance = new Vector3(0, 0, -64);
+	camera.setDistance(new Vector3(0, 0, -64));
 
 	const meshes = await (await fetch("public/hl2/scenes/swept_aabb.json")).json();
 
