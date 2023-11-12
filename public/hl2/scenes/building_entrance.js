@@ -27,12 +27,12 @@ export async function setup(renderer) {
 			normalMap: renderer._textures["metal/metalcombine001_normal.jpg"],
 		}),
 	);
-	renderer.player.position = position.clone();
+	renderer.player.setPosition(position.clone());
 	renderer.player.buildHitbox();
 
 	camera.distance = new Vector3(0, 0, 64);
-	camera.position = position;
-	camera.target = position;
+	camera.position = position.clone();
+	camera.target = position.clone();
 
 	const meshes = await (await fetch("public/hl2/scenes/building_entrance.json")).json();
 

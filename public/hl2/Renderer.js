@@ -167,7 +167,7 @@ export class Renderer extends AbstractRenderer {
 			this._context.bindBuffer(this._context.ARRAY_BUFFER, this._buffers.tangent);
 			this._context.bufferData(this._context.ARRAY_BUFFER, geometry.getTangents(), this._context.STATIC_DRAW);
 
-			this._context.uniform3fv(this._uniforms.meshPosition, mesh.position);
+			this._context.uniform3fv(this._uniforms.meshPosition, mesh.getPosition());
 			this._context.uniformMatrix3fv(this._uniforms.texture, false, material.textureMatrix);
 
 			if (material instanceof ColorMaterial) {

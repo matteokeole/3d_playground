@@ -19,7 +19,7 @@ export class AbstractMesh {
 	/**
 	 * @type {Vector3}
 	 */
-	#position = new Vector3(0, 0, 0);
+	_position = new Vector3(0, 0, 0);
 
 	/**
 	 * @type {Vector3}
@@ -48,18 +48,15 @@ export class AbstractMesh {
 		return this._material;
 	}
 
-	/**
-	 * @returns {Vector3}
-	 */
-	get position() {
-		return this.#position;
+	getPosition() {
+		return this._position;
 	}
 
 	/**
 	 * @param {Vector3} position
 	 */
-	set position(position) {
-		this.#position = position;
+	setPosition(position) {
+		this._position = position;
 	}
 
 	/**

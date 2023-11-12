@@ -30,7 +30,7 @@ export function setup(renderer) {
 
 	for (i = 0; i < 26; i++) {
 		mesh = new Mesh(geometry, material);
-		mesh.position = new Vector3(0, 0, i * scale);
+		mesh.setPosition(new Vector3(0, 0, i * scale));
 		mesh.scale = scaleVector;
 
 		scene.meshes.push(mesh);
@@ -38,21 +38,13 @@ export function setup(renderer) {
 
 	for (i = 0; i < 7; i++) {
 		mesh = new Mesh(geometry, material.test);
-		mesh.position = new Vector3(-1, 1, i * 4 + 1).multiplyScalar(scale);
+		mesh.setPosition(new Vector3(-1, 1, i * 4 + 1).multiplyScalar(scale));
 		mesh.scale = scaleVector;
 
 		scene.meshes.push(mesh);
 
 		mesh = new Mesh(geometry, material.test);
-		mesh.position = new Vector3(-1, 2, i * 4 + 1).multiplyScalar(scale);
-		mesh.scale = scaleVector;
-
-		scene.meshes.push(mesh);
-	}
-
-	for (i = 0; i < 2; i++) {
-		mesh = new Mesh(geometry, material.test);
-		mesh.position = new Vector3(1, i + 1, 1).multiplyScalar(scale);
+		mesh.setPosition(new Vector3(-1, 2, i * 4 + 1).multiplyScalar(scale));
 		mesh.scale = scaleVector;
 
 		scene.meshes.push(mesh);
@@ -60,7 +52,15 @@ export function setup(renderer) {
 
 	for (i = 0; i < 2; i++) {
 		mesh = new Mesh(geometry, material.test);
-		mesh.position = new Vector3(1, i + 1, 25).multiplyScalar(scale);
+		mesh.setPosition(new Vector3(1, i + 1, 1).multiplyScalar(scale));
+		mesh.scale = scaleVector;
+
+		scene.meshes.push(mesh);
+	}
+
+	for (i = 0; i < 2; i++) {
+		mesh = new Mesh(geometry, material.test);
+		mesh.setPosition(new Vector3(1, i + 1, 25).multiplyScalar(scale));
 		mesh.scale = scaleVector;
 
 		scene.meshes.push(mesh);

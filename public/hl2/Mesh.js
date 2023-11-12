@@ -57,7 +57,7 @@ export class Mesh extends AbstractMesh {
 		}
 
 		this.#hitbox = new Hitbox({
-			position: this.position,
+			position: this._position,
 			size: this._geometry.getSize(),
 		});
 	}

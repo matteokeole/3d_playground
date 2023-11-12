@@ -24,7 +24,7 @@ export function setup(renderer) {
 		new TextureMaterial({texture: renderer._textures["block/crafting_table_top.png"]}),
 	);
 
-	mesh.position = new Vector3(0, 1.3, 2).multiplyScalar(.85);
+	mesh.setPosition(new Vector3(0, 1.3, 2).multiplyScalar(.85));
 	mesh.scale = new Vector3(1, 1, 1).multiplyScalar(BLOCK_SCALE);
 
 	scene.meshes.push(mesh);

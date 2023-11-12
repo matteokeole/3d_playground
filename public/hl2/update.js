@@ -1,7 +1,13 @@
-import {PI, Vector3} from "../../src/math/index.js";
+import {Vector3} from "../../src/math/index.js";
 import {CAMERA_LERP_FACTOR, VELOCITY} from "./index.js";
 import {keys} from "./input.js";
+import {Mesh} from "./Mesh.js";
+import {Renderer} from "./Renderer.js";
 
+/**
+ * @param {Number} delta
+ * @param {Renderer} renderer
+ */
 export function update(delta, renderer) {
 	const {camera, player, wall} = renderer;
 
@@ -12,44 +18,46 @@ export function update(delta, renderer) {
 		keys.KeyW + keys.KeyS,
 	);
 
-	const hasMoved = !(direction[0] === 0 && direction[1] === 0 && direction[2] === 0);
+	const hasMoved = direction.magnitude() !== 0;
 
 	if (hasMoved) {
 		const relativeVelocity = camera.getRelativeVelocity(
 			direction.normalize().multiplyScalar(VELOCITY),
 		);
 
-		camera.target.add(relativeVelocity);
-
-		if (wall == null || collide(relativeVelocity, player, wall)) {
-			camera.position = camera.position
-				.clone()
-				.lerp(camera.target, camera.lerpFactor);
+		if (wall == null || !collide(relativeVelocity, player, wall)) {
+			camera.target.add(relativeVelocity);
 		}
 	}
 
+	camera.position.lerp(camera.target, CAMERA_LERP_FACTOR);
 	camera.update();
 
-	DebugPosition.textContent = [...camera.position].map(e => e.toFixed(2)).join(' ');
-	DebugRotation.textContent = [...camera.rotation].map(e => (e / PI).toFixed(2)).join(' ');
+	document.getElementById("DebugPosition").textContent = `${camera.position}`;
+	document.getElementById("DebugRotation").textContent = `${camera.rotation}`;
 }
 
+/**
+ * @param {Vector3} velocity
+ * @param {Mesh} player
+ * @param {Mesh} wall
+ */
 function collide(velocity, player, wall) {
-	player.getHitbox().velocity = velocity;
+	player.getHitbox().setVelocity(velocity);
 
-	const wallNormal = new Vector3();
-	const time = player.getHitbox().sweptAABB(wall.getHitbox(), wallNormal);
+	const time = player.getHitbox().sweptAABB(wall.getHitbox(), new Vector3());
 
-	if (time === 0) return false;
-
-	const position = player.position;
+	if (time === 0) return true;
 
 	velocity = velocity.clone().multiplyScalar(time);
-	position.add(velocity);
-	position[1] = 8;
 
-	player.position = position;
-	player.getHitbox().position = position;
+	player.getPosition().add(new Vector3(
+		velocity[0],
+		0,
+		velocity[2],
+	));
 
-	return true;
+	// player.getHitbox().setPosition(player.getPosition());
+
+	return false;
 }

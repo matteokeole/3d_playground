@@ -18,8 +18,8 @@ export async function setup(renderer) {
 
 	const position = new Vector3(0, 8, 0);
 
-	camera.position = position;
-	camera.target = position;
+	camera.position = position.clone();
+	camera.target = position.clone();
 	camera.rotation = new Vector3(-Math.PI / 6, 0, 0);
 	camera.distance = new Vector3(0, 0, -64);
 
@@ -41,7 +41,7 @@ export async function setup(renderer) {
 			normalMap: renderer._textures["metal/metalcombine001_normal.jpg"],
 		}),
 	);
-	renderer.player.position = position.clone();
+	renderer.player.setPosition(position.clone());
 	renderer.player.buildHitbox();
 
 	renderer.wall = new Mesh(
@@ -52,7 +52,7 @@ export async function setup(renderer) {
 			normalMap: renderer._textures["plaster/plasterwall030c_normal.jpg"],
 		}),
 	);
-	renderer.wall.position = new Vector3(0, 32, 64);
+	renderer.wall.setPosition(new Vector3(0, 32, 64));
 	renderer.wall.buildHitbox();
 
 	scene.meshes.push(renderer.player, renderer.wall);

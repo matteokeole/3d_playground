@@ -35,7 +35,7 @@ export function setup(renderer) {
 		if (i % 10 === 0) j++;
 		if (i % 100 === 0) k++;
 
-		mesh.position = new Vector3(i % 10 - 4.5, 1 - k, j % 10 - 4.5);
+		mesh.setPosition(new Vector3(i % 10 - 4.5, 1 - k, j % 10 - 4.5));
 		mesh.scale = new Vector3(BLOCK_SCALE, BLOCK_SCALE, BLOCK_SCALE);
 
 		scene.meshes.push(mesh);
