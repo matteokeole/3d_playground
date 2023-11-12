@@ -78,6 +78,7 @@ export class SSDPlaneGeometry extends AbstractGeometry {
 			vertices,
 			normals,
 			uvs,
+			size: null,
 		});
 
 		this.#normal = normal;

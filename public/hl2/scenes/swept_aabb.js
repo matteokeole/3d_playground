@@ -23,6 +23,16 @@ export async function setup(renderer) {
 	camera.rotation = new Vector3(-Math.PI / 6, 0, 0);
 	camera.distance = new Vector3(0, 0, -64);
 
+	const meshes = await (await fetch("public/hl2/scenes/swept_aabb.json")).json();
+
+	for (let i = 0, length = meshes.length; i < length; i++) {
+		if (meshes[i].label == null) {
+			continue;
+		}
+
+		scene.meshes.push(Mesh.fromJSON(meshes[i], renderer._textures));
+	}
+
 	renderer.player = new Mesh(
 		new BoxGeometry(new Vector3(16, 16, 16)),
 		new TextureMaterial({
@@ -46,12 +56,4 @@ export async function setup(renderer) {
 	renderer.wall.buildHitBox();
 
 	scene.meshes.push(renderer.player, renderer.wall);
-
-	const meshes = await (await fetch("public/hl2/scenes/swept_aabb.json")).json();
-
-	for (let i = meshes.length - 1, json; i >= 0; i--) {
-		if (meshes[i].label == null) continue;
-
-		scene.meshes.push(Mesh.fromJSON(meshes[i], renderer._textures));
-	}
 }
