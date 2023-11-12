@@ -200,6 +200,9 @@ export class Renderer extends AbstractRenderer {
 		const {scene, camera} = this;
 		const viewportHalf = this._viewport.clone().divideScalar(2);
 		const {meshes} = scene;
+		const firstMesh = meshes[0];
+		const firstMeshGeometry = firstMesh.getGeometry();
+		const firstMeshMaterial = firstMesh.getMaterial();
 
 		// G-Buffer
 		{
@@ -213,18 +216,18 @@ export class Renderer extends AbstractRenderer {
 			this._context.uniformMatrix4fv(this._uniforms.projection, false, camera.projection);
 			this._context.uniformMatrix4fv(this._uniforms.view, false, camera.view);
 
-			this._context.bufferData(this._context.ELEMENT_ARRAY_BUFFER, meshes[0].geometry.indices, this._context.STATIC_DRAW);
+			this._context.bufferData(this._context.ELEMENT_ARRAY_BUFFER, firstMeshGeometry.indices, this._context.STATIC_DRAW);
 
 			this._context.bindBuffer(this._context.ARRAY_BUFFER, this._buffers.vertex);
-			this._context.bufferData(this._context.ARRAY_BUFFER, meshes[0].geometry.vertices, this._context.STATIC_DRAW);
+			this._context.bufferData(this._context.ARRAY_BUFFER, firstMeshGeometry.vertices, this._context.STATIC_DRAW);
 
 			this._context.bindBuffer(this._context.ARRAY_BUFFER, this._buffers.normal);
-			this._context.bufferData(this._context.ARRAY_BUFFER, meshes[0].geometry.normals, this._context.STATIC_DRAW);
+			this._context.bufferData(this._context.ARRAY_BUFFER, firstMeshGeometry.normals, this._context.STATIC_DRAW);
 
 			this._context.bindBuffer(this._context.ARRAY_BUFFER, this._buffers.uv);
-			this._context.bufferData(this._context.ARRAY_BUFFER, meshes[0].geometry.uvs, this._context.STATIC_DRAW);
+			this._context.bufferData(this._context.ARRAY_BUFFER, firstMeshGeometry.uvs, this._context.STATIC_DRAW);
 
-			this._context.bindTexture(this._context.TEXTURE_2D, meshes[0].material.texture.texture);
+			this._context.bindTexture(this._context.TEXTURE_2D, firstMeshMaterial.texture.texture);
 
 			this._context.drawElementsInstanced(this._context.TRIANGLES, 36, this._context.UNSIGNED_BYTE, 0, meshes.length);
 

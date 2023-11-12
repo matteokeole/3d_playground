@@ -1,7 +1,7 @@
-import {AbstractGeometry} from "./AbstractGeometry.js";
+import {Geometry} from "./Geometry.js";
 import {Vector3} from "../math/index.js";
 
-export class BoxGeometry extends AbstractGeometry {
+export class BoxGeometry extends Geometry {
 	/**
 	 * @param {Vector3} size
 	 */

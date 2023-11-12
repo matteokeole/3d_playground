@@ -35,10 +35,10 @@ export function update(delta, renderer) {
 }
 
 function collide(velocity, player, wall) {
-	player.hitbox.velocity = velocity;
+	player.getHitbox().velocity = velocity;
 
 	const wallNormal = new Vector3();
-	const time = player.hitbox.sweptAABB(wall.hitbox, wallNormal);
+	const time = player.getHitbox().sweptAABB(wall.getHitbox(), wallNormal);
 	const position = player.position;
 
 	if (time === 0) return false;
@@ -48,7 +48,7 @@ function collide(velocity, player, wall) {
 	position[1] = 8;
 
 	player.position = position;
-	player.hitbox.position = position;
+	player.getHitbox().position = position;
 
 	return true;
 }

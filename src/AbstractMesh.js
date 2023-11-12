@@ -1,4 +1,4 @@
-import {AbstractGeometry} from "./geometries/index.js";
+import {Geometry} from "./geometries/index.js";
 import {Vector3} from "./math/index.js";
 import {AbstractMaterial} from "./materials/index.js";
 
@@ -7,14 +7,14 @@ import {AbstractMaterial} from "./materials/index.js";
  */
 export class AbstractMesh {
 	/**
-	 * @type {AbstractGeometry}
+	 * @type {Geometry}
 	 */
-	#geometry;
+	_geometry;
 
 	/**
 	 * @type {AbstractMaterial}
 	 */
-	#material;
+	_material;
 
 	/**
 	 * @type {Vector3}
@@ -32,26 +32,20 @@ export class AbstractMesh {
 	#scale = new Vector3(1, 1, 1);
 
 	/**
-	 * @param {AbstractGeometry} geometry
+	 * @param {Geometry} geometry
 	 * @param {AbstractMaterial} material
 	 */
 	constructor(geometry, material) {
-		this.#geometry = geometry;
-		this.#material = material;
+		this._geometry = geometry;
+		this._material = material;
 	}
 
-	/**
-	 * @returns {AbstractGeometry}
-	 */
-	get geometry() {
-		return this.#geometry;
+	getGeometry() {
+		return this._geometry;
 	}
 
-	/**
-	 * @returns {AbstractMaterial}
-	 */
-	get material() {
-		return this.#material;
+	getMaterial() {
+		return this._material;
 	}
 
 	/**
@@ -63,12 +57,9 @@ export class AbstractMesh {
 
 	/**
 	 * @param {Vector3} position
-	 * @returns {Plane}
 	 */
 	set position(position) {
 		this.#position = position;
-
-		return this;
 	}
 
 	/**
@@ -80,12 +71,9 @@ export class AbstractMesh {
 
 	/**
 	 * @param {Vector3} rotation
-	 * @returns {Plane}
 	 */
 	set rotation(rotation) {
 		this.#rotation = rotation;
-
-		return this;
 	}
 
 	/**
@@ -97,11 +85,8 @@ export class AbstractMesh {
 
 	/**
 	 * @param {Vector3} scale
-	 * @returns {Plane}
 	 */
 	set scale(scale) {
 		this.#scale = scale;
-
-		return this;
 	}
 }

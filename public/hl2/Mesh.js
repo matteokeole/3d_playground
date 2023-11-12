@@ -2,12 +2,12 @@ import {AbstractMesh} from "../../src/index.js";
 import {BoxGeometry} from "../../src/geometries/index.js";
 import {TextureMaterial} from "../../src/materials/index.js";
 import {Matrix3, PI, Vector2, Vector3} from "../../src/math/index.js";
-import {HitBox} from "./HitBox.js";
+import {Hitbox} from "./Hitbox.js";
 import {SSDPlaneGeometry} from "./SSDPlaneGeometry.js";
 
 export class Mesh extends AbstractMesh {
 	/**
-	 * @type {?HitBox}
+	 * @type {?Hitbox}
 	 */
 	#hitbox;
 
@@ -47,21 +47,18 @@ export class Mesh extends AbstractMesh {
 		);
 	}
 
-	/**
-	 * @returns {?HitBox}
-	 */
-	get hitbox() {
+	getHitbox() {
 		return this.#hitbox;
 	}
 
-	buildHitBox() {
-		if (!(this.geometry instanceof BoxGeometry)) {
+	buildHitbox() {
+		if (!(this._geometry instanceof BoxGeometry)) {
 			throw Error("Can't initialize the hitbox of a non-3D mesh.");
 		}
 
-		this.#hitbox = new HitBox({
+		this.#hitbox = new Hitbox({
 			position: this.position,
-			size: this.geometry.size,
+			size: this._geometry.getSize(),
 		});
 	}
 }

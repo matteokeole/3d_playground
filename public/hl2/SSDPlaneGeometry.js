@@ -1,7 +1,7 @@
-import {AbstractGeometry} from "../../src/geometries/index.js";
+import {Geometry} from "../../src/geometries/index.js";
 import {Vector2, Vector3} from "../../src/math/index.js";
 
-export class SSDPlaneGeometry extends AbstractGeometry {
+export class SSDPlaneGeometry extends Geometry {
 	static fromAnchors(anchors) {
 		const [nx, ny, nz] = this.getNormal(anchors);
 		const [tx, ty, tz] = this.getTangent(anchors);
@@ -83,27 +83,6 @@ export class SSDPlaneGeometry extends AbstractGeometry {
 
 		this.#normal = normal;
 		this.#tangent = tangent;
-		this.#tangents = tangents;
-	}
-
-	/**
-	 * @returns {Vector3}
-	 */
-	get normal() {
-		return this.#normal;
-	}
-
-	/**
-	 * @returns {Vector3}
-	 */
-	get tangent() {
-		return this.#tangent;
-	}
-
-	/**
-	 * @returns {Float32Array}
-	 */
-	get tangents() {
-		return this.#tangents;
+		this._tangents = tangents;
 	}
 }

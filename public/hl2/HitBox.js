@@ -1,6 +1,12 @@
 import {Vector3} from "../../src/math/index.js";
 
-export class HitBox {
+/**
+ * @typedef {Object} HitboxDescriptor
+ * @property {Vector3} position
+ * @property {Vector3} size
+ */
+
+export class Hitbox {
 	/**
 	 * @type {Vector3}
 	 */
@@ -17,72 +23,60 @@ export class HitBox {
 	#velocity;
 
 	/**
-	 * @param {Object} options
-	 * @param {Vector3} options.position
-	 * @param {Vector3} options.size
+	 * @param {HitboxDescriptor} descriptor
 	 */
-	constructor({position, size}) {
-		this.#position = position;
-		this.#size = size;
+	constructor(descriptor) {
+		this.#position = descriptor.position;
+		this.#size = descriptor.size;
 		this.#velocity = new Vector3();
 	}
 
-	/**
-	 * @returns {Vector3}
-	 */
 	getPosition() {
 		return this.#position;
 	}
 
 	/**
-	 * @param {Position} position
+	 * @param {Vector3} position
 	 */
 	setPosition(position) {
 		this.#position = position;
 	}
 
-	/**
-	 * @returns {Vector3}
-	 */
 	getSize() {
 		return this.#size;
 	}
 
 	/**
-	 * @param {Size} size
+	 * @param {Vector3} size
 	 */
 	setSize(size) {
 		this.#size = size;
 	}
 
-	/**
-	 * @returns {Vector3}
-	 */
 	getVelocity() {
 		return this.#velocity;
 	}
 
 	/**
-	 * @param {Velocity} velocity
+	 * @param {Vector3} velocity
 	 */
 	setVelocity(velocity) {
 		this.#velocity = velocity;
 	}
 
 	/**
-	 * @param {Box} other
+	 * @param {Hitbox} hitbox
 	 * @param {Vector3} normal
-	 * @returns {Number}
 	 */
-	sweptAABB(other, normal) {
+	sweptAABB(hitbox, normal) {
 		const invEntry = new Vector3();
 		const invExit = new Vector3();
 		const entry = new Vector3();
 		const exit = new Vector3();
 		const [x1, y1, z1] = this.getPosition();
-		const [x2, y2, z2] = other.getPosition();
+		const [x2, y2, z2] = hitbox.getPosition();
 		const [w1, h1, d1] = this.getSize().clone().multiplyScalar(.5);
-		const [w2, h2, d2] = other.getSize().clone().multiplyScalar(.5);
+		const [w2, h2, d2] = hitbox.getSize().clone().multiplyScalar(.5);
 		const [vx1, vy1, vz1] = this.getVelocity();
 
 		const negativeZ1 = z1 - d1;

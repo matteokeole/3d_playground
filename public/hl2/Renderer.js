@@ -134,12 +134,12 @@ export class Renderer extends AbstractRenderer {
 
 		const {scene, camera} = this;
 		const {meshes, lights} = scene;
-		const {length} = meshes;
+		const background = scene.background;
 
 		this._context.useProgram(this._programs.main);
 		this._context.bindVertexArray(this._vaos.main);
 
-		this._context.clearColor(...scene.background);
+		this._context.clearColor(background[0], background[1], background[2], background[3]);
 		this._context.clear(this._context.COLOR_BUFFER_BIT | this._context.DEPTH_BUFFER_BIT);
 
 		this._context.uniformMatrix4fv(this._uniforms.projection, false, camera.projection);
@@ -149,20 +149,23 @@ export class Renderer extends AbstractRenderer {
 		this._context.uniform3fv(this._uniforms.lightColor, lights[0].color);
 		this._context.uniform1f(this._uniforms.lightIntensity, lights[0].intensity);
 
-		for (let i = 0; i < length; i++) {
+		for (let i = 0, length = meshes.length; i < length; i++) {
 			const mesh = meshes[i];
-			const {geometry, material} = mesh;
+			const geometry = mesh.getGeometry();
+			const material = mesh.getMaterial();
 
-			if (!(geometry instanceof SSDPlaneGeometry)) continue;
+			/* if (!(geometry instanceof SSDPlaneGeometry)) {
+				continue;
+			} */
 
 			this._context.bindBuffer(this._context.ARRAY_BUFFER, this._buffers.vertex);
-			this._context.bufferData(this._context.ARRAY_BUFFER, geometry.vertices, this._context.STATIC_DRAW);
+			this._context.bufferData(this._context.ARRAY_BUFFER, geometry.getVertices(), this._context.STATIC_DRAW);
 
 			this._context.bindBuffer(this._context.ARRAY_BUFFER, this._buffers.normal);
-			this._context.bufferData(this._context.ARRAY_BUFFER, geometry.normals, this._context.STATIC_DRAW);
+			this._context.bufferData(this._context.ARRAY_BUFFER, geometry.getNormals(), this._context.STATIC_DRAW);
 
 			this._context.bindBuffer(this._context.ARRAY_BUFFER, this._buffers.tangent);
-			this._context.bufferData(this._context.ARRAY_BUFFER, geometry.tangents, this._context.STATIC_DRAW);
+			this._context.bufferData(this._context.ARRAY_BUFFER, geometry.getTangents(), this._context.STATIC_DRAW);
 
 			this._context.uniform3fv(this._uniforms.meshPosition, mesh.position);
 			this._context.uniformMatrix3fv(this._uniforms.texture, false, material.textureMatrix);
@@ -179,7 +182,7 @@ export class Renderer extends AbstractRenderer {
 				this._context.bindTexture(this._context.TEXTURE_2D, material.texture.texture);
 
 				this._context.bindBuffer(this._context.ARRAY_BUFFER, this._buffers.uv);
-				this._context.bufferData(this._context.ARRAY_BUFFER, geometry.uvs, this._context.STATIC_DRAW);
+				this._context.bufferData(this._context.ARRAY_BUFFER, geometry.getUVs(), this._context.STATIC_DRAW);
 
 				this._context.activeTexture(this._context.TEXTURE1);
 				this._context.bindTexture(this._context.TEXTURE_2D, material.normalMap.texture);

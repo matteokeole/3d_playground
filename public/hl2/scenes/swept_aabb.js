@@ -42,7 +42,7 @@ export async function setup(renderer) {
 		}),
 	);
 	renderer.player.position = position.clone();
-	renderer.player.buildHitBox();
+	renderer.player.buildHitbox();
 
 	renderer.wall = new Mesh(
 		new BoxGeometry(new Vector3(64, 64, 0)),
@@ -53,7 +53,7 @@ export async function setup(renderer) {
 		}),
 	);
 	renderer.wall.position = new Vector3(0, 32, 64);
-	renderer.wall.buildHitBox();
+	renderer.wall.buildHitbox();
 
 	scene.meshes.push(renderer.player, renderer.wall);
 }
