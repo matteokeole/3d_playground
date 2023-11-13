@@ -16,16 +16,21 @@ export function update(delta, renderer) {
 		keys.KeyA + keys.KeyD,
 		keys.ControlLeft + keys.Space,
 		keys.KeyW + keys.KeyS,
-	);
+	)
+		.normalize()
+		.multiplyScalar(VELOCITY);
 
 	const hasMoved = direction.magnitude() !== 0;
 
-	if (hasMoved) {
-		const relativeVelocity = camera.getRelativeVelocity(
-			direction.normalize().multiplyScalar(VELOCITY),
-		);
+	if (player) {
+		camera.target[0] = player.getPosition()[0];
+		camera.target[2] = player.getPosition()[2];
+	}
 
-		if (wall == null || !collide(relativeVelocity, player, wall)) {
+	if (hasMoved) {
+		const relativeVelocity = camera.getRelativeVelocity(direction);
+
+		if (!wall || !collide(relativeVelocity, player, wall)) {
 			camera.target.add(relativeVelocity);
 		}
 	}

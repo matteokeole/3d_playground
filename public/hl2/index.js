@@ -13,7 +13,7 @@ export const ENTITY_HEIGHT_STAND = 64;
 export const ENTITY_HEIGHT_CROUCH = 28;
 export const ABSOLUTE_VELOCITY = 150;
 export const VELOCITY = ABSOLUTE_VELOCITY / FRAMES_PER_SECOND;
-export const CAMERA_LERP_FACTOR = 1;
+export const CAMERA_LERP_FACTOR = .3;
 export const SENSITIVITY = .0012;
 
 export default async function() {
