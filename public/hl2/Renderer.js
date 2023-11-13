@@ -26,13 +26,13 @@ export class Renderer extends _Renderer {
 	async build() {
 		super.build();
 
-		this.createProgram(
+		this._createProgram(
 			"main",
 			await (await fetch("public/hl2/shaders/main.vert")).text(),
 			await (await fetch("public/hl2/shaders/main.frag")).text(),
 		);
 
-		this.createProgram(
+		this._createProgram(
 			"crosshair",
 			await (await fetch("public/hl2/shaders/crosshair.vert")).text(),
 			await (await fetch("public/hl2/shaders/crosshair.frag")).text(),

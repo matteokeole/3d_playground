@@ -146,50 +146,32 @@ export class Renderer {
 	}
 
 	/**
-	 * Creates a program from the shader sources.
-	 * Dumps the program and shader logs if a link error occurs.
-	 * 
-	 * @param {String} programName
+	 * @param {String} name
 	 * @param {String} vertexShaderSource
 	 * @param {String} fragmentShaderSource
-	 * @throws {Error}
+	 * @throws {Error} if the program linking was not successful
 	 */
-	createProgram(programName, vertexShaderSource, fragmentShaderSource) {
-		const vertexShader = this.createShader(this._context.VERTEX_SHADER, vertexShaderSource);
-		const fragmentShader = this.createShader(this._context.FRAGMENT_SHADER, fragmentShaderSource);
-
+	_createProgram(name, vertexShaderSource, fragmentShaderSource) {
 		const program = this._context.createProgram();
+		const vertexShader = this.#createShader(this._context.VERTEX_SHADER, vertexShaderSource);
+		const fragmentShader = this.#createShader(this._context.FRAGMENT_SHADER, fragmentShaderSource);
+
 		this._context.attachShader(program, vertexShader);
 		this._context.attachShader(program, fragmentShader);
+
 		this._context.linkProgram(program);
 
 		if (!this._context.getProgramParameter(program, this._context.LINK_STATUS)) {
-			const vertexShaderLog = this._context.getShaderInfoLog(vertexShader);
-			if (vertexShaderLog !== '') console.warn(`Vertex shader log:\n${vertexShaderLog}`);
+			if (this._context.getShaderInfoLog(vertexShader) !== "") {
+				throw new Error(`VERTEX SHADER ${this._context.getShaderInfoLog(vertexShader)}`);
+			}
 
-			const fragmentShaderLog = this._context.getShaderInfoLog(fragmentShader);
-			if (fragmentShaderLog !== '') console.warn(`Fragment shader log:\n${fragmentShaderLog}`);
-
-			throw Error(this._context.getProgramInfoLog(program));
+			if (this._context.getShaderInfoLog(fragmentShader) !== "") {
+				throw new Error(`VERTEX SHADER ${this._context.getShaderInfoLog(fragmentShader)}`);
+			}
 		}
 
-		this._programs[programName] = program;
-	}
-
-	/**
-	 * Creates, compiles and returns a shader.
-	 * 
-	 * @param {GLenum} shaderType
-	 * @param {String} shaderSource
-	 * @returns {WebGLShader}
-	 */
-	createShader(shaderType, shaderSource) {
-		const shader = this._context.createShader(shaderType);
-
-		this._context.shaderSource(shader, shaderSource);
-		this._context.compileShader(shader);
-
-		return shader;
+		this._programs[name] = program;
 	}
 
 	/**
@@ -259,4 +241,17 @@ export class Renderer {
 	 * @abstract
 	 */
 	render() {}
+
+	/**
+	 * @param {GLint} type
+	 * @param {String} source
+	 */
+	#createShader(type, source) {
+		const shader = this._context.createShader(type);
+
+		this._context.shaderSource(shader, source);
+		this._context.compileShader(shader);
+
+		return shader;
+	}
 }

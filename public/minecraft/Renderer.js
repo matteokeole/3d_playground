@@ -5,19 +5,19 @@ export class Renderer extends _Renderer {
 	async build() {
 		super.build();
 
-		this.createProgram(
+		this._createProgram(
 			"gBuffer",
 			await (await fetch("public/minecraft/shaders/g_buffer.vert")).text(),
 			await (await fetch("public/minecraft/shaders/g_buffer.frag")).text(),
 		);
 
-		this.createProgram(
+		this._createProgram(
 			"screen",
 			await (await fetch("public/minecraft/shaders/screen.vert")).text(),
 			await (await fetch("public/minecraft/shaders/screen.frag")).text(),
 		);
 
-		this.createProgram(
+		this._createProgram(
 			"lighting",
 			await (await fetch("public/minecraft/shaders/lighting.vert")).text(),
 			await (await fetch("public/minecraft/shaders/lighting.frag")).text(),
