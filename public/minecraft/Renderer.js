@@ -1,27 +1,22 @@
 import {Renderer as _Renderer} from "../../src/index.js";
 import {Matrix4} from "../../src/math/index.js";
+import {ShaderLoader} from "../../src/Loader/index.js";
 
 export class Renderer extends _Renderer {
 	async build() {
 		super.build();
 
-		this._createProgram(
-			"gBuffer",
-			await (await fetch("public/minecraft/shaders/g_buffer.vert")).text(),
-			await (await fetch("public/minecraft/shaders/g_buffer.frag")).text(),
-		);
+		const shaderLoader = new ShaderLoader();
+		const gBufferVertexShaderSource = await shaderLoader.load("public/minecraft/shaders/g_buffer.vert");
+		const gBufferFragmentShaderSource = await shaderLoader.load("public/minecraft/shaders/g_buffer.frag");
+		const screenVertexShaderSource = await shaderLoader.load("public/minecraft/shaders/screen.vert");
+		const screenFragmentShaderSource = await shaderLoader.load("public/minecraft/shaders/screen.frag");
+		const lightingVertexShaderSource = await shaderLoader.load("public/minecraft/shaders/lighting.vert");
+		const lightingFragmentShaderSource = await shaderLoader.load("public/minecraft/shaders/lighting.frag");
 
-		this._createProgram(
-			"screen",
-			await (await fetch("public/minecraft/shaders/screen.vert")).text(),
-			await (await fetch("public/minecraft/shaders/screen.frag")).text(),
-		);
-
-		this._createProgram(
-			"lighting",
-			await (await fetch("public/minecraft/shaders/lighting.vert")).text(),
-			await (await fetch("public/minecraft/shaders/lighting.frag")).text(),
-		);
+		this._programs.gBuffer = this._createProgram(gBufferVertexShaderSource, gBufferFragmentShaderSource);
+		this._programs.screen = this._createProgram(screenVertexShaderSource, screenFragmentShaderSource);
+		this._programs.lighting = this._createProgram(lightingVertexShaderSource, lightingFragmentShaderSource);
 
 		this._context.frontFace(this._context.CW);
 		this._context.pixelStorei(this._context.UNPACK_FLIP_Y_WEBGL, true);

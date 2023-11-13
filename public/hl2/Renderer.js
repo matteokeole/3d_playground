@@ -1,4 +1,5 @@
 import {AbstractMesh, Renderer as _Renderer} from "../../src/index.js";
+import {ShaderLoader} from "../../src/Loader/index.js";
 import {ColorMaterial, TextureMaterial} from "../../src/materials/index.js";
 import {SSDPlaneGeometry} from "./SSDPlaneGeometry.js";
 
@@ -26,17 +27,14 @@ export class Renderer extends _Renderer {
 	async build() {
 		super.build();
 
-		this._createProgram(
-			"main",
-			await (await fetch("public/hl2/shaders/main.vert")).text(),
-			await (await fetch("public/hl2/shaders/main.frag")).text(),
-		);
+		const shaderLoader = new ShaderLoader();
+		const mainVertexShaderSource = await shaderLoader.load("public/hl2/shaders/main.vert");
+		const mainFragmentShaderSource = await shaderLoader.load("public/hl2/shaders/main.frag");
+		const crosshairVertexShaderSource = await shaderLoader.load("public/hl2/shaders/crosshair.vert");
+		const crosshairFragmentShaderSource = await shaderLoader.load("public/hl2/shaders/crosshair.frag");
 
-		this._createProgram(
-			"crosshair",
-			await (await fetch("public/hl2/shaders/crosshair.vert")).text(),
-			await (await fetch("public/hl2/shaders/crosshair.frag")).text(),
-		);
+		this._programs.main = this._createProgram(mainVertexShaderSource, mainFragmentShaderSource);
+		this._programs.crosshair = this._createProgram(crosshairVertexShaderSource, crosshairFragmentShaderSource);
 
 		this._context.frontFace(this._context.CW);
 		this._context.enable(this._context.CULL_FACE);

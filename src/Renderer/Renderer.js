@@ -38,6 +38,11 @@ export class Renderer {
 
 	/**
 	 * @abstract
+	 */
+	render() {}
+
+	/**
+	 * @abstract
 	 * @param {Vector4} viewport
 	 */
 	resize(viewport) {}

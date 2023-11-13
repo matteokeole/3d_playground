@@ -146,12 +146,11 @@ export class Renderer {
 	}
 
 	/**
-	 * @param {String} name
 	 * @param {String} vertexShaderSource
 	 * @param {String} fragmentShaderSource
 	 * @throws {Error} if the program linking was not successful
 	 */
-	_createProgram(name, vertexShaderSource, fragmentShaderSource) {
+	_createProgram(vertexShaderSource, fragmentShaderSource) {
 		const program = this._context.createProgram();
 		const vertexShader = this.#createShader(this._context.VERTEX_SHADER, vertexShaderSource);
 		const fragmentShader = this.#createShader(this._context.FRAGMENT_SHADER, fragmentShaderSource);
@@ -167,11 +166,11 @@ export class Renderer {
 			}
 
 			if (this._context.getShaderInfoLog(fragmentShader) !== "") {
-				throw new Error(`VERTEX SHADER ${this._context.getShaderInfoLog(fragmentShader)}`);
+				throw new Error(`FRAGMENT SHADER ${this._context.getShaderInfoLog(fragmentShader)}`);
 			}
 		}
 
-		this._programs[name] = program;
+		return program;
 	}
 
 	/**
