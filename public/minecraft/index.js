@@ -1,7 +1,7 @@
 import {AbstractCamera, AbstractScene} from "../../src/index.js";
 import {Vector2, Vector4} from "../../src/math/index.js";
 import {Renderer} from "./Renderer.js";
-import {setup} from "./scenes/instancing.js";
+import {setup} from "./scenes/texture.js";
 import {debug} from "./debug.js";
 import {listen} from "./input.js";
 import {update} from "./update.js";
@@ -12,7 +12,7 @@ export const ENTITY_HEIGHT_STAND = 1.8;
 export const VELOCITY = .003;
 export const VELOCITY_SQRT1_2 = VELOCITY * Math.SQRT1_2;
 export const CAMERA_LERP_FACTOR = .9;
-export const BLOCK_SCALE = .425; // Required for Minecraft blocks (.85 * .5)
+export const BLOCK_SCALE = .85;
 export const NOISE_AMPLITUDE = 12;
 export const NOISE_INC = .05;
 

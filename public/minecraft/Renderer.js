@@ -167,16 +167,19 @@ export class Renderer extends AbstractRenderer {
 		this._context.bindVertexArray(this._vaos.gBuffer);
 
 		this._context.bindBuffer(this._context.ARRAY_BUFFER, this._buffers.world);
+
 		const worlds = new Float32Array(length * 16);
+
 		for (let i = 0, mesh; i < length; i++) {
 			mesh = meshes[i];
 
-			const translation = Matrix4.translation(mesh.position);
-			const scale = Matrix4.scale(mesh.scale);
-			const world = translation.multiply(scale);
+			const world = Matrix4
+				.translation(mesh.getPosition())
+				.multiply(Matrix4.scale(mesh.scale));
 
 			worlds.set(world, i * 16);
 		}
+	
 		this._context.bufferData(this._context.ARRAY_BUFFER, worlds, this._context.STATIC_DRAW);
 
 		this._context.useProgram(this._programs.lighting);
@@ -210,22 +213,24 @@ export class Renderer extends AbstractRenderer {
 			this._context.bindVertexArray(this._vaos.gBuffer);
 			this._context.bindFramebuffer(this._context.FRAMEBUFFER, this.gBuffer.framebuffer);
 
-			this._context.clearColor(...scene.background);
+			const background = scene.background;
+
+			this._context.clearColor(background[0], background[1], background[2], background[3]);
 			this._context.clear(this._context.COLOR_BUFFER_BIT | this._context.DEPTH_BUFFER_BIT);
 
 			this._context.uniformMatrix4fv(this._uniforms.projection, false, camera.projection);
 			this._context.uniformMatrix4fv(this._uniforms.view, false, camera.view);
 
-			this._context.bufferData(this._context.ELEMENT_ARRAY_BUFFER, firstMeshGeometry.indices, this._context.STATIC_DRAW);
+			this._context.bufferData(this._context.ELEMENT_ARRAY_BUFFER, firstMeshGeometry.getIndices(), this._context.STATIC_DRAW);
 
 			this._context.bindBuffer(this._context.ARRAY_BUFFER, this._buffers.vertex);
-			this._context.bufferData(this._context.ARRAY_BUFFER, firstMeshGeometry.vertices, this._context.STATIC_DRAW);
+			this._context.bufferData(this._context.ARRAY_BUFFER, firstMeshGeometry.getVertices(), this._context.STATIC_DRAW);
 
 			this._context.bindBuffer(this._context.ARRAY_BUFFER, this._buffers.normal);
-			this._context.bufferData(this._context.ARRAY_BUFFER, firstMeshGeometry.normals, this._context.STATIC_DRAW);
+			this._context.bufferData(this._context.ARRAY_BUFFER, firstMeshGeometry.getNormals(), this._context.STATIC_DRAW);
 
 			this._context.bindBuffer(this._context.ARRAY_BUFFER, this._buffers.uv);
-			this._context.bufferData(this._context.ARRAY_BUFFER, firstMeshGeometry.uvs, this._context.STATIC_DRAW);
+			this._context.bufferData(this._context.ARRAY_BUFFER, firstMeshGeometry.getUVs(), this._context.STATIC_DRAW);
 
 			this._context.bindTexture(this._context.TEXTURE_2D, firstMeshMaterial.texture.texture);
 
