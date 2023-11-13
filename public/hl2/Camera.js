@@ -3,17 +3,17 @@ import {Vector3} from "../../src/math/index.js";
 
 export class Camera extends AbstractCamera {
 	/**
-	 * @param {Vector3} direction
+	 * @param {Vector3} velocity
 	 */
-	getRelativeVelocity(direction) {
-		const right = this.right.clone();
-		const forward = this.right.cross(new Vector3(0, 1, 0));
+	getRelativeVelocity(velocity) {
+		const right = this.right
+			.clone()
+			.multiplyScalar(velocity[0]);
+		const up = new Vector3(0, velocity[1], 0);
+		const forward = this.right
+			.cross(new Vector3(0, 1, 0))
+			.multiplyScalar(velocity[2]);
 
-		const relativeVelocity = right
-			.multiplyScalar(direction[0])
-			.add(forward.multiplyScalar(direction[2]));
-		relativeVelocity[1] += direction[1];
-
-		return relativeVelocity;
+		return right.add(up).add(forward);
 	}
 }
