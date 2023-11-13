@@ -19,7 +19,6 @@ export async function setup(renderer) {
 
 	camera.position = position.clone();
 	camera.target = position.clone();
-	// camera.setDistance(new Vector3(0, 0, -64));
 
 	const meshes = await (await fetch("public/hl2/scenes/building_entrance.json")).json();
 

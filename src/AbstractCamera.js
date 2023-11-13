@@ -181,6 +181,7 @@ export class AbstractCamera {
 			this.near,
 			this.far,
 			1,
+			this.bias,
 		).multiply(Matrix4.translation(this.#distance.clone().multiplyScalar(-1)));
 
 		this.#view = Matrix4.lookAt(
