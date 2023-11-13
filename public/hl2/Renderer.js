@@ -1,8 +1,8 @@
-import {AbstractMesh, AbstractRenderer} from "../../src/index.js";
+import {AbstractMesh, Renderer as _Renderer} from "../../src/index.js";
 import {ColorMaterial, TextureMaterial} from "../../src/materials/index.js";
 import {SSDPlaneGeometry} from "./SSDPlaneGeometry.js";
 
-export class Renderer extends AbstractRenderer {
+export class Renderer extends _Renderer {
 	/**
 	 * @type {Float32Array}
 	 */

@@ -4,7 +4,7 @@ import {Vector4} from "./math/index.js";
 /**
  * @abstract
  */
-export class AbstractRenderer {
+export class Renderer {
 	/**
 	 * @type {?HTMLCanvasElement}
 	 */
