@@ -37,13 +37,9 @@ export class WebGLRenderer extends Renderer {
 	}
 
 	dispose() {
-		this._scene = null;
-
 		this._context.getExtension("WEBGL_lose_context").loseContext();
-		this._context = null;
 
 		this._canvas.remove();
-		this._canvas = null;
 	}
 
 	/**
