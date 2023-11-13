@@ -1,5 +1,5 @@
 import {AbstractCamera, AbstractScene} from "../../src/index.js";
-import {Vector2, Vector4} from "../../src/math/index.js";
+import {PI, Vector2, Vector4} from "../../src/math/index.js";
 import {Renderer} from "./Renderer.js";
 import {setup} from "./scenes/instancing.js";
 import {debug} from "./debug.js";
@@ -36,7 +36,7 @@ export default async function() {
 	camera.aspectRatio = viewport[0] / viewport[1];
 	camera.near = .01;
 	camera.far = 1000;
-	camera.bias = 0;
+	camera.bias = PI * .5; // This cancels the perspective matrix bias
 	camera.turnVelocity = .001;
 
 	renderer.scene = scene;
