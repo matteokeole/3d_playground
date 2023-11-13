@@ -1,4 +1,4 @@
-#debug {
+.debug {
 	margin: 10px;
 	padding: 5px 10px;
 	bottom: 0;
@@ -10,14 +10,23 @@
 	font-family: Consolas, monospace;
 }
 
-#debug span {
+.debug span {
 	display: block;
 }
-#debug span::before {
+.debug span::before, .debug label::before {
 	color: #aaa;
 	font-style: italic;
 }
 
-#debug #debugDelta::before {
+#DebugTest1 #DebugPosition::before {
+	content: "Position: ";
+}
+#DebugTest1 #DebugRotation::before {
+	content: "Rotation: ";
+}
+#DebugTest2 #DebugVisualizeStepsLabel::before {
+	content: "Visualize Steps: ";
+}
+#DebugTest2 #DebugDelta::before {
 	content: "Δt: ";
 }
