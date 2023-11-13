@@ -178,11 +178,11 @@ export class Renderer extends _Renderer {
 
 				// Bind texture
 				this._context.activeTexture(this._context.TEXTURE0);
-				this._context.bindTexture(this._context.TEXTURE_2D, material.texture.texture);
+				this._context.bindTexture(this._context.TEXTURE_2D, material.texture);
 
 				// Bind normal map
 				this._context.activeTexture(this._context.TEXTURE1);
-				this._context.bindTexture(this._context.TEXTURE_2D, material.normalMap.texture);
+				this._context.bindTexture(this._context.TEXTURE_2D, material.normalMap);
 
 				// Bind UVs
 				this._context.bindBuffer(this._context.ARRAY_BUFFER, this._buffers.uv);

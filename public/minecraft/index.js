@@ -1,4 +1,5 @@
 import {AbstractCamera, AbstractScene} from "../../src/index.js";
+import {TextureLoader} from "../../src/Loader/index.js";
 import {PI, Vector2, Vector4} from "../../src/math/index.js";
 import {Renderer} from "./Renderer.js";
 import {setup} from "./scenes/instancing.js";
@@ -23,8 +24,12 @@ export default async function() {
 	renderer.getViewport().set(viewport, 2);
 	await renderer.build();
 
-	const paths = await (await fetch("public/minecraft/textures/textures.json")).json();
-	await renderer.loadTextures("public/minecraft/textures/", paths);
+	const textureLoader = new TextureLoader();
+	const textures = await textureLoader.load("public/minecraft/textures/textures.json");
+
+	for (let i = 0, length = textures.length; i < length; i++) {
+		renderer.addTexture(textures[i]);
+	}
 
 	document.body.appendChild(renderer.getCanvas());
 

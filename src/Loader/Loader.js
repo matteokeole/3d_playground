@@ -4,8 +4,8 @@
 export class Loader {
 	/**
 	 * @abstract
-	 * @param {*} source
+	 * @param {String} path
 	 * @returns {Promise.<*>}
 	 */
-	async load(source) {}
+	async load(path) {}
 }

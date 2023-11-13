@@ -2,6 +2,7 @@ import {AbstractCamera, AbstractScene, Texture} from "./index.js";
 import {Vector4} from "./math/index.js";
 
 /**
+ * @deprecated
  * @abstract
  */
 export class Renderer {
@@ -174,32 +175,20 @@ export class Renderer {
 	}
 
 	/**
-	 * @param {String[]} paths
+	 * @param {import("./Loader/TextureLoader.js").TextureDescriptor} descriptor
 	 */
-	async loadTextures(basePath, paths) {
-		for (let i = 0, l = paths.length, path, image, texture; i < l; i++) {
-			path = paths[i];
-			image = new Image();
-			image.src = `${basePath}${path}`;
+	addTexture(descriptor) {
+		const texture = this._context.createTexture();
 
-			try {
-				await image.decode();
-			} catch (_) {
-				continue;
-			}
+		this._context.bindTexture(this._context.TEXTURE_2D, texture);
+		this.setupTexture(descriptor.image);
 
-			texture = this._context.createTexture();
-			this._context.bindTexture(this._context.TEXTURE_2D, texture);
-
-			this.setupTexture(image);
-
-			this._textures[path] = new Texture(texture, image);
-		}
+		this._textures[descriptor.path] = texture;
 	}
 
 	/**
 	 * @abstract
-	 * @param {Image} image
+	 * @param {HTMLImageElement} image
 	 */
 	setupTexture(image) {}
 

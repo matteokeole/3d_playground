@@ -11,7 +11,12 @@ export class Mesh extends AbstractMesh {
 	 */
 	#hitbox;
 
-	static fromJSON(json, textures) {
+	/**
+	 * @param {Object} json
+	 * @param {import("../../src/Loader/TextureLoader.js").TextureDescriptor[]} textureDescriptors
+	 * @param {Object.<String, WebGLTexture>} textures
+	 */
+	static fromJSON(json, textureDescriptors, textures) {
 		const {anchors} = json;
 
 		if (anchors.length !== 9 && anchors.length !== 12) throw new Error("Invalid mesh geometry");
@@ -23,7 +28,8 @@ export class Mesh extends AbstractMesh {
 			anchor3.clone().add(anchor1).subtract(anchor2) :
 			new Vector3(anchors[9], anchors[10], anchors[11]);
 
-		const image = textures[json.texture].image;
+		const texture = textures[json.texture];
+		const image = textureDescriptors[Object.keys(textures).indexOf(json.texture)].image;
 
 		const w = anchor1.to(anchor2);
 		const h = anchor2.to(anchor3);
@@ -41,7 +47,7 @@ export class Mesh extends AbstractMesh {
 					.translation(translation)
 					.multiply(Matrix3.rotation(rotation))
 					.multiply(Matrix3.scale(scale)),
-				texture: textures[json.texture],
+				texture,
 				normalMap: textures[json.normal_map],
 			}),
 		);

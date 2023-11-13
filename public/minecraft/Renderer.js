@@ -227,7 +227,7 @@ export class Renderer extends _Renderer {
 			this._context.bindBuffer(this._context.ARRAY_BUFFER, this._buffers.uv);
 			this._context.bufferData(this._context.ARRAY_BUFFER, firstMeshGeometry.getUVs(), this._context.STATIC_DRAW);
 
-			this._context.bindTexture(this._context.TEXTURE_2D, firstMeshMaterial.texture.texture);
+			this._context.bindTexture(this._context.TEXTURE_2D, firstMeshMaterial.texture);
 
 			this._context.drawElementsInstanced(this._context.TRIANGLES, 36, this._context.UNSIGNED_BYTE, 0, meshes.length);
 

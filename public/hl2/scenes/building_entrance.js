@@ -1,9 +1,14 @@
+import {Renderer} from "../../../src/index.js";
 import {PointLight} from "../../../src/lights/index.js";
 import {Vector3} from "../../../src/math/index.js";
 import {ENTITY_HEIGHT_STAND} from "../index.js";
 import {Mesh} from "../Mesh.js";
 
-export async function setup(renderer) {
+/**
+ * @param {Renderer} renderer
+ * @param {import("../../../src/Loader/TextureLoader.js").TextureDescriptor[]} textureDescriptors
+ */
+export async function setup(renderer, textureDescriptors) {
 	const {scene, camera} = renderer;
 
 	scene.lights.push(
@@ -27,6 +32,6 @@ export async function setup(renderer) {
 			continue;
 		}
 
-		scene.meshes.push(Mesh.fromJSON(meshes[i], renderer._textures));
+		scene.meshes.push(Mesh.fromJSON(meshes[i], textureDescriptors, renderer._textures));
 	}
 }

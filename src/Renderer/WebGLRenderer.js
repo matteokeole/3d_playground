@@ -7,10 +7,21 @@ export class WebGLRenderer extends Renderer {
 	_context;
 
 	/**
+	 * @type {Object.<String, WebGLTexture>}
+	 */
+	_textures;
+
+	/**
 	 * @param {HTMLCanvasElement} canvas
 	 */
 	constructor(canvas) {
 		super(canvas);
+
+		this._textures = {};
+	}
+
+	getTextures() {
+		return this._textures;
 	}
 
 	/**
@@ -22,6 +33,15 @@ export class WebGLRenderer extends Renderer {
 		if (this._context === null) {
 			throw new Error("This browser doesn't support WebGL2.");
 		}
+	}
+
+	/**
+	 * @param {import("../Loader/TextureLoader.js").TextureDescriptor} descriptor
+	 */
+	addTexture(descriptor) {
+		const texture = this._createTexture(descriptor.image);
+
+		this._textures[descriptor.path] = texture;
 	}
 
 	resize(viewport) {
@@ -67,6 +87,18 @@ export class WebGLRenderer extends Renderer {
 		}
 
 		return program;
+	}
+
+	/**
+	 * @param {HTMLImageElement} image
+	 * @returns {WebGLTexture}
+	 */
+	_createTexture(image) {
+		const texture = this._context.createTexture();
+
+		this._context.bindTexture(this._context.TEXTURE_2D, texture);
+
+		return texture;
 	}
 
 	/**

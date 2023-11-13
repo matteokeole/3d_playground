@@ -1,10 +1,15 @@
+import {Renderer} from "../../../src/index.js";
 import {BoxGeometry} from "../../../src/geometries/index.js";
 import {PointLight} from "../../../src/lights/index.js";
 import {TextureMaterial} from "../../../src/materials/index.js";
 import {Matrix3, Vector3} from "../../../src/math/index.js";
 import {Mesh} from "../Mesh.js";
 
-export async function setup(renderer) {
+/**
+ * @param {Renderer} renderer
+ * @param {import("../../../src/Loader/TextureLoader.js").TextureDescriptor[]} textureDescriptors
+ */
+export async function setup(renderer, textureDescriptors) {
 	const {scene, camera} = renderer;
 
 	scene.lights.push(
@@ -30,7 +35,7 @@ export async function setup(renderer) {
 			continue;
 		}
 
-		scene.meshes.push(Mesh.fromJSON(meshes[i], renderer._textures));
+		scene.meshes.push(Mesh.fromJSON(meshes[i], textureDescriptors, renderer._textures));
 	}
 
 	renderer.player = new Mesh(
