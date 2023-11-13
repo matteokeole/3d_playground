@@ -10,7 +10,7 @@ export class Instance {
 	/**
 	 * @type {Renderer}
 	 */
-	#renderer;
+	_renderer;
 
 	/**
 	 * @type {Number}
@@ -36,16 +36,26 @@ export class Instance {
 	 * @param {InstanceDescriptor} descriptor
 	 */
 	constructor(descriptor) {
-		this.#renderer = descriptor.renderer;
+		this._renderer = descriptor.renderer;
 		this.#framesPerSecond = descriptor.framesPerSecond;
 		this.#frameInterval = 1000 / this.#framesPerSecond;
-		this.#timeSinceLastFrame = 0;
+		this.#timeSinceLastFrame = -this.#frameInterval;
 		this.#animationFrameRequestId = null;
 	}
 
 	loop() {
 		this.#loop();
 	}
+
+	/**
+	 * @abstract
+	 */
+	_update() {}
+
+	/**
+	 * @abstract
+	 */
+	_render() {}
 
 	#loop() {
 		this.#animationFrameRequestId = requestAnimationFrame(this.#loop.bind(this));
@@ -54,10 +64,11 @@ export class Instance {
 		const delta = time - this.#timeSinceLastFrame;
 
 		if (delta > this.#frameInterval) {
-			this.#timeSinceLastFrame = time;
+			this.#timeSinceLastFrame = time - delta / this.#frameInterval;
 
 			try {
-				// console.log("updating");
+				this._update();
+				this._render();
 			} catch (error) {
 				console.error(error);
 
