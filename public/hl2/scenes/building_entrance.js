@@ -10,17 +10,16 @@ import {Mesh} from "../Mesh.js";
  */
 export async function setup(renderer, textureDescriptors) {
 	const {scene, camera} = renderer;
+	const position = new Vector3(50, ENTITY_HEIGHT_STAND, 0);
 
 	scene.lights.push(
 		new PointLight({
 			color: new Vector3(1, 1, 1),
 			intensity: .75,
-			position: new Vector3(64, 200, 64),
+			position,
 			direction: new Vector3(),
 		}),
 	);
-
-	const position = new Vector3(50, ENTITY_HEIGHT_STAND, 0);
 
 	camera.position = position.clone();
 	camera.target = position.clone();

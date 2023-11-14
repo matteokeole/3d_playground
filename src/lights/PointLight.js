@@ -34,6 +34,13 @@ export class PointLight extends AbstractLight {
 	}
 
 	/**
+	 * @param {Vector3} position
+	 */
+	setPosition(position) {
+		this.#position = position;
+	}
+
+	/**
 	 * @returns {Vector3}
 	 */
 	get direction() {

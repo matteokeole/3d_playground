@@ -10,6 +10,7 @@ import {Renderer} from "./Renderer.js";
  */
 export function update(delta, renderer) {
 	const {camera, player, wall} = renderer;
+	const firstLight = renderer.scene.lights[0];
 
 	// Camera-space direction (not normalized)
 	const direction = new Vector3(
@@ -37,6 +38,8 @@ export function update(delta, renderer) {
 
 	camera.position.lerp(camera.target, CAMERA_LERP_FACTOR);
 	camera.update();
+
+	firstLight.setPosition(camera.position);
 
 	document.getElementById("DebugPosition").textContent = `${camera.position}`;
 	document.getElementById("DebugRotation").textContent = `${camera.rotation}`;
