@@ -1,9 +1,9 @@
 import {AbstractCamera, AbstractScene} from "../../src/index.js";
 import {TextureLoader} from "../../src/Loader/index.js";
-import {PI, Vector2, Vector4} from "../../src/math/index.js";
+import {PI, Vector2} from "../../src/math/index.js";
 import {Renderer} from "./Renderer.js";
 import {setup} from "./scenes/instancing.js";
-import "./debug.js";
+import {enableDebugging} from "./debug.js";
 import {listen} from "./input.js";
 import {update} from "./update.js";
 
@@ -18,9 +18,11 @@ export const NOISE_AMPLITUDE = 12;
 export const NOISE_INC = .05;
 
 export default async function() {
+	const canvas = document.createElement("canvas");
+
 	const viewport = new Vector2(innerWidth, innerHeight);
 
-	const renderer = new Renderer();
+	const renderer = new Renderer(canvas);
 	renderer.getViewport().set(viewport, 2);
 	await renderer.build();
 
@@ -45,11 +47,12 @@ export default async function() {
 	renderer.update = update;
 
 	setup(renderer);
+	enableDebugging(renderer);
 	listen(renderer);
 
 	renderer.prerender();
 
-	document.body.appendChild(renderer.getCanvas());
+	document.body.appendChild(canvas);
 
 	renderer.loop();
 }

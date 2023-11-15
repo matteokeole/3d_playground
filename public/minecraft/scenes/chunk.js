@@ -3,7 +3,7 @@ import {BoxGeometry} from "../../../src/geometries/index.js";
 import {DirectionalLight} from "../../../src/lights/index.js";
 import {TextureMaterial} from "../../../src/materials/index.js";
 import {Vector3} from "../../../src/math/index.js";
-import {BLOCK_SCALE, ENTITY_HEIGHT_STAND, NOISE_AMPLITUDE, NOISE_INC} from "../index.js";
+import {BLOCK_SCALE, ENTITY_HEIGHT_STAND, NOISE_AMPLITUDE, NOISE_INC} from "../main.js";
 
 export function setup(renderer) {
 	const {scene, camera} = renderer;

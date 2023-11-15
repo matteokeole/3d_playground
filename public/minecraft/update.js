@@ -19,5 +19,5 @@ export function update(delta, renderer) {
 	camera.position.set(camera.target.clone().lerp(camera.position, CAMERA_LERP_FACTOR));
 	camera.update();
 
-	DebugDelta.textContent = delta.toFixed(2);
+	document.getElementById("DebugDelta").textContent = delta.toFixed(2);
 };
