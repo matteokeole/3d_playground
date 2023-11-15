@@ -7,7 +7,7 @@ import {Vector4} from "./math/index.js";
  */
 export class Renderer {
 	/**
-	 * @type {?HTMLCanvasElement}
+	 * @type {HTMLCanvasElement}
 	 */
 	#canvas;
 
@@ -86,8 +86,11 @@ export class Renderer {
 	 */
 	debug;
 
-	constructor() {
-		this.#canvas = null;
+	/**
+	 * @param {HTMLCanvasElement} canvas
+	 */
+	constructor(canvas) {
+		this.#canvas = canvas;
 		this._context = null;
 		this._viewport = new Vector4(0, 0, 300, 150);
 		this._programs = {};
@@ -140,7 +143,6 @@ export class Renderer {
 	 * Initializes the canvas and its WebGL context.
 	 */
 	build() {
-		this.#canvas = document.createElement("canvas");
 		this.#canvas.width = this._viewport[2];
 		this.#canvas.height = this._viewport[3];
 		this._context = this.#canvas.getContext("webgl2");

@@ -1,12 +1,15 @@
 import {AbstractScene} from "../../src/index.js";
 import {TextureLoader} from "../../src/Loader/index.js";
-import {PI, Vector2, Vector4} from "../../src/math/index.js";
+import {PI, Vector2} from "../../src/math/index.js";
 import {Renderer} from "./Renderer.js";
 import {Camera} from "./Camera.js";
-import {setup} from "./scenes/building_entrance.js";
-import {debug} from "./debug.js";
 import {listen} from "./input.js";
+// import {Instance} from "./Instance.js";
 import {update} from "./update.js";
+import "./debug.js";
+
+import {setup} from "./scenes/building_entrance.js";
+// import {createCamera, createScene} from "./scenes/building_entrance.js";
 
 export const FRAMES_PER_SECOND = 60;
 export const FIELD_OF_VIEW = 90;
@@ -18,9 +21,22 @@ export const CAMERA_LERP_FACTOR = .3;
 export const SENSITIVITY = .0012;
 
 export default async function() {
+	const canvas = document.createElement("canvas");
+
 	const viewport = new Vector2(innerWidth, innerHeight);
 
-	const renderer = new Renderer();
+	const camera = new Camera();
+	// const camera = createCamera();
+	camera.fieldOfView = FIELD_OF_VIEW;
+	camera.aspectRatio = viewport[0] / viewport[1];
+	camera.near = .5;
+	camera.far = 1000;
+	camera.bias = PI * .545; // ~1.712
+	camera.turnVelocity = SENSITIVITY;
+	camera.lerpFactor = CAMERA_LERP_FACTOR;
+	camera.lookAt(new Vector2());
+
+	const renderer = new Renderer(canvas);
 	renderer.getViewport().set(viewport, 2);
 	await renderer.build();
 
@@ -31,31 +47,19 @@ export default async function() {
 		renderer.addTexture(textures[i]);
 	}
 
-	document.body.appendChild(renderer.getCanvas());
-
-	const scene = new AbstractScene();
-	scene.background = new Vector4(0, 0, 0, 1);
-
-	const camera = new Camera();
-	camera.fieldOfView = FIELD_OF_VIEW;
-	camera.aspectRatio = viewport[0] / viewport[1];
-	camera.near = .5;
-	camera.far = 1000;
-	camera.bias = PI * .545; // Try with ~1.712?
-	camera.turnVelocity = SENSITIVITY;
-	camera.lerpFactor = CAMERA_LERP_FACTOR;
-
-	renderer.scene = scene;
+	renderer.scene = new AbstractScene();
+	// const scene = createScene(textures, textureDescriptors);
+	// renderer.setScene(scene);
 	renderer.camera = camera;
+	// renderer.setCamera(camera);
 	renderer.framesPerSecond = FRAMES_PER_SECOND;
-	renderer.update = update;
+	// const instance = new Instance({renderer, framesPerSecond: FRAMES_PER_SECOND});
+	renderer.update = update; // remove
 
-	await setup(renderer, textures);
-	debug(renderer);
+	await setup(renderer, textures); // remove
 	listen(renderer);
 
-	camera.lookAt(new Vector2());
+	document.body.appendChild(canvas);
 
-	renderer.prerender();
 	renderer.loop();
 }

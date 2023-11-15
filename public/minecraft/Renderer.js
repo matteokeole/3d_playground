@@ -193,8 +193,6 @@ export class Renderer extends _Renderer {
 	}
 
 	render() {
-		super.render();
-
 		const {scene, camera} = this;
 		const viewportHalf = this._viewport.clone().divideScalar(2);
 		const {meshes} = scene;
@@ -208,9 +206,7 @@ export class Renderer extends _Renderer {
 			this._context.bindVertexArray(this._vaos.gBuffer);
 			this._context.bindFramebuffer(this._context.FRAMEBUFFER, this.gBuffer.framebuffer);
 
-			const background = scene.background;
-
-			this._context.clearColor(background[0], background[1], background[2], background[3]);
+			this._context.clearColor(.125, .129, .141, 1);
 			this._context.clear(this._context.COLOR_BUFFER_BIT | this._context.DEPTH_BUFFER_BIT);
 
 			this._context.uniformMatrix4fv(this._uniforms.projection, false, camera.projection);

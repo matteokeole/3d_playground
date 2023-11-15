@@ -43,14 +43,19 @@ export class Instance {
 		this.#animationFrameRequestId = null;
 	}
 
+	build() {
+		this._renderer.build();
+	}
+
 	loop() {
 		this.#loop();
 	}
 
 	/**
 	 * @abstract
+	 * @param {Number} delta
 	 */
-	_update() {}
+	_update(delta) {}
 
 	/**
 	 * @abstract
@@ -67,7 +72,7 @@ export class Instance {
 			this.#timeSinceLastFrame = time - delta / this.#frameInterval;
 
 			try {
-				this._update();
+				this._update(delta);
 				this._render();
 			} catch (error) {
 				console.error(error);

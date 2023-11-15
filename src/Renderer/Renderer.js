@@ -1,4 +1,4 @@
-import {Scene} from "../index.js";
+import {AbstractCamera, Scene} from "../index.js";
 import {Vector4} from "../math/index.js";
 
 /**
@@ -6,14 +6,19 @@ import {Vector4} from "../math/index.js";
  */
 export class Renderer {
 	/**
-	 * @type {?HTMLCanvasElement}
+	 * @type {HTMLCanvasElement}
 	 */
 	_canvas;
 
 	/**
-	 * @type {Scene}
+	 * @type {?Scene}
 	 */
 	_scene;
+
+	/**
+	 * @type {?AbstractCamera}
+	 */
+	_camera;
 
 	/**
 	 * @param {HTMLCanvasElement} canvas
@@ -33,8 +38,24 @@ export class Renderer {
 
 	/**
 	 * @abstract
+	 * @param {Scene} scene
 	 */
-	async build() {}
+	setScene(scene) {}
+
+	getCamera() {
+		return this._camera;
+	}
+
+	/**
+	 * @abstract
+	 * @param {AbstractCamera} camera
+	 */
+	setCamera(camera) {}
+
+	/**
+	 * @abstract
+	 */
+	build() {}
 
 	/**
 	 * @abstract

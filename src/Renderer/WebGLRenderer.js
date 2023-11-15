@@ -1,3 +1,4 @@
+import {AbstractCamera, Scene} from "../index.js";
 import {Renderer} from "./Renderer.js";
 
 export class WebGLRenderer extends Renderer {
@@ -5,6 +6,26 @@ export class WebGLRenderer extends Renderer {
 	 * @type {?WebGL2RenderingContext}
 	 */
 	_context;
+
+	/**
+	 * @type {Object.<String, WebGLProgram>}
+	 */
+	_programs;
+
+	/**
+	 * @type {Object.<String, WebGLVertexArrayObject>}
+	 */
+	_vaos;
+
+	/**
+	 * @type {Object.<String, WebGLBuffer>}
+	 */
+	_buffers;
+
+	/**
+	 * @type {Object.<String, WebGLUniformLocation>}
+	 */
+	_uniforms;
 
 	/**
 	 * @type {Object.<String, WebGLTexture>}
@@ -17,6 +38,10 @@ export class WebGLRenderer extends Renderer {
 	constructor(canvas) {
 		super(canvas);
 
+		this._programs = {};
+		this._vaos = {};
+		this._buffers = {};
+		this._uniforms = {};
 		this._textures = {};
 	}
 
@@ -27,12 +52,40 @@ export class WebGLRenderer extends Renderer {
 	/**
 	 * @throws {Error} if WebGL2 is not supported
 	 */
-	async build() {
+	build() {
 		this._context = this._canvas.getContext("webgl2");
 
 		if (this._context === null) {
 			throw new Error("This browser doesn't support WebGL2.");
 		}
+
+		const gl = this._context;
+
+		this._buffers.scene = gl.createBuffer();
+	}
+
+	/**
+	 * Note: Must be called after `build`
+	 * 
+	 * @param {Scene} scene
+	 */
+	setScene(scene) {
+		this._scene = scene;
+
+		const gl = this._context;
+
+		gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.scene);
+
+		/**
+		 * @todo DYNAMIC_DRAW
+		 */
+	}
+
+	/**
+	 * @param {AbstractCamera} camera
+	 */
+	setCamera(camera) {
+		this._camera = camera;
 	}
 
 	/**

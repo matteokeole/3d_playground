@@ -35,7 +35,7 @@ export async function setup(renderer, textureDescriptors) {
 			continue;
 		}
 
-		scene.meshes.push(Mesh.fromJSON(meshes[i], textureDescriptors, renderer._textures));
+		scene.meshes.push(Mesh.fromJSON(meshes[i], renderer._textures, textureDescriptors));
 	}
 
 	renderer.player = new Mesh(

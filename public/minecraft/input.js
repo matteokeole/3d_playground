@@ -1,4 +1,5 @@
 import {Vector2} from "../../src/math/index.js";
+import {Renderer} from "../../src/Renderer/index.js";
 
 const movement = new Vector2();
 
@@ -11,6 +12,10 @@ export const Keybind = {
 	up: "Space",
 	down: "ControlLeft",
 };
+
+/**
+ * @param {Renderer} renderer
+ */
 export function listen(renderer) {
 	const keydown = event => keys.add(event.code);
 	const keyup = event => keys.delete(event.code);

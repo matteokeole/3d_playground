@@ -1,14 +1,13 @@
-export function debug(renderer) {
-	const container = document.createElement("div");
-	const position = document.createElement("span");
-	const rotation = document.createElement("span");
+const container = document.createElement("div");
+container.id = "DebugTest1";
+container.className = "debug";
 
-	container.id = "DebugTest1";
-	container.className = "debug";
-	position.id = "DebugPosition";
-	rotation.id = "DebugRotation";
+const position = document.createElement("span");
+position.id = "DebugPosition";
+container.appendChild(position);
 
-	container.appendChild(position);
-	container.appendChild(rotation);
-	document.body.appendChild(container);
-}
+const rotation = document.createElement("span");
+rotation.id = "DebugRotation";
+container.appendChild(rotation);
+
+document.body.appendChild(container);

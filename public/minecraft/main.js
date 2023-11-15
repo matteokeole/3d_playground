@@ -3,7 +3,7 @@ import {TextureLoader} from "../../src/Loader/index.js";
 import {PI, Vector2, Vector4} from "../../src/math/index.js";
 import {Renderer} from "./Renderer.js";
 import {setup} from "./scenes/instancing.js";
-import {debug} from "./debug.js";
+import "./debug.js";
 import {listen} from "./input.js";
 import {update} from "./update.js";
 
@@ -31,11 +31,6 @@ export default async function() {
 		renderer.addTexture(textures[i]);
 	}
 
-	document.body.appendChild(renderer.getCanvas());
-
-	const scene = new AbstractScene();
-	scene.background = new Vector4(.125, .129, .141, 1);
-
 	const camera = new AbstractCamera();
 	camera.fieldOfView = FIELD_OF_VIEW;
 	camera.aspectRatio = viewport[0] / viewport[1];
@@ -44,15 +39,17 @@ export default async function() {
 	camera.bias = PI * .5; // This cancels the perspective matrix bias
 	camera.turnVelocity = .001;
 
-	renderer.scene = scene;
+	renderer.scene = new AbstractScene();
 	renderer.camera = camera;
 	renderer.framesPerSecond = FRAMES_PER_SECOND;
 	renderer.update = update;
 
 	setup(renderer);
-	debug(renderer);
 	listen(renderer);
 
 	renderer.prerender();
+
+	document.body.appendChild(renderer.getCanvas());
+
 	renderer.loop();
 }

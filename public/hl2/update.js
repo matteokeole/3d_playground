@@ -1,5 +1,5 @@
 import {Vector3} from "../../src/math/index.js";
-import {CAMERA_LERP_FACTOR, VELOCITY} from "./index.js";
+import {CAMERA_LERP_FACTOR, VELOCITY} from "./main.js";
 import {keys} from "./input.js";
 import {Mesh} from "./Mesh.js";
 import {Renderer} from "./Renderer.js";
@@ -9,7 +9,9 @@ import {Renderer} from "./Renderer.js";
  * @param {Renderer} renderer
  */
 export function update(delta, renderer) {
-	const {camera, player, wall} = renderer;
+	const camera = renderer.camera;
+	const player = renderer.player;
+	const wall = renderer.wall;
 	const firstLight = renderer.scene.lights[0];
 
 	// Camera-space direction (not normalized)

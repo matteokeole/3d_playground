@@ -17,6 +17,7 @@ export class AbstractScene {
 	lights = [];
 
 	/**
+	 * @deprecated
 	 * @type {Vector4}
 	 */
 	background = new Vector4(0, 0, 0, 1);

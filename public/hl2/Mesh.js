@@ -13,10 +13,10 @@ export class Mesh extends AbstractMesh {
 
 	/**
 	 * @param {Object} json
-	 * @param {import("../../src/Loader/TextureLoader.js").TextureDescriptor[]} textureDescriptors
 	 * @param {Object.<String, WebGLTexture>} textures
+	 * @param {import("../../src/Loader/TextureLoader.js").TextureDescriptor[]} textureDescriptors
 	 */
-	static fromJSON(json, textureDescriptors, textures) {
+	static fromJSON(json, textures, textureDescriptors) {
 		const {anchors} = json;
 
 		if (anchors.length !== 9 && anchors.length !== 12) throw new Error("Invalid mesh geometry");

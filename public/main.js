@@ -1,3 +1,3 @@
-import main from "./hl2/index.js";
+import main from "./hl2/main.js";
 
 main();

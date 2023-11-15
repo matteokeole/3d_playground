@@ -3,7 +3,7 @@ import {BoxGeometry} from "../../../src/geometries/index.js";
 import {DirectionalLight} from "../../../src/lights/index.js";
 import {TextureMaterial} from "../../../src/materials/index.js";
 import {Vector3} from "../../../src/math/index.js";
-import {BLOCK_SCALE, ENTITY_HEIGHT_STAND} from "../index.js";
+import {BLOCK_SCALE, ENTITY_HEIGHT_STAND} from "../main.js";
 
 // CURR/MAX FPS - 120K instanced meshes
 // Windows 10/Chrome: 165/165 FPS

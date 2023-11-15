@@ -15,11 +15,15 @@ export class Renderer extends _Renderer {
 	#defaultTexture;
 
 	/**
+	 * @todo Remove
+	 * 
 	 * @type {?AbstractMesh}
 	 */
 	player;
 
 	/**
+	 * @todo Remove
+	 * 
 	 * @type {?AbstractMesh}
 	 */
 	wall;
@@ -33,111 +37,90 @@ export class Renderer extends _Renderer {
 		const crosshairVertexShaderSource = await shaderLoader.load("public/hl2/shaders/crosshair.vert");
 		const crosshairFragmentShaderSource = await shaderLoader.load("public/hl2/shaders/crosshair.frag");
 
+		const gl = this._context;
+
 		this._programs.main = this._createProgram(mainVertexShaderSource, mainFragmentShaderSource);
 		this._programs.crosshair = this._createProgram(crosshairVertexShaderSource, crosshairFragmentShaderSource);
 
-		this._context.frontFace(this._context.CW);
-		this._context.enable(this._context.CULL_FACE);
-		this._context.enable(this._context.DEPTH_TEST);
+		gl.frontFace(gl.CW);
+		gl.enable(gl.CULL_FACE);
+		gl.enable(gl.DEPTH_TEST);
 
-		this.#defaultColor = Float32Array.of(1, 1, 1);
+		this._vaos.main = gl.createVertexArray();
+		this._vaos.crosshair = gl.createVertexArray();
 
-		this._vaos.main = this._context.createVertexArray();
-		this._vaos.crosshair = this._context.createVertexArray();
+		gl.useProgram(this._programs.main);
+		gl.bindVertexArray(this._vaos.main);
+
+		this._buffers.index = gl.createBuffer();
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._buffers.index);
+
+		gl.enableVertexAttribArray(0);
+		this._buffers.vertex = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.vertex);
+		gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
+
+		gl.enableVertexAttribArray(1);
+		this._buffers.normal = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.normal);
+		gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 0, 0); // Normalize?
+
+		gl.enableVertexAttribArray(2);
+		this._buffers.tangent = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.tangent);
+		gl.vertexAttribPointer(2, 3, gl.FLOAT, false, 0, 0);
+
+		gl.enableVertexAttribArray(3);
+		this._buffers.uv = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.uv);
+		gl.vertexAttribPointer(3, 2, gl.FLOAT, true, 0, 0);
+
+		gl.bindVertexArray(null);
 
 		this._context.useProgram(this._programs.main);
-		this._context.bindVertexArray(this._vaos.main);
 
-		this._context.enableVertexAttribArray(0);
-		this._context.enableVertexAttribArray(1);
-		this._context.enableVertexAttribArray(2);
-		this._context.enableVertexAttribArray(3);
+		this._uniforms.projection = gl.getUniformLocation(this._programs.main, "u_projection");
+		this._uniforms.view = gl.getUniformLocation(this._programs.main, "u_view");
+		this._uniforms.cameraPosition = gl.getUniformLocation(this._programs.main, "u_camera_position");
+		this._uniforms.meshPosition = gl.getUniformLocation(this._programs.main, "u_mesh_position");
+		this._uniforms.lightPosition = gl.getUniformLocation(this._programs.main, "u_light_position");
+		this._uniforms.texture = gl.getUniformLocation(this._programs.main, "u_texture");
+		this._uniforms.color = gl.getUniformLocation(this._programs.main, "u_color");
+		this._uniforms.textureMap = gl.getUniformLocation(this._programs.main, "u_texture_map");
+		this._context.uniform1i(this._uniforms.textureMap, 0);
+		this._uniforms.normalMap = gl.getUniformLocation(this._programs.main, "u_normal_map");
+		this._context.uniform1i(this._uniforms.normalMap, 1);
+		this._uniforms.lightColor = gl.getUniformLocation(this._programs.main, "u_light_color");
+		this._uniforms.lightIntensity = gl.getUniformLocation(this._programs.main, "u_light_intensity");
+		this._uniforms.crosshairViewport = gl.getUniformLocation(this._programs.crosshair, "u_viewport");
 
-		this._buffers.index = this._context.createBuffer();
-		this._context.bindBuffer(this._context.ELEMENT_ARRAY_BUFFER, this._buffers.index);
+		this._context.useProgram(this._programs.crosshair);
 
-		this._buffers.vertex = this._context.createBuffer();
-		this._context.bindBuffer(this._context.ARRAY_BUFFER, this._buffers.vertex);
-		this._context.vertexAttribPointer(0, 3, this._context.FLOAT, false, 0, 0);
+		this._uniforms.crosshairViewport = gl.getUniformLocation(this._programs.crosshair, "u_viewport");
+		this._context.uniform2f(this._uniforms.crosshairViewport, this._viewport[2], this._viewport[3]);
 
-		this._buffers.normal = this._context.createBuffer();
-		this._context.bindBuffer(this._context.ARRAY_BUFFER, this._buffers.normal);
-		this._context.vertexAttribPointer(1, 3, this._context.FLOAT, false, 0, 0); // Normalize?
-
-		this._buffers.tangent = this._context.createBuffer();
-		this._context.bindBuffer(this._context.ARRAY_BUFFER, this._buffers.tangent);
-		this._context.vertexAttribPointer(2, 3, this._context.FLOAT, false, 0, 0);
-
-		this._buffers.uv = this._context.createBuffer();
-		this._context.bindBuffer(this._context.ARRAY_BUFFER, this._buffers.uv);
-		this._context.vertexAttribPointer(3, 2, this._context.FLOAT, true, 0, 0);
-
-		this.createDefaultTexture();
-
-		this._context.bindVertexArray(null);
 		this._context.useProgram(null);
 
-		this._uniforms.projection = this._context.getUniformLocation(this._programs.main, "u_projection");
-		this._uniforms.view = this._context.getUniformLocation(this._programs.main, "u_view");
-		this._uniforms.cameraPosition = this._context.getUniformLocation(this._programs.main, "u_camera_position");
-		this._uniforms.meshPosition = this._context.getUniformLocation(this._programs.main, "u_mesh_position");
-		this._uniforms.lightPosition = this._context.getUniformLocation(this._programs.main, "u_light_position");
-		this._uniforms.texture = this._context.getUniformLocation(this._programs.main, "u_texture");
-		this._uniforms.color = this._context.getUniformLocation(this._programs.main, "u_color");
-		this._uniforms.textureMap = this._context.getUniformLocation(this._programs.main, "u_texture_map");
-		this._uniforms.normalMap = this._context.getUniformLocation(this._programs.main, "u_normal_map");
-		this._uniforms.lightColor = this._context.getUniformLocation(this._programs.main, "u_light_color");
-		this._uniforms.lightIntensity = this._context.getUniformLocation(this._programs.main, "u_light_intensity");
-		this._uniforms.crosshair = {
-			viewport: this._context.getUniformLocation(this._programs.crosshair, "u_viewport"),
-		};
+		this.#createDefaultColor();
+		this.#createDefaultTexture();
 	}
 
-	createDefaultTexture() {
-		this.#defaultTexture = this._context.createTexture();
-		this._context.bindTexture(this._context.TEXTURE_2D, this.#defaultTexture);
-		this._context.texImage2D(
-			this._context.TEXTURE_2D,
-			0,
-			this._context.RGBA,
-			1,
-			1,
-			0,
-			this._context.RGBA,
-			this._context.UNSIGNED_BYTE,
-			Uint8Array.of(255, 255, 255, 255), // Uint8Array.of(1, 1, 1, 1)?
-		);
-	}
-
+	/**
+	 * @param {HTMLImageElement} image
+	 */
 	setupTexture(image) {
 		this._context.texImage2D(this._context.TEXTURE_2D, 0, this._context.RGB, this._context.RGB, this._context.UNSIGNED_BYTE, image);
 		this._context.texParameteri(this._context.TEXTURE_2D, this._context.TEXTURE_MIN_FILTER, this._context.LINEAR);
 	}
 
-	prerender() {
-		this._context.useProgram(this._programs.main);
-
-		this._context.uniform1i(this._uniforms.textureMap, 0);
-		this._context.uniform1i(this._uniforms.normalMap, 1);
-
-		this._context.useProgram(this._programs.crosshair);
-
-		this._context.uniform2f(this._uniforms.crosshair.viewport, this._viewport[2], this._viewport[3]);
-
-		this._context.useProgram(null);
-	}
-
 	render() {
-		super.render();
-
 		this._context.useProgram(this._programs.main);
 		this._context.bindVertexArray(this._vaos.main);
 
-		const {scene, camera} = this;
-		const {meshes} = scene;
-		const background = scene.background;
+		const scene = this.scene;
+		const meshes = scene.meshes;
+		const camera = this.camera;
 
-		this._context.clearColor(background[0], background[1], background[2], background[3]);
 		this._context.clear(this._context.COLOR_BUFFER_BIT | this._context.DEPTH_BUFFER_BIT);
 
 		const firstLight = scene.lights[0];
@@ -205,5 +188,33 @@ export class Renderer extends _Renderer {
 		this._context.drawArrays(this._context.POINTS, 0, 5);
 
 		this._context.useProgram(null);
+	}
+
+	/**
+	 * Creates the default color for textured meshes.
+	 */
+	#createDefaultColor() {
+		this.#defaultColor = Float32Array.of(1, 1, 1);
+	}
+
+	/**
+	 * Creates a 1x1 white pixel as default texture.
+	 */
+	#createDefaultTexture() {
+		const gl = this._context;
+
+		this.#defaultTexture = gl.createTexture();
+		gl.bindTexture(gl.TEXTURE_2D, this.#defaultTexture);
+		gl.texImage2D(
+			gl.TEXTURE_2D,
+			0,
+			gl.RGBA,
+			1,
+			1,
+			0,
+			gl.RGBA,
+			gl.UNSIGNED_BYTE,
+			Uint8Array.of(255, 255, 255, 255),
+		);
 	}
 }

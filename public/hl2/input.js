@@ -1,4 +1,5 @@
-import {Vector2, Vector4} from "../../src/math/index.js";
+import {Vector2} from "../../src/math/index.js";
+import {Renderer} from "../../src/Renderer/index.js";
 
 const movement = new Vector2();
 
@@ -20,6 +21,9 @@ export const keys = {
 	ControlLeft: 0,
 };
 
+/**
+ * @param {Renderer} renderer
+ */
 export function listen(renderer) {
 	function keydown(event) {
 		event.preventDefault();

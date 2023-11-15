@@ -1,4 +1,4 @@
-import {VELOCITY, VELOCITY_SQRT1_2, CAMERA_LERP_FACTOR} from "./index.js";
+import {VELOCITY, VELOCITY_SQRT1_2, CAMERA_LERP_FACTOR} from "./main.js";
 import {Keybind, keys} from "./input.js";
 
 const diagonalMovement = () =>
