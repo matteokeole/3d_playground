@@ -49,7 +49,7 @@ export class Renderer extends WebGLRenderer {
 		gl.enableVertexAttribArray(1);
 		this._buffers.normal = gl.createBuffer();
 		gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.normal);
-		gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 0, 0); // Normalize?
+		gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 0, 0);
 
 		gl.enableVertexAttribArray(2);
 		this._buffers.tangent = gl.createBuffer();
@@ -65,11 +65,10 @@ export class Renderer extends WebGLRenderer {
 
 		gl.useProgram(this._programs.main);
 
-		this._uniforms.projection = gl.getUniformLocation(this._programs.main, "u_projection");
-		this._uniforms.view = gl.getUniformLocation(this._programs.main, "u_view");
-		this._uniforms.cameraPosition = gl.getUniformLocation(this._programs.main, "u_camera_position");
-		this._uniforms.meshPosition = gl.getUniformLocation(this._programs.main, "u_mesh_position");
-		this._uniforms.lightPosition = gl.getUniformLocation(this._programs.main, "u_light_position");
+		this._uniforms.cameraProjection = gl.getUniformLocation(this._programs.main, "u_camera.projection");
+		this._uniforms.cameraView = gl.getUniformLocation(this._programs.main, "u_camera.view");
+		this._uniforms.cameraPosition = gl.getUniformLocation(this._programs.main, "u_camera.position");
+		this._uniforms.lightPosition = gl.getUniformLocation(this._programs.main, "u_light.position");
 		this._uniforms.texture = gl.getUniformLocation(this._programs.main, "u_texture");
 		this._uniforms.color = gl.getUniformLocation(this._programs.main, "u_color");
 		this._uniforms.textureMap = gl.getUniformLocation(this._programs.main, "u_texture_map");
@@ -99,16 +98,15 @@ export class Renderer extends WebGLRenderer {
 
 		const scene = this._scene;
 		const meshes = scene.getMeshes();
+		const pointLight = scene.pointLight;
 		const camera = this._camera;
 
-		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-		gl.uniformMatrix4fv(this._uniforms.projection, false, camera.projection);
-		gl.uniformMatrix4fv(this._uniforms.view, false, camera.view);
+		gl.uniformMatrix4fv(this._uniforms.cameraProjection, false, camera.projection);
+		gl.uniformMatrix4fv(this._uniforms.cameraView, false, camera.view);
 		gl.uniform3fv(this._uniforms.cameraPosition, camera.getPhysicalPosition());
-		gl.uniform3fv(this._uniforms.lightPosition, scene.pointLight.position);
-		gl.uniform3fv(this._uniforms.lightColor, scene.pointLight.color);
-		gl.uniform1f(this._uniforms.lightIntensity, scene.pointLight.intensity);
+		gl.uniform3fv(this._uniforms.lightPosition, pointLight.position);
+		gl.uniform3fv(this._uniforms.lightColor, pointLight.color);
+		gl.uniform1f(this._uniforms.lightIntensity, pointLight.intensity);
 
 		for (let i = 0, length = meshes.length; i < length; i++) {
 			const mesh = meshes[i];
@@ -124,7 +122,6 @@ export class Renderer extends WebGLRenderer {
 			gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.tangent);
 			gl.bufferData(gl.ARRAY_BUFFER, geometry.getTangents(), gl.STATIC_DRAW);
 
-			gl.uniform3fv(this._uniforms.meshPosition, mesh.getPosition());
 			gl.uniformMatrix3fv(this._uniforms.texture, false, material.textureMatrix);
 
 			if (material instanceof ColorMaterial) {
