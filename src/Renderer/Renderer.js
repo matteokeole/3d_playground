@@ -11,6 +11,11 @@ export class Renderer {
 	_canvas;
 
 	/**
+	 * @type {Vector4}
+	 */
+	_viewport;
+
+	/**
 	 * @type {?Scene}
 	 */
 	_scene;
@@ -25,11 +30,23 @@ export class Renderer {
 	 */
 	constructor(canvas) {
 		this._canvas = canvas;
+		this._viewport = new Vector4(0, 0, 300, 150);
 		this._scene = null;
 	}
 
 	getCanvas() {
 		return this._canvas;
+	}
+
+	getViewport() {
+		return this._viewport;
+	}
+
+	/**
+	 * @param {Vector4} viewport
+	 */
+	setViewport(viewport) {
+		this._viewport = viewport;
 	}
 
 	getScene() {
@@ -64,9 +81,8 @@ export class Renderer {
 
 	/**
 	 * @abstract
-	 * @param {Vector4} viewport
 	 */
-	resize(viewport) {}
+	resize() {}
 
 	/**
 	 * @abstract

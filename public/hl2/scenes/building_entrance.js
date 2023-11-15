@@ -1,7 +1,8 @@
-import {Renderer, Scene, Texture} from "../../../src/index.js";
+import {Scene, Texture} from "../../../src/index.js";
 import {PointLight} from "../../../src/lights/index.js";
-import {Vector3} from "../../../src/math/index.js";
-import {ENTITY_HEIGHT_STAND} from "../main.js";
+import {PI, Vector2, Vector3} from "../../../src/math/index.js";
+import {Camera} from "../Camera.js";
+import {CAMERA_LERP_FACTOR, ENTITY_HEIGHT_STAND, FIELD_OF_VIEW, SENSITIVITY} from "../main.js";
 import {Mesh} from "../Mesh.js";
 
 /**
@@ -24,37 +25,35 @@ export async function createScene(textures, textureDescriptors) {
 		meshes.push(Mesh.fromJSON(json[i], textures, textureDescriptors));
 	}
 
-	return new Scene(meshes);
+	const scene = new Scene(meshes);
+
+	scene.pointLight = new PointLight({
+		color: new Vector3(1, 1, 1),
+		intensity: .75,
+		position: new Vector3(),
+		direction: new Vector3(),
+	});
+
+	return scene;
 }
 
 /**
- * @param {Renderer} renderer
- * @param {import("../../../src/Loader/TextureLoader.js").TextureDescriptor[]} textureDescriptors
+ * @param {Number} aspectRatio
  */
-export async function setup(renderer, textureDescriptors) {
-	const scene = renderer.scene;
-	const camera = renderer.camera;
-	const position = new Vector3(50, ENTITY_HEIGHT_STAND, 0);
+export function createCamera(aspectRatio) {
+	const camera = new Camera();
 
-	scene.lights.push(
-		new PointLight({
-			color: new Vector3(1, 1, 1),
-			intensity: .75,
-			position,
-			direction: new Vector3(),
-		}),
-	);
+	camera.position = new Vector3(50, ENTITY_HEIGHT_STAND, 0);
+	camera.target = camera.position.clone();
+	camera.fieldOfView = FIELD_OF_VIEW;
 
-	camera.position = position.clone();
-	camera.target = position.clone();
+	camera.aspectRatio = aspectRatio;
+	camera.near = .5;
+	camera.far = 1000;
+	camera.bias = PI * .545; // ~1.712
+	camera.turnVelocity = SENSITIVITY;
+	camera.lerpFactor = CAMERA_LERP_FACTOR;
+	camera.lookAt(new Vector2());
 
-	const meshes = await (await fetch("public/hl2/scenes/building_entrance.json")).json();
-
-	for (let i = 0, length = meshes.length; i < length; i++) {
-		if (meshes[i].label == null) {
-			continue;
-		}
-
-		scene.meshes.push(Mesh.fromJSON(meshes[i], renderer._textures, textureDescriptors));
-	}
+	return camera;
 }

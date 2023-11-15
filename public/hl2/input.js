@@ -41,7 +41,7 @@ export function listen(renderer) {
 		movement[0] = event.movementX;
 		movement[1] = event.movementY;
 
-		renderer.camera.lookAt(movement);
+		renderer.getCamera().lookAt(movement);
 	}
 
 	addEventListener("click", function(event) {
@@ -62,8 +62,8 @@ export function listen(renderer) {
 	addEventListener("resize", function() {
 		const viewport = new Vector2(innerWidth, innerHeight);
 
-		renderer.camera.aspect = viewport[0] / viewport[1];
-		renderer.camera.update();
+		renderer.getCamera().aspect = viewport[0] / viewport[1];
+		renderer.getCamera().update();
 
 		renderer.getViewport().set(viewport, 2);
 		renderer.resize();

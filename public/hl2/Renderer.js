@@ -1,9 +1,9 @@
-import {AbstractMesh, Renderer as _Renderer} from "../../src/index.js";
 import {ShaderLoader} from "../../src/Loader/index.js";
 import {ColorMaterial, TextureMaterial} from "../../src/materials/index.js";
+import {WebGLRenderer} from "../../src/Renderer/index.js";
 import {SSDPlaneGeometry} from "./SSDPlaneGeometry.js";
 
-export class Renderer extends _Renderer {
+export class Renderer extends WebGLRenderer {
 	/**
 	 * @type {Float32Array}
 	 */
@@ -13,20 +13,6 @@ export class Renderer extends _Renderer {
 	 * @type {WebGLTexture}
 	 */
 	#defaultTexture;
-
-	/**
-	 * @todo Remove
-	 * 
-	 * @type {?AbstractMesh}
-	 */
-	player;
-
-	/**
-	 * @todo Remove
-	 * 
-	 * @type {?AbstractMesh}
-	 */
-	wall;
 
 	async build() {
 		super.build();
@@ -77,7 +63,7 @@ export class Renderer extends _Renderer {
 
 		gl.bindVertexArray(null);
 
-		this._context.useProgram(this._programs.main);
+		gl.useProgram(this._programs.main);
 
 		this._uniforms.projection = gl.getUniformLocation(this._programs.main, "u_projection");
 		this._uniforms.view = gl.getUniformLocation(this._programs.main, "u_view");
@@ -87,107 +73,113 @@ export class Renderer extends _Renderer {
 		this._uniforms.texture = gl.getUniformLocation(this._programs.main, "u_texture");
 		this._uniforms.color = gl.getUniformLocation(this._programs.main, "u_color");
 		this._uniforms.textureMap = gl.getUniformLocation(this._programs.main, "u_texture_map");
-		this._context.uniform1i(this._uniforms.textureMap, 0);
+		gl.uniform1i(this._uniforms.textureMap, 0);
 		this._uniforms.normalMap = gl.getUniformLocation(this._programs.main, "u_normal_map");
-		this._context.uniform1i(this._uniforms.normalMap, 1);
+		gl.uniform1i(this._uniforms.normalMap, 1);
 		this._uniforms.lightColor = gl.getUniformLocation(this._programs.main, "u_light_color");
 		this._uniforms.lightIntensity = gl.getUniformLocation(this._programs.main, "u_light_intensity");
 		this._uniforms.crosshairViewport = gl.getUniformLocation(this._programs.crosshair, "u_viewport");
 
-		this._context.useProgram(this._programs.crosshair);
+		gl.useProgram(this._programs.crosshair);
 
 		this._uniforms.crosshairViewport = gl.getUniformLocation(this._programs.crosshair, "u_viewport");
-		this._context.uniform2f(this._uniforms.crosshairViewport, this._viewport[2], this._viewport[3]);
+		gl.uniform2f(this._uniforms.crosshairViewport, this._viewport[2], this._viewport[3]);
 
-		this._context.useProgram(null);
+		gl.useProgram(null);
 
 		this.#createDefaultColor();
 		this.#createDefaultTexture();
 	}
 
-	/**
-	 * @param {HTMLImageElement} image
-	 */
-	setupTexture(image) {
-		this._context.texImage2D(this._context.TEXTURE_2D, 0, this._context.RGB, this._context.RGB, this._context.UNSIGNED_BYTE, image);
-		this._context.texParameteri(this._context.TEXTURE_2D, this._context.TEXTURE_MIN_FILTER, this._context.LINEAR);
-	}
-
 	render() {
-		this._context.useProgram(this._programs.main);
-		this._context.bindVertexArray(this._vaos.main);
+		const gl = this._context;
 
-		const scene = this.scene;
-		const meshes = scene.meshes;
-		const camera = this.camera;
+		gl.useProgram(this._programs.main);
+		gl.bindVertexArray(this._vaos.main);
 
-		this._context.clear(this._context.COLOR_BUFFER_BIT | this._context.DEPTH_BUFFER_BIT);
+		const scene = this._scene;
+		const meshes = scene.getMeshes();
+		const camera = this._camera;
 
-		const firstLight = scene.lights[0];
+		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-		this._context.uniformMatrix4fv(this._uniforms.projection, false, camera.projection);
-		this._context.uniformMatrix4fv(this._uniforms.view, false, camera.view);
-		this._context.uniform3fv(this._uniforms.cameraPosition, camera.getPhysicalPosition());
-		this._context.uniform3fv(this._uniforms.lightPosition, firstLight.position);
-		this._context.uniform3fv(this._uniforms.lightColor, firstLight.color);
-		this._context.uniform1f(this._uniforms.lightIntensity, firstLight.intensity);
+		gl.uniformMatrix4fv(this._uniforms.projection, false, camera.projection);
+		gl.uniformMatrix4fv(this._uniforms.view, false, camera.view);
+		gl.uniform3fv(this._uniforms.cameraPosition, camera.getPhysicalPosition());
+		gl.uniform3fv(this._uniforms.lightPosition, scene.pointLight.position);
+		gl.uniform3fv(this._uniforms.lightColor, scene.pointLight.color);
+		gl.uniform1f(this._uniforms.lightIntensity, scene.pointLight.intensity);
 
 		for (let i = 0, length = meshes.length; i < length; i++) {
 			const mesh = meshes[i];
 			const geometry = mesh.getGeometry();
 			const material = mesh.getMaterial();
 
-			this._context.bindBuffer(this._context.ARRAY_BUFFER, this._buffers.vertex);
-			this._context.bufferData(this._context.ARRAY_BUFFER, geometry.getVertices(), this._context.STATIC_DRAW);
+			gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.vertex);
+			gl.bufferData(gl.ARRAY_BUFFER, geometry.getVertices(), gl.STATIC_DRAW);
 
-			this._context.bindBuffer(this._context.ARRAY_BUFFER, this._buffers.normal);
-			this._context.bufferData(this._context.ARRAY_BUFFER, geometry.getNormals(), this._context.STATIC_DRAW);
+			gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.normal);
+			gl.bufferData(gl.ARRAY_BUFFER, geometry.getNormals(), gl.STATIC_DRAW);
 
-			this._context.bindBuffer(this._context.ARRAY_BUFFER, this._buffers.tangent);
-			this._context.bufferData(this._context.ARRAY_BUFFER, geometry.getTangents(), this._context.STATIC_DRAW);
+			gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.tangent);
+			gl.bufferData(gl.ARRAY_BUFFER, geometry.getTangents(), gl.STATIC_DRAW);
 
-			this._context.uniform3fv(this._uniforms.meshPosition, mesh.getPosition());
-			this._context.uniformMatrix3fv(this._uniforms.texture, false, material.textureMatrix);
+			gl.uniform3fv(this._uniforms.meshPosition, mesh.getPosition());
+			gl.uniformMatrix3fv(this._uniforms.texture, false, material.textureMatrix);
 
 			if (material instanceof ColorMaterial) {
 				// Bind default texture
-				this._context.bindTexture(this._context.TEXTURE_2D, this.#defaultTexture);
+				gl.bindTexture(gl.TEXTURE_2D, this.#defaultTexture);
 
 				// Bind color
-				this._context.uniform3fv(this._uniforms.color, material.color);
+				gl.uniform3fv(this._uniforms.color, material.color);
 			} else if (material instanceof TextureMaterial) {
 				// Bind default color
-				this._context.uniform3fv(this._uniforms.color, this.#defaultColor);
+				gl.uniform3fv(this._uniforms.color, this.#defaultColor);
 
 				// Bind texture
-				this._context.activeTexture(this._context.TEXTURE0);
-				this._context.bindTexture(this._context.TEXTURE_2D, material.texture);
+				gl.activeTexture(gl.TEXTURE0);
+				gl.bindTexture(gl.TEXTURE_2D, material.texture);
 
 				// Bind normal map
-				this._context.activeTexture(this._context.TEXTURE1);
-				this._context.bindTexture(this._context.TEXTURE_2D, material.normalMap);
+				gl.activeTexture(gl.TEXTURE1);
+				gl.bindTexture(gl.TEXTURE_2D, material.normalMap);
 
 				// Bind UVs
-				this._context.bindBuffer(this._context.ARRAY_BUFFER, this._buffers.uv);
-				this._context.bufferData(this._context.ARRAY_BUFFER, geometry.getUVs(), this._context.STATIC_DRAW);
+				gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.uv);
+				gl.bufferData(gl.ARRAY_BUFFER, geometry.getUVs(), gl.STATIC_DRAW);
 			}
 
 			if (geometry instanceof SSDPlaneGeometry) {
-				this._context.drawArrays(this._context.TRIANGLE_FAN, 0, 4);
+				gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 			} else {
 				const indices = geometry.getIndices();
 
-				this._context.bufferData(this._context.ELEMENT_ARRAY_BUFFER, indices, this._context.STATIC_DRAW);
-				this._context.drawElements(this._context.TRIANGLES, indices.length, this._context.UNSIGNED_BYTE, 0);
+				gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
+				gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_BYTE, 0);
 			}
 		}
 
-		this._context.bindVertexArray(null);
-		this._context.useProgram(this._programs.crosshair);
+		gl.bindVertexArray(null);
+		gl.useProgram(this._programs.crosshair);
 
-		this._context.drawArrays(this._context.POINTS, 0, 5);
+		gl.drawArrays(gl.POINTS, 0, 5);
 
-		this._context.useProgram(null);
+		gl.useProgram(null);
+	}
+
+	/**
+	 * @param {HTMLImageElement} image
+	 */
+	_createTexture(image) {
+		const gl = this._context;
+		const texture = gl.createTexture();
+
+		gl.bindTexture(gl.TEXTURE_2D, texture);
+		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+
+		return texture;
 	}
 
 	/**

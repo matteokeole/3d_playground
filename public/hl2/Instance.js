@@ -9,10 +9,16 @@ export class Instance extends _Instance {
 	 * @param {Number} delta
 	 */
 	_update(delta) {
+		const scene = this._renderer.getScene();
+		let player = null;
+		let wall = null;
+
+		if (scene.getMeshes().length === 3) {
+			player = scene.getMeshes().at(-1);
+			wall = scene.getMeshes().at(-2);
+		}
+
 		const camera = this._renderer.getCamera();
-		const player = this._renderer.player;
-		const wall = this._renderer.wall;
-		const firstLight = this._renderer.getScene().lights[0];
 
 		// Camera-space direction (not normalized)
 		const direction = new Vector3(
@@ -41,10 +47,14 @@ export class Instance extends _Instance {
 		camera.position.lerp(camera.target, CAMERA_LERP_FACTOR);
 		camera.update();
 
-		firstLight.setPosition(camera.position);
+		this._renderer.getScene().pointLight.setPosition(camera.position);
 
 		document.getElementById("DebugPosition").textContent = `${camera.position}`;
 		document.getElementById("DebugRotation").textContent = `${camera.rotation}`;
+	}
+
+	_render() {
+		this._renderer.render();
 	}
 
 	/**

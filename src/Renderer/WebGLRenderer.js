@@ -97,15 +97,15 @@ export class WebGLRenderer extends Renderer {
 		this._textures[descriptor.path] = texture;
 	}
 
-	resize(viewport) {
-		this._canvas.width = viewport[2];
-		this._canvas.height = viewport[3];
+	resize() {
+		this._canvas.width = this._viewport[2];
+		this._canvas.height = this._viewport[3];
 
 		this._context.viewport(
-			viewport[0],
-			viewport[1],
-			viewport[2],
-			viewport[3],
+			this._viewport[0],
+			this._viewport[1],
+			this._viewport[2],
+			this._viewport[3],
 		);
 	}
 
@@ -143,15 +143,12 @@ export class WebGLRenderer extends Renderer {
 	}
 
 	/**
+	 * @abstract
 	 * @param {HTMLImageElement} image
 	 * @returns {WebGLTexture}
 	 */
 	_createTexture(image) {
-		const texture = this._context.createTexture();
-
-		this._context.bindTexture(this._context.TEXTURE_2D, texture);
-
-		return texture;
+		throw new Error("Not implemented");
 	}
 
 	/**
