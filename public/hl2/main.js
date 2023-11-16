@@ -20,11 +20,15 @@ export default async function() {
 	const canvas = document.createElement("canvas");
 
 	const renderer = new Renderer(canvas);
+	const instance = new Instance({
+		renderer,
+		framesPerSecond: FRAMES_PER_SECOND,
+	});
 
 	const viewport = new Vector2(innerWidth, innerHeight);
 	renderer.setViewport(new Vector4(0, 0, viewport[0], viewport[1]));
 
-	await renderer.build();
+	await instance.build();
 	renderer.resize();
 
 	const textureLoader = new TextureLoader();
@@ -34,7 +38,6 @@ export default async function() {
 
 	renderer.setScene(await createScene(renderer.getImages(), textureDescriptors));
 	renderer.setCamera(createCamera(viewport[0] / viewport[1]));
-	const instance = new Instance({renderer, framesPerSecond: FRAMES_PER_SECOND});
 
 	listen(renderer);
 

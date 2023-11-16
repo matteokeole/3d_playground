@@ -43,8 +43,8 @@ export class Instance {
 		this.#animationFrameRequestId = null;
 	}
 
-	build() {
-		this._renderer.build();
+	async build() {
+		await this._renderer.build();
 	}
 
 	loop() {
