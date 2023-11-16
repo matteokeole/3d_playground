@@ -20,7 +20,7 @@ export class Instance extends _Instance {
 
 		const camera = this._renderer.getCamera();
 
-		// Camera-space direction (not normalized)
+		// Camera-space direction
 		const direction = new Vector3(
 			keys.KeyA + keys.KeyD,
 			keys.ControlLeft + keys.Space,

@@ -1,5 +1,7 @@
+import {Scene} from "../../src/index.js";
 import {ShaderLoader} from "../../src/Loader/index.js";
 import {WebGPURenderer} from "../../src/Renderer/index.js";
+import {Camera} from "../hl2/Camera.js";
 
 export class Renderer extends WebGPURenderer {
 	/**
@@ -19,27 +21,34 @@ export class Renderer extends WebGPURenderer {
 		const vertexShaderSource = await shaderLoader.load("public/webgpu/shaders/vertex.wgsl");
 		const fragmentShaderSource = await shaderLoader.load("public/webgpu/shaders/fragment.wgsl");
 
-		this._buffers.vertex = this._device.createBuffer({
-			size: Float32Array.BYTES_PER_ELEMENT * 4 * 3,
-			usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+		this._buffers.camera = this._device.createBuffer({
+			size: 16 * Float32Array.BYTES_PER_ELEMENT,
+			usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
 		});
 
 		const bindGroupLayout = this._device.createBindGroupLayout({
 			entries: [
 				// Color buffer example
-				/* {
+				{
 					binding: 0,
-					visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+					visibility: GPUShaderStage.VERTEX,
 					buffer: {
 						type: "uniform",
 					},
-				}, */
+				},
 			],
 		});
 
 		this.#bindGroup = this._device.createBindGroup({
 			layout: bindGroupLayout,
-			entries: [],
+			entries: [
+				{
+					binding: 0,
+					resource: {
+						buffer: this._buffers.camera,
+					},
+				},
+			],
 		});
 
 		this.#renderPipeline = this._device.createRenderPipeline({
@@ -80,19 +89,41 @@ export class Renderer extends WebGPURenderer {
 		});
 	}
 
+	/**
+	 * @param {Scene} scene
+	 */
+	setScene(scene) {
+		this._scene = scene;
+
+		const meshes = this._scene.getMeshes();
+
+		this._buffers.vertex = this._device.createBuffer({
+			size: meshes.length * 3 * 3 * Float32Array.BYTES_PER_ELEMENT,
+			usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+			mappedAtCreation: true,
+		});
+
+		const map = new Float32Array(this._buffers.vertex.getMappedRange());
+
+		for (let i = 0, length = meshes.length; i < length; i++) {
+			map.set(meshes[i].getGeometry().getVertices(), i * 3 * 3);
+		}
+
+		this._buffers.vertex.unmap();
+	}
+
+	/**
+	 * @param {Camera} camera
+	 */
+	setCamera(camera) {
+		this._camera = camera;
+	}
+
 	render() {
+		const viewProjectionInverse = this._camera.projection.invert().multiply(this._camera.view.invert());
+		this._device.queue.writeBuffer(this._buffers.camera, 0, viewProjectionInverse);
+
 		const encoder = this._device.createCommandEncoder();
-
-		const w = .3, h = .1;
-
-		this._device.queue.writeBuffer(this._buffers.vertex, 0, Float32Array.of(
-			0,  0,
-			w,  0,
-			0, -h,
-			// 0, -h,
-			// w,  0,
-			// w, -h,
-		));
 
 		const renderPass = encoder.beginRenderPass({
 			colorAttachments: [
@@ -106,7 +137,7 @@ export class Renderer extends WebGPURenderer {
 		renderPass.setPipeline(this.#renderPipeline);
 		renderPass.setVertexBuffer(0, this._buffers.vertex);
 		renderPass.setBindGroup(0, this.#bindGroup);
-		renderPass.draw(6);
+		renderPass.draw(this._scene.getMeshes().length * 3);
 		renderPass.end();
 
 		this._device.queue.submit([

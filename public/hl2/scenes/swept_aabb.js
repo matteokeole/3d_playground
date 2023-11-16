@@ -10,11 +10,10 @@ import {TextureMaterial} from "../../../src/materials/index.js";
 /**
  * @todo Use a loader to fetch the scene geometry file
  * 
- * @param {import("../../../src/Loader/TextureLoader.js").TextureDescriptor[]} textureDescriptors
  * @param {Object.<String, Texture>} textures
  * @returns {Promise.<Scene>}
  */
-export async function createScene(textures, textureDescriptors) {
+export async function createScene(textures) {
 	const response = await fetch("public/hl2/scenes/swept_aabb.json");
 	const json = await response.json();
 	const meshes = [];
@@ -24,7 +23,7 @@ export async function createScene(textures, textureDescriptors) {
 			continue;
 		}
 
-		meshes.push(Mesh.fromJSON(json[i], textures, textureDescriptors));
+		meshes.push(Mesh.fromJSON(json[i], textures));
 	}
 
 	const wall = new Mesh(

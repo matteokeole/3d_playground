@@ -18,17 +18,16 @@ export const SENSITIVITY = .0012;
 
 export default async function() {
 	const canvas = document.createElement("canvas");
-
 	const renderer = new Renderer(canvas);
 	const instance = new Instance({
 		renderer,
 		framesPerSecond: FRAMES_PER_SECOND,
 	});
 
+	await instance.build();
+
 	const viewport = new Vector2(innerWidth, innerHeight);
 	renderer.setViewport(new Vector4(0, 0, viewport[0], viewport[1]));
-
-	await instance.build();
 	renderer.resize();
 
 	const textureLoader = new TextureLoader();

@@ -8,7 +8,6 @@ import {Mesh} from "../Mesh.js";
 /**
  * @todo Use a loader to fetch the scene geometry file
  * 
- * @param {import("../../../src/Loader/TextureLoader.js").TextureDescriptor[]} textureDescriptors
  * @param {Object.<String, TextureImage>} textureImages
  * @returns {Promise.<Scene>}
  */
