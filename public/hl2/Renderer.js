@@ -1,3 +1,4 @@
+import {Scene} from "../../src/index.js";
 import {ShaderLoader} from "../../src/Loader/index.js";
 import {ColorMaterial, TextureMaterial} from "../../src/materials/index.js";
 import {WebGLRenderer} from "../../src/Renderer/index.js";
@@ -88,6 +89,19 @@ export class Renderer extends WebGLRenderer {
 
 		this.#createDefaultColor();
 		this.#createDefaultTexture();
+	}
+
+	/**
+	 * @param {Scene} scene
+	 */
+	setScene(scene) {
+		this._scene = scene;
+
+		const gl = this._context;
+
+		this._buffers.scene = gl.createBuffer();
+
+		gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.scene);
 	}
 
 	render() {

@@ -1,5 +1,12 @@
 #version 300 es
 
+struct Vertex {
+	vec3 position;
+	vec3 normal;
+	vec3 tangent;
+	vec2 uv;
+};
+
 struct Camera {
 	mat4 projection;
 	mat4 view;
@@ -10,6 +17,7 @@ struct Light {
 	vec3 position;
 };
 
+layout(location = 0)
 in vec4 a_vertex;
 in vec3 a_normal;
 in vec3 a_tangent;

@@ -1,11 +1,11 @@
-import {AbstractMesh} from "../../src/index.js";
+import {Mesh as _Mesh} from "../../src/index.js";
 import {BoxGeometry} from "../../src/geometries/index.js";
 import {TextureMaterial} from "../../src/materials/index.js";
 import {Matrix3, PI, Vector2, Vector3} from "../../src/math/index.js";
 import {Hitbox} from "./Hitbox.js";
 import {SSDPlaneGeometry} from "./SSDPlaneGeometry.js";
 
-export class Mesh extends AbstractMesh {
+export class Mesh extends _Mesh {
 	/**
 	 * @type {?Hitbox}
 	 */

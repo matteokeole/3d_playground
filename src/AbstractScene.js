@@ -1,4 +1,4 @@
-import {AbstractMesh} from "./index.js";
+import {Mesh} from "./index.js";
 import {AbstractLight} from "./lights/index.js";
 import {Vector4} from "./math/index.js";
 
@@ -7,7 +7,7 @@ import {Vector4} from "./math/index.js";
  */
 export class AbstractScene {
 	/**
-	 * @type {AbstractMesh[]}
+	 * @type {Mesh[]}
 	 */
 	meshes = [];
 

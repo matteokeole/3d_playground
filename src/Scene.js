@@ -1,13 +1,13 @@
-import {AbstractMesh} from "./index.js";
+import {Mesh} from "./index.js";
 
 export class Scene {
 	/**
-	 * @type {AbstractMesh[]}
+	 * @type {Mesh[]}
 	 */
 	#meshes;
 
 	/**
-	 * @param {AbstractMesh[]} meshes
+	 * @param {Mesh[]} meshes
 	 */
 	constructor(meshes) {
 		this.#meshes = meshes;

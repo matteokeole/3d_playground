@@ -1,4 +1,4 @@
-import {AbstractMesh as Mesh} from "../../../src/index.js";
+import {Mesh} from "../../../src/index.js";
 import {BoxGeometry} from "../../../src/geometries/index.js";
 import {DirectionalLight} from "../../../src/lights/index.js";
 import {TextureMaterial} from "../../../src/materials/index.js";
