@@ -1,4 +1,4 @@
-import {Mesh as _Mesh} from "../../src/index.js";
+import {Mesh as _Mesh, TextureImage} from "../../src/index.js";
 import {BoxGeometry} from "../../src/geometries/index.js";
 import {TextureMaterial} from "../../src/materials/index.js";
 import {Matrix3, PI, Vector2, Vector3} from "../../src/math/index.js";
@@ -13,11 +13,10 @@ export class Mesh extends _Mesh {
 
 	/**
 	 * @param {Object} json
-	 * @param {Object.<String, WebGLTexture>} textures
-	 * @param {import("../../src/Loader/TextureLoader.js").TextureDescriptor[]} textureDescriptors
+	 * @param {Object.<String, TextureImage>} images
 	 */
-	static fromJSON(json, textures, textureDescriptors) {
-		const {anchors} = json;
+	static fromJSON(json, images) {
+		const anchors = json.anchors;
 
 		if (anchors.length !== 9 && anchors.length !== 12) throw new Error("Invalid mesh geometry");
 
@@ -28,8 +27,7 @@ export class Mesh extends _Mesh {
 			anchor3.clone().add(anchor1).subtract(anchor2) :
 			new Vector3(anchors[9], anchors[10], anchors[11]);
 
-		const texture = textures[json.texture];
-		const image = textureDescriptors[Object.keys(textures).indexOf(json.texture)].image;
+		const image = images[json.texture];
 
 		const w = anchor1.to(anchor2);
 		const h = anchor2.to(anchor3);
@@ -37,7 +35,7 @@ export class Mesh extends _Mesh {
 		const translation = new Vector2(json.uv[0], json.uv[1]);
 		const rotation = json.uv_rotation * PI;
 		const scale = new Vector2(h, w)
-			.divide(new Vector2(image.width, image.height))
+			.divide(image.getViewport())
 			.divide(new Vector2(json.uv_scale[0], json.uv_scale[1]));
 
 		return new Mesh(
@@ -47,8 +45,8 @@ export class Mesh extends _Mesh {
 					.translation(translation)
 					.multiply(Matrix3.rotation(rotation))
 					.multiply(Matrix3.scale(scale)),
-				texture,
-				normalMap: textures[json.normal_map],
+				texture: image,
+				normalMap: images[json.normal_map],
 			}),
 		);
 	}

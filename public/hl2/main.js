@@ -30,11 +30,9 @@ export default async function() {
 	const textureLoader = new TextureLoader();
 	const textureDescriptors = await textureLoader.load("public/hl2/textures/textures.json");
 
-	for (let i = 0, length = textureDescriptors.length; i < length; i++) {
-		renderer.addTexture(textureDescriptors[i]);
-	}
+	renderer.createTextureArray(textureDescriptors);
 
-	renderer.setScene(await createScene(renderer.getTextures(), textureDescriptors));
+	renderer.setScene(await createScene(renderer.getImages(), textureDescriptors));
 	renderer.setCamera(createCamera(viewport[0] / viewport[1]));
 	const instance = new Instance({renderer, framesPerSecond: FRAMES_PER_SECOND});
 

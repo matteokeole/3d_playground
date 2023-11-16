@@ -1,17 +1,18 @@
-import {Scene} from "../../src/index.js";
+import {Scene, TextureImage} from "../../src/index.js";
 import {ShaderLoader} from "../../src/Loader/index.js";
 import {ColorMaterial, TextureMaterial} from "../../src/materials/index.js";
+import {Vector2} from "../../src/math/index.js";
 import {WebGLRenderer} from "../../src/Renderer/index.js";
 import {SSDPlaneGeometry} from "./SSDPlaneGeometry.js";
 
 export class Renderer extends WebGLRenderer {
 	/**
-	 * @type {Float32Array}
+	 * @type {?Float32Array}
 	 */
 	#defaultColor;
 
 	/**
-	 * @type {WebGLTexture}
+	 * @type {?WebGLTexture}
 	 */
 	#defaultTexture;
 
@@ -33,11 +34,11 @@ export class Renderer extends WebGLRenderer {
 		gl.enable(gl.CULL_FACE);
 		gl.enable(gl.DEPTH_TEST);
 
-		this._vaos.main = gl.createVertexArray();
+		this._vaos.scene = gl.createVertexArray();
 		this._vaos.crosshair = gl.createVertexArray();
 
 		gl.useProgram(this._programs.main);
-		gl.bindVertexArray(this._vaos.main);
+		gl.bindVertexArray(this._vaos.scene);
 
 		this._buffers.index = gl.createBuffer();
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._buffers.index);
@@ -92,6 +93,27 @@ export class Renderer extends WebGLRenderer {
 	}
 
 	/**
+	 * @param {import("../../src/Loader/TextureLoader.js").TextureDescriptor[]} textureDescriptors
+	 */
+	createTextureArray(textureDescriptors) {
+		const gl = this._context;
+		const length = textureDescriptors.length;
+
+		this._textures.array = gl.createTexture();
+
+		gl.bindTexture(gl.TEXTURE_2D_ARRAY, this._textures.array);
+		gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+		gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+		// gl.generateMipmap(gl.TEXTURE_2D_ARRAY);
+
+		gl.texStorage3D(gl.TEXTURE_2D_ARRAY, 1, gl.RGBA8, 512, 512, length);
+
+		for (let i = 0; i < length; i++) {
+			this.#addSubRectangle(i, textureDescriptors[i]);
+		}
+	}
+
+	/**
 	 * @param {Scene} scene
 	 */
 	setScene(scene) {
@@ -108,7 +130,7 @@ export class Renderer extends WebGLRenderer {
 		const gl = this._context;
 
 		gl.useProgram(this._programs.main);
-		gl.bindVertexArray(this._vaos.main);
+		gl.bindVertexArray(this._vaos.scene);
 
 		const scene = this._scene;
 		const meshes = scene.getMeshes();
@@ -149,12 +171,12 @@ export class Renderer extends WebGLRenderer {
 				gl.uniform3fv(this._uniforms.color, this.#defaultColor);
 
 				// Bind texture
-				gl.activeTexture(gl.TEXTURE0);
-				gl.bindTexture(gl.TEXTURE_2D, material.texture);
+				// gl.activeTexture(gl.TEXTURE0);
+				// gl.bindTexture(gl.TEXTURE_2D, material.texture);
 
 				// Bind normal map
-				gl.activeTexture(gl.TEXTURE1);
-				gl.bindTexture(gl.TEXTURE_2D, material.normalMap);
+				// gl.activeTexture(gl.TEXTURE1);
+				// gl.bindTexture(gl.TEXTURE_2D, material.normalMap);
 
 				// Bind UVs
 				gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.uv);
@@ -201,6 +223,8 @@ export class Renderer extends WebGLRenderer {
 	}
 
 	/**
+	 * @todo Create this texture inside the texture array
+	 * 
 	 * Creates a 1x1 white pixel as default texture.
 	 */
 	#createDefaultTexture() {
@@ -219,5 +243,36 @@ export class Renderer extends WebGLRenderer {
 			gl.UNSIGNED_BYTE,
 			Uint8Array.of(255, 255, 255, 255),
 		);
+	}
+
+	/**
+	 * Adds a sub-rectangle to the texture array.
+	 * 
+	 * @param {Number} index
+	 * @param {import("../../src/Loader/TextureLoader.js").TextureDescriptor} textureDescriptor
+	 */
+	#addSubRectangle(index, textureDescriptor) {
+		const gl = this._context;
+		const viewport = new Vector2(textureDescriptor.image.width, textureDescriptor.image.height);
+
+		gl.texSubImage3D(
+			gl.TEXTURE_2D_ARRAY,
+			0,
+			0,
+			0,
+			index,
+			viewport[0],
+			viewport[1],
+			1,
+			gl.RGBA,
+			gl.UNSIGNED_BYTE,
+			textureDescriptor.image,
+		);
+
+		this._images[textureDescriptor.path] = new TextureImage({
+			image: textureDescriptor.image,
+			viewport: viewport.clone(),
+			zOffset: index,
+		});
 	}
 }

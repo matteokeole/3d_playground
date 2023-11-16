@@ -1,4 +1,4 @@
-import {AbstractCamera, Scene} from "../index.js";
+import {AbstractCamera, Scene, TextureImage} from "../index.js";
 import {Renderer} from "./Renderer.js";
 
 export class WebGLRenderer extends Renderer {
@@ -33,6 +33,11 @@ export class WebGLRenderer extends Renderer {
 	_textures;
 
 	/**
+	 * @type {Object.<String, TextureImage>}
+	 */
+	_images;
+
+	/**
 	 * @param {HTMLCanvasElement} canvas
 	 */
 	constructor(canvas) {
@@ -43,10 +48,11 @@ export class WebGLRenderer extends Renderer {
 		this._buffers = {};
 		this._uniforms = {};
 		this._textures = {};
+		this._images = {};
 	}
 
-	getTextures() {
-		return this._textures;
+	getImages() {
+		return this._images;
 	}
 
 	/**
@@ -86,15 +92,6 @@ export class WebGLRenderer extends Renderer {
 	 */
 	setCamera(camera) {
 		this._camera = camera;
-	}
-
-	/**
-	 * @param {import("../Loader/TextureLoader.js").TextureDescriptor} descriptor
-	 */
-	addTexture(descriptor) {
-		const texture = this._createTexture(descriptor.image);
-
-		this._textures[descriptor.path] = texture;
 	}
 
 	resize() {

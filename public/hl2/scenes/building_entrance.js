@@ -1,4 +1,4 @@
-import {Scene, Texture} from "../../../src/index.js";
+import {Scene, TextureImage} from "../../../src/index.js";
 import {PointLight} from "../../../src/lights/index.js";
 import {PI, Vector2, Vector3} from "../../../src/math/index.js";
 import {Camera} from "../Camera.js";
@@ -9,10 +9,10 @@ import {Mesh} from "../Mesh.js";
  * @todo Use a loader to fetch the scene geometry file
  * 
  * @param {import("../../../src/Loader/TextureLoader.js").TextureDescriptor[]} textureDescriptors
- * @param {Object.<String, Texture>} textures
+ * @param {Object.<String, TextureImage>} textureImages
  * @returns {Promise.<Scene>}
  */
-export async function createScene(textures, textureDescriptors) {
+export async function createScene(textureImages) {
 	const response = await fetch("public/hl2/scenes/building_entrance.json");
 	const json = await response.json();
 	const meshes = [];
@@ -22,7 +22,7 @@ export async function createScene(textures, textureDescriptors) {
 			continue;
 		}
 
-		meshes.push(Mesh.fromJSON(json[i], textures, textureDescriptors));
+		meshes.push(Mesh.fromJSON(json[i], textureImages));
 	}
 
 	const scene = new Scene(meshes);

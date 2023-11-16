@@ -1,4 +1,4 @@
-import {AbstractCamera, AbstractScene, Texture} from "./index.js";
+import {AbstractCamera, AbstractScene, TextureImage} from "./index.js";
 import {Vector4} from "./math/index.js";
 
 /**
@@ -42,7 +42,7 @@ export class Renderer {
 	_uniforms;
 
 	/**
-	 * @type {Object.<String, Texture>}
+	 * @type {Object.<String, TextureImage>}
 	 */
 	_textures;
 
