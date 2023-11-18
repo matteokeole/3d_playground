@@ -1,3 +1,4 @@
+import {ImageBitmapLoader} from "../../src/Loader/index.js";
 import {Vector2, Vector4} from "../../src/math/index.js";
 import {Instance} from "./Instance.js";
 import {Renderer} from "./Renderer.js";
@@ -21,6 +22,10 @@ export default async function() {
 
 	renderer.setScene(await createScene());
 	renderer.setCamera(createCamera(viewport[0] / viewport[1]));
+
+	const imageBitmapLoader = new ImageBitmapLoader();
+	const images = await imageBitmapLoader.load("public/hl2/textures/textures.json");
+	renderer.createTextureArray(images);
 
 	document.body.appendChild(canvas);
 	listen(renderer);

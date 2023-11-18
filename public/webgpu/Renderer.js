@@ -144,6 +144,35 @@ export class Renderer extends WebGPURenderer {
 		this._camera = camera;
 	}
 
+	/**
+	 * @param {import("../../src/Loader/ImageBitmapLoader.js").Image[]} images
+	 */
+	createTextureArray(images) {
+		this._textures.array = this._device.createTexture({
+			size: [512, 512],
+			format: "rgba8unorm",
+			usage: GPUTextureUsage.TEXTURE_BINDING,
+		});
+
+		for (let i = 0, length = images.length; i < length; i++) {
+			if (images[i].bitmap.width > 512 || images[i].bitmap.height > 512) {
+				throw new Error("The image dimensions must not overflow 512x512.");
+			}
+
+			this._device.queue.copyExternalImageToTexture(
+				{
+					source: images[i].bitmap,
+				}, {
+					texture: this._textures.array,
+					origin: [0, 0, i],
+				}, {
+					width: images[i].bitmap.width,
+					height: images[i].bitmap.height,
+				},
+			);
+		}
+	}
+
 	render() {
 		this._device.queue.writeBuffer(this._buffers.camera, 0, this._camera.getViewProjection());
 

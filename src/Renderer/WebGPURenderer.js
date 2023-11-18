@@ -17,6 +17,11 @@ export class WebGPURenderer extends Renderer {
 	_buffers;
 
 	/**
+	 * @type {Object.<String, GPUTexture>}
+	 */
+	_textures;
+
+	/**
 	 * @param {HTMLCanvasElement} canvas
 	 */
 	constructor(canvas) {
@@ -25,6 +30,7 @@ export class WebGPURenderer extends Renderer {
 		this._device = null;
 		this._context = null;
 		this._buffers = {};
+		this._textures = {};
 	}
 
 	/**
