@@ -3,7 +3,7 @@ import {Instance} from "./Instance.js";
 import {Renderer} from "./Renderer.js";
 import {listen} from "./input.js";
 
-import {createCamera, createScene} from "./scenes/test.js";
+import {createCamera, createScene} from "./scenes/building_entrance.js";
 
 export default async function() {
 	const canvas = document.createElement("canvas");
@@ -20,7 +20,7 @@ export default async function() {
 	renderer.resize();
 
 	renderer.setScene(await createScene());
-	renderer.setCamera(createCamera(viewport[1] / viewport[0]));
+	renderer.setCamera(createCamera(viewport[0] / viewport[1]));
 
 	document.body.appendChild(canvas);
 	listen(renderer);

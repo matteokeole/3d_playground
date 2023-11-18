@@ -97,18 +97,32 @@ export class Renderer extends WebGPURenderer {
 
 		const meshes = this._scene.getMeshes();
 
+		this._buffers.index = this._device.createBuffer({
+			size: meshes.length * 2 * 3 * Uint16Array.BYTES_PER_ELEMENT,
+			usage: GPUBufferUsage.INDEX,
+			mappedAtCreation: true,
+		});
+
 		this._buffers.vertex = this._device.createBuffer({
-			size: meshes.length * 3 * 3 * Float32Array.BYTES_PER_ELEMENT,
+			size: meshes.length * 3 * 4 * Float32Array.BYTES_PER_ELEMENT,
 			usage: GPUBufferUsage.VERTEX,
 			mappedAtCreation: true,
 		});
 
-		const map = new Float32Array(this._buffers.vertex.getMappedRange());
+		const indexMap = new Uint16Array(this._buffers.index.getMappedRange());
+		const vertexMap = new Float32Array(this._buffers.vertex.getMappedRange());
 
 		for (let i = 0, length = meshes.length; i < length; i++) {
-			map.set(meshes[i].getGeometry().getVertices(), i * 3 * 3);
+			const firstIndex = i * 4;
+
+			indexMap.set(Uint16Array.of(
+				firstIndex, firstIndex + 1, firstIndex + 2,
+				firstIndex, firstIndex + 2, firstIndex + 3,
+			), i * 2 * 3);
+			vertexMap.set(meshes[i].getGeometry().getVertices(), i * 3 * 4);
 		}
 
+		this._buffers.index.unmap();
 		this._buffers.vertex.unmap();
 	}
 
@@ -120,8 +134,11 @@ export class Renderer extends WebGPURenderer {
 	}
 
 	render() {
-		const viewProjectionInverse = this._camera.projection.invert().multiply(this._camera.view.invert());
-		this._device.queue.writeBuffer(this._buffers.camera, 0, viewProjectionInverse);
+		this._device.queue.writeBuffer(
+			this._buffers.camera,
+			0,
+			this._camera.projection.multiply(this._camera.view),
+		);
 
 		const encoder = this._device.createCommandEncoder();
 
@@ -135,9 +152,10 @@ export class Renderer extends WebGPURenderer {
 			],
 		});
 		renderPass.setPipeline(this.#renderPipeline);
-		renderPass.setVertexBuffer(0, this._buffers.vertex);
 		renderPass.setBindGroup(0, this.#bindGroup);
-		renderPass.draw(this._scene.getMeshes().length * 3);
+		renderPass.setIndexBuffer(this._buffers.index, "uint16");
+		renderPass.setVertexBuffer(0, this._buffers.vertex);
+		renderPass.drawIndexed(this._scene.getMeshes().length * 6);
 		renderPass.end();
 
 		this._device.queue.submit([

@@ -5,20 +5,20 @@ struct Vertex {
 	@location(0) position: vec3f,
 }
 
-struct Camera {
-	viewProjectionInverse: mat4x4f,
+struct VertexOutput {
+	@builtin(position) position: vec4f,
+	@location(0) @interpolate(flat) index: u32,
 }
 
-const VERTICES: array<vec3f, 3> = array(
-	vec3f(0, 0, -110),
-	vec3f(0, 100, -110),
-	vec3f(100, 100, -110),
-);
+struct Camera {
+	viewProjection: mat4x4f,
+}
 
 @vertex
-fn main(vertex: Vertex) -> @builtin(position) vec4f {
-	let position: vec3f = vertex.position;
-	// let position: vec3f = VERTICES[vertex.index];
+fn main(vertex: Vertex) -> VertexOutput {
+	var output: VertexOutput;
+	output.position = camera.viewProjection * vec4f(vertex.position, 1);
+	output.index = vertex.index;
 
-	return camera.viewProjectionInverse * vec4f(position, 1);
+	return output;
 }

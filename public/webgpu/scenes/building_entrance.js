@@ -8,7 +8,7 @@ import {Mesh} from "../Mesh.js";
  * @todo Use a loader to fetch the scene geometry file
  */
 export async function createScene() {
-	const response = await fetch("public/webgpu/scenes/test.json");
+	const response = await fetch("public/hl2/scenes/building_entrance.json");
 	const json = await response.json();
 	const meshes = [];
 
@@ -29,7 +29,7 @@ export async function createScene() {
 export function createCamera(aspectRatio) {
 	const camera = new Camera();
 
-	camera.position = new Vector3(0, 0, 0);
+	camera.position = new Vector3(50, ENTITY_HEIGHT_STAND, 0);
 	camera.target = camera.position.clone();
 	camera.fieldOfView = FIELD_OF_VIEW;
 
