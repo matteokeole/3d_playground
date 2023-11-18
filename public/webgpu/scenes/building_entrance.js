@@ -1,7 +1,7 @@
 import {Scene} from "../../../src/index.js";
 import {PI, Vector2, Vector3} from "../../../src/math/index.js";
 import {Camera} from "../../hl2/Camera.js";
-import {CAMERA_LERP_FACTOR, ENTITY_HEIGHT_STAND, FIELD_OF_VIEW, SENSITIVITY} from "../../hl2/main.js";
+import {ENTITY_HEIGHT_STAND, FIELD_OF_VIEW, SENSITIVITY} from "../../hl2/main.js";
 import {Mesh} from "../Mesh.js";
 
 /**
@@ -29,8 +29,8 @@ export async function createScene() {
 export function createCamera(aspectRatio) {
 	const camera = new Camera();
 
-	camera.position = new Vector3(50, ENTITY_HEIGHT_STAND, 0);
-	camera.target = camera.position.clone();
+	camera.setPosition(new Vector3(50, ENTITY_HEIGHT_STAND, 0));
+	camera.target = camera.getPosition().clone();
 	camera.fieldOfView = FIELD_OF_VIEW;
 
 	camera.aspectRatio = aspectRatio;
@@ -38,7 +38,6 @@ export function createCamera(aspectRatio) {
 	camera.far = 1000;
 	camera.bias = PI * .545;
 	camera.turnVelocity = SENSITIVITY;
-	camera.lerpFactor = CAMERA_LERP_FACTOR;
 	camera.lookAt(new Vector2());
 
 	return camera;

@@ -133,8 +133,8 @@ export class Renderer extends WebGLRenderer {
 		const pointLight = scene.pointLight;
 		const camera = this._camera;
 
-		gl.uniformMatrix4fv(this._uniforms.cameraProjection, false, camera.projection);
-		gl.uniformMatrix4fv(this._uniforms.cameraView, false, camera.view);
+		gl.uniformMatrix4fv(this._uniforms.cameraProjection, false, camera.getProjection());
+		gl.uniformMatrix4fv(this._uniforms.cameraView, false, camera.getView());
 		gl.uniform3fv(this._uniforms.cameraPosition, camera.getPhysicalPosition());
 		gl.uniform3fv(this._uniforms.lightPosition, pointLight.position);
 		gl.uniform3fv(this._uniforms.lightColor, pointLight.color);

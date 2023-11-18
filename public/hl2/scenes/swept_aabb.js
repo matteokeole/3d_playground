@@ -3,7 +3,7 @@ import {PointLight} from "../../../src/lights/index.js";
 import {Matrix3, PI, Vector2, Vector3} from "../../../src/math/index.js";
 import {Mesh} from "../Mesh.js";
 import {Camera} from "../Camera.js";
-import {CAMERA_LERP_FACTOR, FIELD_OF_VIEW, SENSITIVITY} from "../main.js";
+import {FIELD_OF_VIEW, SENSITIVITY} from "../main.js";
 import {BoxGeometry} from "../../../src/geometries/index.js";
 import {TextureMaterial} from "../../../src/materials/index.js";
 
@@ -68,8 +68,8 @@ export async function createScene(textures) {
 export function createCamera(aspectRatio) {
 	const camera = new Camera();
 
-	camera.position = new Vector3(0, 8, 0);
-	camera.target = camera.position.clone();
+	camera.setPosition(new Vector3(0, 8, 0));
+	camera.target = camera.getPosition().clone();
 	camera.rotation = new Vector3(-PI / 6, 0, 0);
 	camera.setDistance(new Vector3(0, 0, -64));
 
@@ -79,7 +79,6 @@ export function createCamera(aspectRatio) {
 	camera.far = 1000;
 	camera.bias = PI * .545; // ~1.712
 	camera.turnVelocity = SENSITIVITY;
-	camera.lerpFactor = CAMERA_LERP_FACTOR;
 	camera.lookAt(new Vector2());
 
 	return camera;

@@ -16,7 +16,7 @@ export function update(delta, renderer) {
 	if (keys.has("Space")) camera.moveY(velocity);
 	if (keys.has("ControlLeft")) camera.moveY(-velocity);
 
-	camera.position.set(camera.target.clone().lerp(camera.position, CAMERA_LERP_FACTOR));
+	camera.setPosition(camera.target.clone().lerp(camera.getPosition(), CAMERA_LERP_FACTOR);
 	camera.update();
 
 	document.getElementById("DebugDelta").textContent = delta.toFixed(2);

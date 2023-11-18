@@ -8,7 +8,7 @@ import {BLOCK_SCALE, ENTITY_HEIGHT_STAND} from "../main.js";
 export function setup(renderer) {
 	const {scene, camera} = renderer;
 
-	camera.position[1] = ENTITY_HEIGHT_STAND;
+	camera.getPosition()[1] = ENTITY_HEIGHT_STAND;
 	camera.target[1] = ENTITY_HEIGHT_STAND;
 
 	scene.lights.push(

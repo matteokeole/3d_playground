@@ -35,7 +35,7 @@ export class Renderer extends WebGPURenderer {
 
 		const bindGroupLayout = this._device.createBindGroupLayout({
 			entries: [
-				// Color buffer example
+				// Camera uniform buffer
 				{
 					binding: 0,
 					visibility: GPUShaderStage.VERTEX,
@@ -58,12 +58,14 @@ export class Renderer extends WebGPURenderer {
 			],
 		});
 
+		const pipelineLayout = this._device.createPipelineLayout({
+			bindGroupLayouts: [
+				bindGroupLayout,
+			],
+		});
+
 		this.#renderPipeline = this._device.createRenderPipeline({
-			layout: this._device.createPipelineLayout({
-				bindGroupLayouts: [
-					bindGroupLayout,
-				],
-			}),
+			layout: pipelineLayout,
 			vertex: {
 				module: this._device.createShaderModule({
 					code: vertexShaderSource,
@@ -143,11 +145,7 @@ export class Renderer extends WebGPURenderer {
 	}
 
 	render() {
-		this._device.queue.writeBuffer(
-			this._buffers.camera,
-			0,
-			this._camera.projection.multiply(this._camera.view),
-		);
+		this._device.queue.writeBuffer(this._buffers.camera, 0, this._camera.getViewProjection());
 
 		const encoder = this._device.createCommandEncoder();
 

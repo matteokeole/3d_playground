@@ -218,8 +218,8 @@ export class Renderer extends _Renderer {
 			this._context.clearColor(.125, .129, .141, 1);
 			this._context.clear(this._context.COLOR_BUFFER_BIT | this._context.DEPTH_BUFFER_BIT);
 
-			this._context.uniformMatrix4fv(this._uniforms.projection, false, camera.projection);
-			this._context.uniformMatrix4fv(this._uniforms.view, false, camera.view);
+			this._context.uniformMatrix4fv(this._uniforms.projection, false, camera.getProjection());
+			this._context.uniformMatrix4fv(this._uniforms.view, false, camera.getView());
 
 			this._context.bufferData(this._context.ELEMENT_ARRAY_BUFFER, firstMeshGeometry.getIndices(), this._context.STATIC_DRAW);
 

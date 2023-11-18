@@ -5,8 +5,6 @@ import {keys} from "./input.js";
 
 export class Instance extends _Instance {
 	_update() {
-		const camera = this._renderer.getCamera();
-
 		const direction = new Vector3(
 			keys.KeyA + keys.KeyD,
 			keys.ControlLeft + keys.Space,
@@ -15,12 +13,16 @@ export class Instance extends _Instance {
 			.normalize()
 			.multiplyScalar(VELOCITY);
 
+		const camera = this._renderer.getCamera();
+
 		camera.target.add(camera.getRelativeVelocity(direction));
-		camera.position.lerp(camera.target, CAMERA_LERP_FACTOR);
+		camera.getPosition().lerp(camera.target, CAMERA_LERP_FACTOR);
 		camera.update();
 
-		document.getElementById("DebugPosition").textContent = `${camera.position}`;
-		document.getElementById("DebugRotation").textContent = `${camera.rotation}`;
+		// @ts-ignore
+		document.getElementById("DebugPosition").textContent = camera.getPosition();
+		// @ts-ignore
+		document.getElementById("DebugRotation").textContent = camera.rotation;
 	}
 
 	_render() {

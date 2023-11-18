@@ -7,17 +7,22 @@ export class AbstractCamera {
 	/**
 	 * @type {Matrix4}
 	 */
-	#projection = new Matrix4();
+	#projection;
 
 	/**
 	 * @type {Matrix4}
 	 */
-	#view = new Matrix4();
+	#view;
+
+	/**
+	 * @type {Matrix4}
+	 */
+	#viewProjection;
 
 	/**
 	 * @type {Vector3}
 	 */
-	position = new Vector3();
+	#position;
 
 	/**
 	 * @type {Vector3}
@@ -79,34 +84,46 @@ export class AbstractCamera {
 	 */
 	turnVelocity = 0;
 
-	/**
-	 * @type {Number}
-	 */
-	lerpFactor = 1;
-
 	constructor() {
+		this.#projection = new Matrix4();
+		this.#view = new Matrix4();
+		this.#viewProjection = new Matrix4();
+		this.#position = new Vector3();
 		this.#distance = new Vector3();
 	}
 
-	/**
-	 * @returns {Matrix4}
-	 */
-	get projection() {
+	getProjection() {
 		return this.#projection;
 	}
 
-	/**
-	 * @returns {Matrix4}
-	 */
-	get view() {
+	getView() {
 		return this.#view;
+	}
+
+	getViewProjection() {
+		return this.#viewProjection;
+	}
+
+	getPosition() {
+		return this.#position;
+	}
+
+	/**
+	 * @param {Vector3} position
+	 */
+	setPosition(position) {
+		this.#position.set(position);
+	}
+
+	getDistance() {
+		return this.#distance;
 	}
 
 	/**
 	 * @param {Vector3} distance
 	 */
 	setDistance(distance) {
-		this.#distance = distance;
+		this.#distance.set(distance);
 	}
 
 	/**
@@ -183,12 +200,12 @@ export class AbstractCamera {
 			1,
 			this.bias,
 		).multiply(Matrix4.translation(this.#distance.clone().multiplyScalar(-1)));
-
 		this.#view = Matrix4.lookAt(
-			this.position,
-			this.position.clone().add(this.forward),
+			this.#position,
+			this.#position.clone().add(this.forward),
 			this.up,
 		);
+		this.#viewProjection = this.#projection.clone().multiply(this.#view);
 	}
 
 	/**
@@ -197,7 +214,7 @@ export class AbstractCamera {
 	 * @returns {Vector3}
 	 */
 	getPhysicalPosition() {
-		const position = this.position.clone();
+		const position = this.#position.clone();
 
 		const xDistance = new Vector3(
 			Math.cos(this.rotation[1]),
