@@ -127,12 +127,28 @@ export class WebGLRenderer extends Renderer {
 		this._context.linkProgram(program);
 
 		if (!this._context.getProgramParameter(program, this._context.LINK_STATUS)) {
-			if (this._context.getShaderInfoLog(vertexShader).length !== 0) {
-				throw new Error(`VERTEX SHADER ${this._context.getShaderInfoLog(vertexShader)}`);
+			{
+				const vertexShaderInfoLog = this._context.getShaderInfoLog(vertexShader);
+
+				if (vertexShaderInfoLog.length !== 0) {
+					throw new Error(`VERTEX SHADER ${vertexShaderInfoLog}`);
+				}
 			}
 
-			if (this._context.getShaderInfoLog(fragmentShader).length !== 0) {
-				throw new Error(`FRAGMENT SHADER ${this._context.getShaderInfoLog(fragmentShader)}`);
+			{
+				const fragmentShaderInfoLog = this._context.getShaderInfoLog(fragmentShader);
+
+				if (fragmentShaderInfoLog.length !== 0) {
+					throw new Error(`FRAGMENT SHADER ${fragmentShaderInfoLog}`);
+				}
+			}
+
+			{
+				const programInfoLog = this._context.getProgramInfoLog(program);
+
+				if (programInfoLog.length !== 0) {
+					throw new Error(programInfoLog);
+				}
 			}
 		}
 

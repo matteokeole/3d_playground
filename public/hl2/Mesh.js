@@ -15,7 +15,7 @@ export class Mesh extends _Mesh {
 	 * @param {Object} json
 	 * @param {Object.<String, TextureImage>} images
 	 */
-	static fromJSON(json, images) {
+	static fromJson(json, images) {
 		const anchors = json.anchors;
 
 		if (anchors.length !== 9 && anchors.length !== 12) throw new Error("Invalid mesh geometry");

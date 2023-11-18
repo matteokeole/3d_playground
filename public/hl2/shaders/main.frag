@@ -1,15 +1,18 @@
 #version 300 es
 
-precision highp float;
+precision mediump float;
+precision mediump sampler2DArray;
 
 in vec2 v_uv;
 in vec3 v_surface_to_camera;
 in vec3 v_surface_to_light;
+flat in uint v_texture_index;
+flat in uint v_normal_map_index;
 
 uniform mat3 u_texture;
 uniform vec3 u_color;
-uniform sampler2D u_texture_map;
-uniform sampler2D u_normal_map;
+uniform sampler2DArray u_textures;
+// uniform sampler2D u_normal_map;
 uniform vec3 u_light_color;
 uniform float u_light_intensity;
 
@@ -18,9 +21,9 @@ out vec4 FragColor;
 void main() {
 	vec2 uv = (u_texture * vec3(v_uv, 1)).xy;
 
-	FragColor = texture(u_texture_map, uv);
+	FragColor = texture(u_textures, vec3(uv, v_texture_index));
 
-	vec3 normal = texture(u_normal_map, uv).rgb;
+	vec3 normal = texture(u_textures, vec3(uv, v_normal_map_index)).rgb;
 	normal = normal * 2.0 - 1.0;
 	normal = normalize(normal);
 

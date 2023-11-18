@@ -21,7 +21,7 @@ export async function createScene(textureImages) {
 			continue;
 		}
 
-		meshes.push(Mesh.fromJSON(json[i], textureImages));
+		meshes.push(Mesh.fromJson(json[i], textureImages));
 	}
 
 	const scene = new Scene(meshes);

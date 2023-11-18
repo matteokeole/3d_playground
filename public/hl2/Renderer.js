@@ -102,10 +102,6 @@ export class Renderer extends WebGLRenderer {
 		this._textures.array = gl.createTexture();
 
 		gl.bindTexture(gl.TEXTURE_2D_ARRAY, this._textures.array);
-		gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-		gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-		// gl.generateMipmap(gl.TEXTURE_2D_ARRAY);
-
 		gl.texStorage3D(gl.TEXTURE_2D_ARRAY, 1, gl.RGBA8, 512, 512, length);
 
 		for (let i = 0; i < length; i++) {

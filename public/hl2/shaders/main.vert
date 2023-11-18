@@ -29,6 +29,8 @@ uniform Light u_light;
 out vec2 v_uv;
 out vec3 v_surface_to_camera;
 out vec3 v_surface_to_light;
+flat out uint v_texture_index;
+flat out uint v_normal_map_index;
 
 void main() {
 	gl_Position = u_camera.projection * u_camera.view * a_vertex;
@@ -40,4 +42,6 @@ void main() {
 	v_uv = a_uv;
 	v_surface_to_camera = tangent_bitangent_normal * (u_camera.position - a_vertex.xyz);
 	v_surface_to_light = tangent_bitangent_normal * (u_light.position - a_vertex.xyz);
+	v_texture_index = uint(0);
+	v_normal_map_index = uint(1);
 }

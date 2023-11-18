@@ -1,4 +1,4 @@
-import {Scene, Texture} from "../../../src/index.js";
+import {Scene, TextureImage} from "../../../src/index.js";
 import {PointLight} from "../../../src/lights/index.js";
 import {Matrix3, PI, Vector2, Vector3} from "../../../src/math/index.js";
 import {Mesh} from "../Mesh.js";
@@ -10,7 +10,7 @@ import {TextureMaterial} from "../../../src/materials/index.js";
 /**
  * @todo Use a loader to fetch the scene geometry file
  * 
- * @param {Object.<String, Texture>} textures
+ * @param {Object.<String, TextureImage>} textures
  * @returns {Promise.<Scene>}
  */
 export async function createScene(textures) {
@@ -23,7 +23,7 @@ export async function createScene(textures) {
 			continue;
 		}
 
-		meshes.push(Mesh.fromJSON(json[i], textures));
+		meshes.push(Mesh.fromJson(json[i], textures));
 	}
 
 	const wall = new Mesh(
