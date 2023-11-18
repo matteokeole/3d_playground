@@ -29,7 +29,7 @@ export async function createScene() {
 export function createCamera(aspectRatio) {
 	const camera = new Camera();
 
-	camera.position = new Vector3(50, ENTITY_HEIGHT_STAND, -200);
+	camera.position = new Vector3(0, 0, 0);
 	camera.target = camera.position.clone();
 	camera.fieldOfView = FIELD_OF_VIEW;
 

@@ -5,11 +5,11 @@ const movement = new Vector2();
 
 const keyVelocities = {
 	KeyW: 1,
-	KeyA: -1,
+	KeyA: 1,
 	KeyS: -1,
-	KeyD: 1,
-	Space: 1,
-	ControlLeft: -1,
+	KeyD: -1,
+	Space: -1,
+	ControlLeft: 1,
 };
 
 export const keys = {
@@ -39,7 +39,7 @@ export function listen(renderer) {
 
 	function mousemove(event) {
 		movement[0] = event.movementX;
-		movement[1] = event.movementY;
+		// movement[1] = event.movementY;
 
 		renderer.getCamera().lookAt(movement);
 	}

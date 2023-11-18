@@ -64,10 +64,10 @@ export class Renderer extends WebGPURenderer {
 				entryPoint: "main",
 				buffers: [
 					{
-						arrayStride: 8,
+						arrayStride: 12,
 						attributes: [
 							{
-								format: "float32x2",
+								format: "float32x3",
 								offset: 0,
 								shaderLocation: 0,
 							},
@@ -99,7 +99,7 @@ export class Renderer extends WebGPURenderer {
 
 		this._buffers.vertex = this._device.createBuffer({
 			size: meshes.length * 3 * 3 * Float32Array.BYTES_PER_ELEMENT,
-			usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+			usage: GPUBufferUsage.VERTEX,
 			mappedAtCreation: true,
 		});
 

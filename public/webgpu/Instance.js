@@ -15,12 +15,7 @@ export class Instance extends _Instance {
 			.normalize()
 			.multiplyScalar(VELOCITY);
 
-		if (direction.magnitude() !== 0) {
-			const relativeVelocity = camera.getRelativeVelocity(direction);
-
-			camera.target.add(relativeVelocity);
-		}
-
+		camera.target.add(camera.getRelativeVelocity(direction));
 		camera.position.lerp(camera.target, CAMERA_LERP_FACTOR);
 		camera.update();
 

@@ -10,7 +10,7 @@ export default async function() {
 	const renderer = new Renderer(canvas);
 	const instance = new Instance({
 		renderer,
-		framesPerSecond: 30,
+		framesPerSecond: 60,
 	});
 
 	await instance.build();
@@ -20,7 +20,7 @@ export default async function() {
 	renderer.resize();
 
 	renderer.setScene(await createScene());
-	renderer.setCamera(createCamera(viewport[0] / viewport[1]));
+	renderer.setCamera(createCamera(viewport[1] / viewport[0]));
 
 	document.body.appendChild(canvas);
 	listen(renderer);
