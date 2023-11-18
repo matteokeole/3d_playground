@@ -21,6 +21,13 @@ export class Renderer extends WebGPURenderer {
 		const vertexShaderSource = await shaderLoader.load("public/webgpu/shaders/vertex.wgsl");
 		const fragmentShaderSource = await shaderLoader.load("public/webgpu/shaders/fragment.wgsl");
 
+		this._buffers.indirect = this._device.createBuffer({
+			size: 5 * Uint32Array.BYTES_PER_ELEMENT,
+			usage: GPUBufferUsage.INDIRECT | GPUBufferUsage.COPY_DST,
+		});
+
+		this._device.queue.writeBuffer(this._buffers.indirect, 0, Uint32Array.of(0, 1, 0, 0, 0));
+
 		this._buffers.camera = this._device.createBuffer({
 			size: 16 * Float32Array.BYTES_PER_ELEMENT,
 			usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
@@ -97,6 +104,8 @@ export class Renderer extends WebGPURenderer {
 
 		const meshes = this._scene.getMeshes();
 
+		this._device.queue.writeBuffer(this._buffers.indirect, 0, Uint32Array.of(meshes.length * 6));
+
 		this._buffers.index = this._device.createBuffer({
 			size: meshes.length * 2 * 3 * Uint16Array.BYTES_PER_ELEMENT,
 			usage: GPUBufferUsage.INDEX,
@@ -155,7 +164,7 @@ export class Renderer extends WebGPURenderer {
 		renderPass.setBindGroup(0, this.#bindGroup);
 		renderPass.setIndexBuffer(this._buffers.index, "uint16");
 		renderPass.setVertexBuffer(0, this._buffers.vertex);
-		renderPass.drawIndexed(this._scene.getMeshes().length * 6);
+		renderPass.drawIndexedIndirect(this._buffers.indirect, 0);
 		renderPass.end();
 
 		this._device.queue.submit([
