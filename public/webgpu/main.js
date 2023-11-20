@@ -8,7 +8,9 @@ import {createCamera, createScene} from "./scenes/building_entrance.js";
 
 export default async function() {
 	const canvas = document.createElement("canvas");
-	const renderer = new Renderer(canvas);
+	const imageBitmapLoader = new ImageBitmapLoader();
+	const images = await imageBitmapLoader.load("public/hl2/textures/textures.json");
+	const renderer = new Renderer(canvas, await createScene(), images.length);
 	const instance = new Instance({
 		renderer,
 		framesPerSecond: 60,
@@ -20,12 +22,8 @@ export default async function() {
 	renderer.setViewport(new Vector4(0, 0, viewport[0], viewport[1]));
 	renderer.resize();
 
-	renderer.setScene(await createScene());
 	renderer.setCamera(createCamera(viewport[0] / viewport[1]));
-
-	const imageBitmapLoader = new ImageBitmapLoader();
-	const images = await imageBitmapLoader.load("public/hl2/textures/textures.json");
-	renderer.createTextureArray(images);
+	renderer.loadImages(images);
 
 	document.body.appendChild(canvas);
 	listen(renderer);

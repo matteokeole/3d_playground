@@ -14,6 +14,28 @@ export class Renderer extends WebGPURenderer {
 	 */
 	#renderPipeline;
 
+	/**
+	 * @type {?GPUSampler}
+	 */
+	#sampler;
+
+	/**
+	 * @type {Number}
+	 */
+	#imageCount;
+
+	/**
+	 * @param {HTMLCanvasElement} canvas
+	 * @param {Scene} scene
+	 * @param {Number} imageCount
+	 */
+	constructor(canvas, scene, imageCount) {
+		super(canvas);
+
+		this._scene = scene;
+		this.#imageCount = imageCount;
+	}
+
 	async build() {
 		await super.build();
 
@@ -33,6 +55,10 @@ export class Renderer extends WebGPURenderer {
 			usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
 		});
 
+		this.#buildScene();
+		this.#testTexture();
+		this.#createSampler();
+
 		const bindGroupLayout = this._device.createBindGroupLayout({
 			entries: [
 				// Camera uniform buffer
@@ -42,6 +68,18 @@ export class Renderer extends WebGPURenderer {
 					buffer: {
 						type: "uniform",
 					},
+				},
+				// Material texture array
+				{
+					binding: 1,
+					visibility: GPUShaderStage.FRAGMENT,
+					texture: {},
+				},
+				// Material sampler
+				{
+					binding: 2,
+					visibility: GPUShaderStage.FRAGMENT,
+					sampler: {},
 				},
 			],
 		});
@@ -54,6 +92,12 @@ export class Renderer extends WebGPURenderer {
 					resource: {
 						buffer: this._buffers.camera,
 					},
+				}, {
+					binding: 1,
+					resource: this._textures.test.createView(),
+				}, {
+					binding: 2,
+					resource: this.#sampler,
 				},
 			],
 		});
@@ -99,45 +143,6 @@ export class Renderer extends WebGPURenderer {
 	}
 
 	/**
-	 * @param {Scene} scene
-	 */
-	setScene(scene) {
-		this._scene = scene;
-
-		const meshes = this._scene.getMeshes();
-
-		this._device.queue.writeBuffer(this._buffers.indirect, 0, Uint32Array.of(meshes.length * 6));
-
-		this._buffers.index = this._device.createBuffer({
-			size: meshes.length * 2 * 3 * Uint16Array.BYTES_PER_ELEMENT,
-			usage: GPUBufferUsage.INDEX,
-			mappedAtCreation: true,
-		});
-
-		this._buffers.vertex = this._device.createBuffer({
-			size: meshes.length * 3 * 4 * Float32Array.BYTES_PER_ELEMENT,
-			usage: GPUBufferUsage.VERTEX,
-			mappedAtCreation: true,
-		});
-
-		const indexMap = new Uint16Array(this._buffers.index.getMappedRange());
-		const vertexMap = new Float32Array(this._buffers.vertex.getMappedRange());
-
-		for (let i = 0, length = meshes.length; i < length; i++) {
-			const firstIndex = i * 4;
-
-			indexMap.set(Uint16Array.of(
-				firstIndex, firstIndex + 1, firstIndex + 2,
-				firstIndex, firstIndex + 2, firstIndex + 3,
-			), i * 2 * 3);
-			vertexMap.set(meshes[i].getGeometry().getVertices(), i * 3 * 4);
-		}
-
-		this._buffers.index.unmap();
-		this._buffers.vertex.unmap();
-	}
-
-	/**
 	 * @param {Camera} camera
 	 */
 	setCamera(camera) {
@@ -147,15 +152,11 @@ export class Renderer extends WebGPURenderer {
 	/**
 	 * @param {import("../../src/Loader/ImageBitmapLoader.js").Image[]} images
 	 */
-	createTextureArray(images) {
-		this._textures.array = this._device.createTexture({
-			size: [512, 512],
-			format: "rgba8unorm",
-			usage: GPUTextureUsage.TEXTURE_BINDING,
-		});
-
-		for (let i = 0, length = images.length; i < length; i++) {
+	loadImages(images) {
+		/* for (let i = 0, length = images.length; i < length; i++) {
 			if (images[i].bitmap.width > 512 || images[i].bitmap.height > 512) {
+				this._textures.array.destroy();
+
 				throw new Error("The image dimensions must not overflow 512x512.");
 			}
 
@@ -165,12 +166,26 @@ export class Renderer extends WebGPURenderer {
 				}, {
 					texture: this._textures.array,
 					origin: [0, 0, i],
-				}, {
-					width: images[i].bitmap.width,
-					height: images[i].bitmap.height,
 				},
+				[
+					images[i].bitmap.width,
+					images[i].bitmap.height,
+				],
 			);
-		}
+		} */
+
+		const image = images[3];
+
+		this._device.queue.copyExternalImageToTexture(
+			{
+				source: image.bitmap,
+			}, {
+				texture: this._textures.test,
+			}, {
+				width: image.bitmap.width,
+				height: image.bitmap.height,
+			},
+		);
 	}
 
 	render() {
@@ -197,5 +212,98 @@ export class Renderer extends WebGPURenderer {
 		this._device.queue.submit([
 			encoder.finish(),
 		]);
+	}
+
+	#buildScene() {
+		const meshes = this._scene.getMeshes();
+
+		this._device.queue.writeBuffer(this._buffers.indirect, 0, Uint32Array.of(meshes.length * 6));
+
+		this._buffers.index = this._device.createBuffer({
+			size: meshes.length * 2 * 3 * Uint16Array.BYTES_PER_ELEMENT,
+			usage: GPUBufferUsage.INDEX,
+			mappedAtCreation: true,
+		});
+
+		this._buffers.vertex = this._device.createBuffer({
+			size: meshes.length * 4 * 3 * Float32Array.BYTES_PER_ELEMENT,
+			usage: GPUBufferUsage.VERTEX,
+			mappedAtCreation: true,
+		});
+
+		this._buffers.uv = this._device.createBuffer({
+			size: meshes.length * 4 * 2 * Float32Array.BYTES_PER_ELEMENT,
+			usage: GPUBufferUsage.VERTEX,
+			mappedAtCreation: true,
+		});
+
+		const indexMap = new Uint16Array(this._buffers.index.getMappedRange());
+		const vertexMap = new Float32Array(this._buffers.vertex.getMappedRange());
+		const uvMap = new Float32Array(this._buffers.uv.getMappedRange());
+
+		for (let i = 0, length = meshes.length; i < length; i++) {
+			const firstIndex = i * 4;
+
+			indexMap.set(Uint16Array.of(
+				firstIndex, firstIndex + 1, firstIndex + 2,
+				firstIndex, firstIndex + 2, firstIndex + 3,
+			), i * 2 * 3);
+			vertexMap.set(meshes[i].getGeometry().getVertices(), i * 4 * 3);
+			uvMap.set(Uint8Array.of(
+				0, 1,
+				0, 0,
+				1, 0,
+				1, 1,
+			), i * 4 * 2);
+		}
+
+		this._buffers.index.unmap();
+		this._buffers.vertex.unmap();
+		this._buffers.uv.unmap();
+	}
+
+	#testTexture() {
+		/* this._textures.array = this._device.createTexture({
+			size: {
+				width: 512,
+				height: 512,
+				depthOrArrayLayers: this.#imageCount,
+			},
+			format: "rgba8unorm",
+			usage: GPUTextureUsage.STORAGE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_DST,
+		}); */
+		this._textures.test = this._device.createTexture({
+			size: [512, 512],
+			format: "rgba8unorm",
+			usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_DST,
+		});
+
+		/* const texture = new Uint8Array(512 * 512 * 4);
+
+		for (let i = 0; i < 512 * 512; i += 4) {
+			texture.set(Uint8Array.of(i / 1024, i / 1024, i / 1024, 0), i);
+		}
+
+		this._device.queue.writeTexture(
+			{
+				texture: this._textures.test,
+			},
+			texture,
+			{
+				bytesPerRow: 512 * Float32Array.BYTES_PER_ELEMENT,
+			},
+			[512, 512],
+		); */
+	}
+
+	#createSampler() {
+		this.#sampler = this._device.createSampler({
+			addressModeU: "repeat",
+			addressModeV: "repeat",
+			magFilter: "linear",
+			minFilter: "nearest",
+			mipmapFilter: "nearest",
+			maxAnisotropy: 1,
+		});
 	}
 }
