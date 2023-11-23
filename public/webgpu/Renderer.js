@@ -55,6 +55,15 @@ export class Renderer extends WebGPURenderer {
 			usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
 		});
 
+		this._textures.depth = this._device.createTexture({
+			size: {
+				width: innerWidth,
+				height: innerHeight,
+			},
+			format: "depth24plus",
+			usage: GPUTextureUsage.RENDER_ATTACHMENT,
+		});
+
 		this.#buildScene();
 		this.#testTexture();
 		this.#createSampler();
@@ -127,6 +136,14 @@ export class Renderer extends WebGPURenderer {
 						],
 					},
 				],
+			},
+			primitive: {
+				cullMode: "front",
+			},
+			depthStencil: {
+				format: "depth24plus",
+				depthWriteEnabled: true,
+				depthCompare: "less",
 			},
 			fragment: {
 				module: this._device.createShaderModule({
@@ -201,6 +218,12 @@ export class Renderer extends WebGPURenderer {
 					storeOp: "store",
 				},
 			],
+			depthStencilAttachment: {
+				view: this._textures.depth.createView(),
+				depthClearValue: 1,
+				depthLoadOp: "clear",
+				depthStoreOp: "store",
+			},
 		});
 		renderPass.setPipeline(this.#renderPipeline);
 		renderPass.setBindGroup(0, this.#bindGroup);
