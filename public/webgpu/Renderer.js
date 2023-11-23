@@ -82,7 +82,11 @@ export class Renderer extends WebGPURenderer {
 				{
 					binding: 1,
 					visibility: GPUShaderStage.FRAGMENT,
-					texture: {},
+					texture: {
+						sampleType: "float",
+						viewDimension: "2d-array",
+						multisampled: false,
+					},
 				},
 				// Material sampler
 				{
@@ -103,7 +107,7 @@ export class Renderer extends WebGPURenderer {
 					},
 				}, {
 					binding: 1,
-					resource: this._textures.test.createView(),
+					resource: this._textures.array.createView(),
 				}, {
 					binding: 2,
 					resource: this.#sampler,
@@ -170,7 +174,7 @@ export class Renderer extends WebGPURenderer {
 	 * @param {import("../../src/Loader/ImageBitmapLoader.js").Image[]} images
 	 */
 	loadImages(images) {
-		/* for (let i = 0, length = images.length; i < length; i++) {
+		for (let i = 0, length = images.length; i < length; i++) {
 			if (images[i].bitmap.width > 512 || images[i].bitmap.height > 512) {
 				this._textures.array.destroy();
 
@@ -183,26 +187,12 @@ export class Renderer extends WebGPURenderer {
 				}, {
 					texture: this._textures.array,
 					origin: [0, 0, i],
-				},
-				[
+				}, [
 					images[i].bitmap.width,
 					images[i].bitmap.height,
 				],
 			);
-		} */
-
-		const image = images[3];
-
-		this._device.queue.copyExternalImageToTexture(
-			{
-				source: image.bitmap,
-			}, {
-				texture: this._textures.test,
-			}, {
-				width: image.bitmap.width,
-				height: image.bitmap.height,
-			},
-		);
+		}
 	}
 
 	render() {
@@ -286,37 +276,11 @@ export class Renderer extends WebGPURenderer {
 	}
 
 	#testTexture() {
-		/* this._textures.array = this._device.createTexture({
-			size: {
-				width: 512,
-				height: 512,
-				depthOrArrayLayers: this.#imageCount,
-			},
-			format: "rgba8unorm",
-			usage: GPUTextureUsage.STORAGE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_DST,
-		}); */
-		this._textures.test = this._device.createTexture({
-			size: [512, 512],
+		this._textures.array = this._device.createTexture({
+			size: [512, 512, this.#imageCount],
 			format: "rgba8unorm",
 			usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_DST,
 		});
-
-		/* const texture = new Uint8Array(512 * 512 * 4);
-
-		for (let i = 0; i < 512 * 512; i += 4) {
-			texture.set(Uint8Array.of(i / 1024, i / 1024, i / 1024, 0), i);
-		}
-
-		this._device.queue.writeTexture(
-			{
-				texture: this._textures.test,
-			},
-			texture,
-			{
-				bytesPerRow: 512 * Float32Array.BYTES_PER_ELEMENT,
-			},
-			[512, 512],
-		); */
 	}
 
 	#createSampler() {

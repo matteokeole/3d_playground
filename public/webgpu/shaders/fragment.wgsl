@@ -1,4 +1,4 @@
-@group(0) @binding(1) var texture: texture_2d<f32>;
+@group(0) @binding(1) var texture: texture_2d_array<f32>;
 @group(0) @binding(2) var texture_sampler: sampler;
 
 struct VertexOutput {
@@ -9,5 +9,5 @@ struct VertexOutput {
 
 @fragment
 fn main(input: VertexOutput) -> @location(0) vec4f {
-	return textureSample(texture, texture_sampler, input.uv);
+	return textureSample(texture, texture_sampler, input.uv, 6);
 }
