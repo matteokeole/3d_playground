@@ -8,32 +8,32 @@ export class WebGLRenderer extends Renderer {
 	_context;
 
 	/**
-	 * @type {Object.<String, WebGLProgram>}
+	 * @type {Record.<String, WebGLProgram>}
 	 */
 	_programs;
 
 	/**
-	 * @type {Object.<String, WebGLVertexArrayObject>}
+	 * @type {Record.<String, WebGLVertexArrayObject>}
 	 */
 	_vaos;
 
 	/**
-	 * @type {Object.<String, WebGLBuffer>}
+	 * @type {Record.<String, WebGLBuffer>}
 	 */
 	_buffers;
 
 	/**
-	 * @type {Object.<String, WebGLUniformLocation>}
+	 * @type {Record.<String, WebGLUniformLocation>}
 	 */
 	_uniforms;
 
 	/**
-	 * @type {Object.<String, WebGLTexture>}
+	 * @type {Record.<String, WebGLTexture>}
 	 */
 	_textures;
 
 	/**
-	 * @type {Object.<String, TextureImage>}
+	 * @type {Record.<String, TextureImage>}
 	 */
 	_images;
 

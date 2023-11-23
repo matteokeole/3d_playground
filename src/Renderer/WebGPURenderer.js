@@ -12,12 +12,12 @@ export class WebGPURenderer extends Renderer {
 	_context;
 
 	/**
-	 * @type {Object.<String, GPUBuffer>}
+	 * @type {Record.<String, GPUBuffer>}
 	 */
 	_buffers;
 
 	/**
-	 * @type {Object.<String, GPUTexture>}
+	 * @type {Record.<String, GPUTexture>}
 	 */
 	_textures;
 
