@@ -48,8 +48,6 @@ export class Renderer extends WebGPURenderer {
 			usage: GPUBufferUsage.INDIRECT | GPUBufferUsage.COPY_DST,
 		});
 
-		this._device.queue.writeBuffer(this._buffers.indirect, 0, Uint32Array.of(0, 1, 0, 0, 0));
-
 		this._buffers.camera = this._device.createBuffer({
 			size: 16 * Float32Array.BYTES_PER_ELEMENT,
 			usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
@@ -130,7 +128,7 @@ export class Renderer extends WebGPURenderer {
 				entryPoint: "main",
 				buffers: [
 					{
-						arrayStride: 12,
+						arrayStride: 3 * Float32Array.BYTES_PER_ELEMENT,
 						attributes: [
 							{
 								format: "float32x3",
@@ -230,10 +228,10 @@ export class Renderer extends WebGPURenderer {
 	#buildScene() {
 		const meshes = this._scene.getMeshes();
 
-		this._device.queue.writeBuffer(this._buffers.indirect, 0, Uint32Array.of(meshes.length * 6));
+		this._device.queue.writeBuffer(this._buffers.indirect, 0, Uint32Array.of(meshes.length * 6, 1, 0, 0, 0));
 
 		this._buffers.index = this._device.createBuffer({
-			size: meshes.length * 2 * 3 * Uint16Array.BYTES_PER_ELEMENT,
+			size: meshes.length * 6 * Uint16Array.BYTES_PER_ELEMENT,
 			usage: GPUBufferUsage.INDEX,
 			mappedAtCreation: true,
 		});

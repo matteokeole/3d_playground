@@ -6,7 +6,6 @@ struct Vertex {
 }
 
 struct VertexOutput {
-	// @location(0) @interpolate(flat) index: u32,
 	@builtin(position) position: vec4f,
 	@location(1) uv: vec2f,
 }
@@ -25,7 +24,6 @@ const UV: array<vec2f, 4> = array(
 @vertex
 fn main(vertex: Vertex) -> VertexOutput {
 	var output: VertexOutput;
-	// output.index = vertex.index;
 	output.position = camera.viewProjection * vec4f(vertex.position, 1);
 	output.uv = UV[vertex.index % 4];
 
