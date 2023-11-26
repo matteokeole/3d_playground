@@ -156,15 +156,6 @@ export class WebGLRenderer extends Renderer {
 	}
 
 	/**
-	 * @abstract
-	 * @param {HTMLImageElement} image
-	 * @returns {WebGLTexture}
-	 */
-	_createTexture(image) {
-		throw new Error("Not implemented");
-	}
-
-	/**
 	 * @param {GLint} type
 	 * @param {String} source
 	 */

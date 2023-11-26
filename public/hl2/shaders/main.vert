@@ -25,6 +25,8 @@ in vec2 a_uv;
 
 uniform Camera u_camera;
 uniform Light u_light;
+uniform uint u_texture_index;
+uniform uint u_normal_map_index;
 
 out vec2 v_uv;
 out vec3 v_surface_to_camera;
@@ -42,6 +44,6 @@ void main() {
 	v_uv = a_uv;
 	v_surface_to_camera = tangent_bitangent_normal * (u_camera.position - a_vertex.xyz);
 	v_surface_to_light = tangent_bitangent_normal * (u_light.position - a_vertex.xyz);
-	v_texture_index = uint(0);
-	v_normal_map_index = uint(1);
+	v_texture_index = u_texture_index;
+	v_normal_map_index = u_normal_map_index;
 }

@@ -1,6 +1,9 @@
 import {Material} from "./Material.js";
 import {Vector3} from "../math/index.js";
 
+/**
+ * @deprecated
+ */
 export class ColorMaterial extends Material {
 	/**
 	 * @type {Vector3}

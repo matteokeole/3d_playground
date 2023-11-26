@@ -9,17 +9,15 @@ in vec3 v_surface_to_light;
 flat in uint v_texture_index;
 flat in uint v_normal_map_index;
 
-uniform mat3 u_texture;
-uniform vec3 u_color;
+uniform mat3 u_texture_matrix;
 uniform sampler2DArray u_textures;
-// uniform sampler2D u_normal_map;
 uniform vec3 u_light_color;
 uniform float u_light_intensity;
 
 out vec4 FragColor;
 
 void main() {
-	vec2 uv = (u_texture * vec3(v_uv, 1)).xy;
+	vec2 uv = (u_texture_matrix * vec3(v_uv, 1)).xy;
 
 	FragColor = texture(u_textures, vec3(uv, v_texture_index));
 
@@ -34,6 +32,6 @@ void main() {
 	float light = max(dot(surface_to_light, normal), .0);
 	float specular = pow(dot(half_vector, normal), 300.0);
 
-	FragColor.rgb *= u_color * u_light_color * light * u_light_intensity;
+	FragColor.rgb *= u_light_color * light * u_light_intensity;
 	FragColor.rgb += specular;
 }

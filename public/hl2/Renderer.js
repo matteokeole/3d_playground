@@ -1,21 +1,10 @@
 import {Scene, TextureImage} from "../../src/index.js";
 import {ShaderLoader} from "../../src/Loader/index.js";
-import {ColorMaterial, TextureMaterial} from "../../src/materials/index.js";
 import {Vector2} from "../../src/math/index.js";
 import {WebGLRenderer} from "../../src/Renderer/index.js";
 import {SSDPlaneGeometry} from "./SSDPlaneGeometry.js";
 
 export class Renderer extends WebGLRenderer {
-	/**
-	 * @type {?Float32Array}
-	 */
-	#defaultColor;
-
-	/**
-	 * @type {?WebGLTexture}
-	 */
-	#defaultTexture;
-
 	async build() {
 		super.build();
 
@@ -71,14 +60,12 @@ export class Renderer extends WebGLRenderer {
 		this._uniforms.cameraView = gl.getUniformLocation(this._programs.main, "u_camera.view");
 		this._uniforms.cameraPosition = gl.getUniformLocation(this._programs.main, "u_camera.position");
 		this._uniforms.lightPosition = gl.getUniformLocation(this._programs.main, "u_light.position");
-		this._uniforms.texture = gl.getUniformLocation(this._programs.main, "u_texture");
-		this._uniforms.color = gl.getUniformLocation(this._programs.main, "u_color");
-		this._uniforms.textureMap = gl.getUniformLocation(this._programs.main, "u_texture_map");
-		gl.uniform1i(this._uniforms.textureMap, 0);
-		this._uniforms.normalMap = gl.getUniformLocation(this._programs.main, "u_normal_map");
-		gl.uniform1i(this._uniforms.normalMap, 1);
+		this._uniforms.textureMatrix = gl.getUniformLocation(this._programs.main, "u_texture_matrix");
+		this._uniforms.textureIndex = gl.getUniformLocation(this._programs.main, "u_texture_index");
+		this._uniforms.normalMapIndex = gl.getUniformLocation(this._programs.main, "u_normal_map_index");
 		this._uniforms.lightColor = gl.getUniformLocation(this._programs.main, "u_light_color");
 		this._uniforms.lightIntensity = gl.getUniformLocation(this._programs.main, "u_light_intensity");
+
 		this._uniforms.crosshairViewport = gl.getUniformLocation(this._programs.crosshair, "u_viewport");
 
 		gl.useProgram(this._programs.crosshair);
@@ -87,9 +74,6 @@ export class Renderer extends WebGLRenderer {
 		gl.uniform2f(this._uniforms.crosshairViewport, this._viewport[2], this._viewport[3]);
 
 		gl.useProgram(null);
-
-		this.#createDefaultColor();
-		this.#createDefaultTexture();
 	}
 
 	/**
@@ -154,30 +138,13 @@ export class Renderer extends WebGLRenderer {
 			gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.tangent);
 			gl.bufferData(gl.ARRAY_BUFFER, geometry.getTangents(), gl.STATIC_DRAW);
 
-			gl.uniformMatrix3fv(this._uniforms.texture, false, material.textureMatrix);
+			gl.uniformMatrix3fv(this._uniforms.textureMatrix, false, material.textureMatrix);
 
-			if (material instanceof ColorMaterial) {
-				// Bind default texture
-				gl.bindTexture(gl.TEXTURE_2D, this.#defaultTexture);
+			gl.uniform1ui(this._uniforms.textureIndex, material.texture.getZOffset());
+			gl.uniform1ui(this._uniforms.normalMapIndex, material.normalMap.getZOffset());
 
-				// Bind color
-				gl.uniform3fv(this._uniforms.color, material.color);
-			} else if (material instanceof TextureMaterial) {
-				// Bind default color
-				gl.uniform3fv(this._uniforms.color, this.#defaultColor);
-
-				// Bind texture
-				// gl.activeTexture(gl.TEXTURE0);
-				// gl.bindTexture(gl.TEXTURE_2D, material.texture);
-
-				// Bind normal map
-				// gl.activeTexture(gl.TEXTURE1);
-				// gl.bindTexture(gl.TEXTURE_2D, material.normalMap);
-
-				// Bind UVs
-				gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.uv);
-				gl.bufferData(gl.ARRAY_BUFFER, geometry.getUVs(), gl.STATIC_DRAW);
-			}
+			gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.uv);
+			gl.bufferData(gl.ARRAY_BUFFER, geometry.getUVs(), gl.STATIC_DRAW);
 
 			if (geometry instanceof SSDPlaneGeometry) {
 				gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
@@ -195,50 +162,6 @@ export class Renderer extends WebGLRenderer {
 		gl.drawArrays(gl.POINTS, 0, 5);
 
 		gl.useProgram(null);
-	}
-
-	/**
-	 * @param {HTMLImageElement} image
-	 */
-	_createTexture(image) {
-		const gl = this._context;
-		const texture = gl.createTexture();
-
-		gl.bindTexture(gl.TEXTURE_2D, texture);
-		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-
-		return texture;
-	}
-
-	/**
-	 * Creates the default color for textured meshes.
-	 */
-	#createDefaultColor() {
-		this.#defaultColor = Float32Array.of(1, 1, 1);
-	}
-
-	/**
-	 * @todo Create this texture inside the texture array
-	 * 
-	 * Creates a 1x1 white pixel as default texture.
-	 */
-	#createDefaultTexture() {
-		const gl = this._context;
-
-		this.#defaultTexture = gl.createTexture();
-		gl.bindTexture(gl.TEXTURE_2D, this.#defaultTexture);
-		gl.texImage2D(
-			gl.TEXTURE_2D,
-			0,
-			gl.RGBA,
-			1,
-			1,
-			0,
-			gl.RGBA,
-			gl.UNSIGNED_BYTE,
-			Uint8Array.of(255, 255, 255, 255),
-		);
 	}
 
 	/**
