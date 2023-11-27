@@ -6,13 +6,19 @@ struct Vertex {
 	@location(1) position1: vec3f,
 	@location(2) position2: vec3f,
 	@location(3) position3: vec3f,
-	@location(4) textureIndex: u32,
+	@location(4) textureMatrix0: vec3f,
+	@location(5) textureMatrix1: vec3f,
+	@location(6) textureMatrix2: vec3f,
+	@location(7) textureIndex: f32,
 }
 
 struct VertexOutput {
 	@builtin(position) position: vec4f,
 	@location(0) uv: vec2f,
 	@location(1) @interpolate(flat) textureIndex: u32,
+	@location(2) textureMatrix0: vec3f,
+	@location(3) textureMatrix1: vec3f,
+	@location(4) textureMatrix2: vec3f,
 }
 
 struct Camera {
@@ -28,18 +34,26 @@ const UV: array<vec2f, 4> = array(
 
 @vertex
 fn main(vertex: Vertex) -> VertexOutput {
+	let position: vec3f = getVertexPosition(vertex);
+
+	var output: VertexOutput;
+	output.position = camera.viewProjection * vec4f(position, 1);
+	output.uv = UV[vertex.index];
+	output.textureIndex = u32(vertex.textureIndex);
+	output.textureMatrix0 = vertex.textureMatrix0;
+	output.textureMatrix1 = vertex.textureMatrix1;
+	output.textureMatrix2 = vertex.textureMatrix2;
+
+	return output;
+}
+
+fn getVertexPosition(vertex: Vertex) -> vec3f {
 	var vertices: array<vec3f, 4> = array(
 		vertex.position0,
 		vertex.position1,
 		vertex.position2,
 		vertex.position3,
 	);
-	let position: vec3f = vertices[vertex.index];
 
-	var output: VertexOutput;
-	output.position = camera.viewProjection * vec4f(position, 1);
-	output.uv = UV[vertex.index % 4];
-	output.textureIndex = vertex.textureIndex;
-
-	return output;
+	return vertices[vertex.index];
 }

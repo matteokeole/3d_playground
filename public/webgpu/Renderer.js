@@ -125,7 +125,7 @@ export class Renderer extends WebGPURenderer {
 				entryPoint: "main",
 				buffers: [
 					{
-						arrayStride: 4 * 3 * Float32Array.BYTES_PER_ELEMENT,
+						arrayStride: 12 * Float32Array.BYTES_PER_ELEMENT,
 						stepMode: "instance",
 						attributes: [
 							{
@@ -147,13 +147,25 @@ export class Renderer extends WebGPURenderer {
 							},
 						],
 					}, {
-						arrayStride: 1 * Uint32Array.BYTES_PER_ELEMENT,
+						arrayStride: 9 * Float32Array.BYTES_PER_ELEMENT + Uint32Array.BYTES_PER_ELEMENT,
 						stepMode: "instance",
 						attributes: [
 							{
-								format: "uint32",
+								format: "float32x3",
 								offset: 0,
 								shaderLocation: 4,
+							}, {
+								format: "float32x3",
+								offset: 3 * Float32Array.BYTES_PER_ELEMENT,
+								shaderLocation: 5,
+							}, {
+								format: "float32x3",
+								offset: 2 * 3 * Float32Array.BYTES_PER_ELEMENT,
+								shaderLocation: 6,
+							}, {
+								format: "float32",
+								offset: 3 * 3 * Float32Array.BYTES_PER_ELEMENT,
+								shaderLocation: 7,
 							},
 						],
 					},
@@ -287,7 +299,7 @@ export class Renderer extends WebGPURenderer {
 		});
 
 		this._buffers.material = this._device.createBuffer({
-			size: meshes.length * 1 * Uint32Array.BYTES_PER_ELEMENT,
+			size: meshes.length * (9 * Float32Array.BYTES_PER_ELEMENT + Uint32Array.BYTES_PER_ELEMENT),
 			usage: GPUBufferUsage.VERTEX,
 			mappedAtCreation: true,
 		});
@@ -295,7 +307,7 @@ export class Renderer extends WebGPURenderer {
 		const indexMap = new Uint16Array(this._buffers.index.getMappedRange());
 		const vertexMap = new Float32Array(this._buffers.vertex.getMappedRange());
 		const uvMap = new Float32Array(this._buffers.uv.getMappedRange());
-		const materialMap = new Uint32Array(this._buffers.material.getMappedRange());
+		const materialMap = new Float32Array(this._buffers.material.getMappedRange());
 
 		for (let i = 0, length = meshes.length; i < length; i++) {
 			const firstIndex = i * 4;
@@ -311,9 +323,11 @@ export class Renderer extends WebGPURenderer {
 				1, 0,
 				1, 1,
 			), i * 4 * 2);
-			materialMap.set(Uint32Array.of(
+
+			materialMap.set(Float32Array.of(
+				...meshes[i].getMaterial().getTextureMatrix(),
 				meshes[i].getMaterial().getTextureIndex(),
-			), i);
+			), i * 10);
 		}
 
 		this._buffers.index.unmap();

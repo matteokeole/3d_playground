@@ -5,10 +5,16 @@ struct VertexOutput {
 	@builtin(position) position: vec4f,
 	@location(0) uv: vec2f,
 	@location(1) @interpolate(flat) textureIndex: u32,
-	// @location(2) @interpolate(flat) normalMapIndex: u32,
+	@location(2) textureMatrix0: vec3f,
+	@location(3) textureMatrix1: vec3f,
+	@location(4) textureMatrix2: vec3f,
 }
 
 @fragment
 fn main(input: VertexOutput) -> @location(0) vec4f {
-	return textureSample(texture, texture_sampler, input.uv, input.textureIndex);
+	let textureMatrix: mat3x3f = mat3x3f(input.textureMatrix0, input.textureMatrix1, input.textureMatrix2);
+
+	let uv = (textureMatrix * vec3f(input.uv, 1)).xy;
+
+	return textureSample(texture, texture_sampler, uv, input.textureIndex);
 }
