@@ -21,7 +21,7 @@ export async function createScene(images) {
 			continue;
 		}
 
-		meshes.push(Mesh.fromJson(json[i], imagePaths.indexOf(json[i].texture), imagePaths.indexOf(json[i].normal_map)));
+		meshes.push(Mesh.fromJson(json[i], images, imagePaths));
 	}
 
 	return new Scene(meshes);
@@ -33,7 +33,10 @@ export async function createScene(images) {
 export function createCamera(aspectRatio) {
 	const camera = new Camera();
 
-	camera.setPosition(new Vector3(50, ENTITY_HEIGHT_STAND, 0));
+	// camera.setPosition(new Vector3(50, ENTITY_HEIGHT_STAND, 0));
+	camera.setPosition(new Vector3(48.40, 188.37, 91.85));
+	camera.rotation = new Vector3(-1.57, 0, 0);
+
 	camera.target = camera.getPosition().clone();
 	camera.fieldOfView = FIELD_OF_VIEW;
 

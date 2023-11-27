@@ -6,10 +6,10 @@ import {TextureMaterial} from "./TextureMaterial.js";
 export class Mesh extends _Mesh {
 	/**
 	 * @param {Object} json
-	 * @param {Number} textureIndex
-	 * @param {Number} normalMapIndex
+	 * @param {import("../../src/Loader/ImageBitmapLoader.js").Image[]} images
+	 * @param {String[]} imagePaths
 	 */
-	static fromJson(json, textureIndex, normalMapIndex) {
+	static fromJson(json, images, imagePaths) {
 		const anchors = json.anchors;
 		const anchor1 = new Vector3(anchors[0], anchors[1], anchors[2]);
 		const anchor2 = new Vector3(anchors[3], anchors[4], anchors[5]);
@@ -20,13 +20,16 @@ export class Mesh extends _Mesh {
 		const w = anchor1.to(anchor2);
 		const h = anchor2.to(anchor3);
 
+		const textureIndex = imagePaths.indexOf(json.texture);
+		const bitmap = images[textureIndex].bitmap;
+
 		const textureMatrix = Matrix3
 			.identity()
 			.multiply(Matrix3.translation(new Vector2(json.uv[0], json.uv[1])))
 			.multiply(Matrix3.rotation(json.uv_rotation * PI))
 			.multiply(Matrix3.scale(
 				new Vector2(h, w)
-					.divide(new Vector2(512, 512))
+					.divide(new Vector2(bitmap.height, bitmap.width))
 					.divide(new Vector2(json.uv_scale[0], json.uv_scale[1])),
 			));
 
@@ -35,7 +38,7 @@ export class Mesh extends _Mesh {
 			new TextureMaterial({
 				textureMatrix,
 				textureIndex,
-				normalMapIndex,
+				normalMapIndex: imagePaths.indexOf(json.normal_map),
 			}),
 		);
 	}
