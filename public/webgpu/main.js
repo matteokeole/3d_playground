@@ -10,7 +10,7 @@ export default async function() {
 	const canvas = document.createElement("canvas");
 	const imageBitmapLoader = new ImageBitmapLoader();
 	const images = await imageBitmapLoader.load("public/hl2/textures/textures.json");
-	const renderer = new Renderer(canvas, await createScene(), images.length);
+	const renderer = new Renderer(canvas, await createScene(images), images.length);
 	const instance = new Instance({
 		renderer,
 		framesPerSecond: 60,

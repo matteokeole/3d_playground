@@ -3,10 +3,12 @@
 
 struct VertexOutput {
 	@builtin(position) position: vec4f,
-	@location(1) uv: vec2f,
+	@location(0) uv: vec2f,
+	@location(1) @interpolate(flat) textureIndex: u32,
+	// @location(2) @interpolate(flat) normalMapIndex: u32,
 }
 
 @fragment
 fn main(input: VertexOutput) -> @location(0) vec4f {
-	return textureSample(texture, texture_sampler, input.uv, 6);
+	return textureSample(texture, texture_sampler, input.uv, input.textureIndex);
 }

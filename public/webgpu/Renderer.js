@@ -20,6 +20,11 @@ export class Renderer extends WebGPURenderer {
 	#sampler;
 
 	/**
+	 * @type {import("../../src/Loader/ImageBitmapLoader.js").Image[]}
+	 */
+	#images;
+
+	/**
 	 * @type {Number}
 	 */
 	#imageCount;
@@ -43,15 +48,7 @@ export class Renderer extends WebGPURenderer {
 		const vertexShaderSource = await shaderLoader.load("public/webgpu/shaders/vertex.wgsl");
 		const fragmentShaderSource = await shaderLoader.load("public/webgpu/shaders/fragment.wgsl");
 
-		this._buffers.indirect = this._device.createBuffer({
-			size: 5 * Uint32Array.BYTES_PER_ELEMENT,
-			usage: GPUBufferUsage.INDIRECT | GPUBufferUsage.COPY_DST,
-		});
-
-		this._buffers.camera = this._device.createBuffer({
-			size: 16 * Float32Array.BYTES_PER_ELEMENT,
-			usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-		});
+		this.#createBuffers();
 
 		this._textures.depth = this._device.createTexture({
 			size: {
@@ -128,12 +125,35 @@ export class Renderer extends WebGPURenderer {
 				entryPoint: "main",
 				buffers: [
 					{
-						arrayStride: 3 * Float32Array.BYTES_PER_ELEMENT,
+						arrayStride: 4 * 3 * Float32Array.BYTES_PER_ELEMENT,
+						stepMode: "instance",
 						attributes: [
 							{
 								format: "float32x3",
 								offset: 0,
 								shaderLocation: 0,
+							}, {
+								format: "float32x3",
+								offset: 3 * Float32Array.BYTES_PER_ELEMENT,
+								shaderLocation: 1,
+							}, {
+								format: "float32x3",
+								offset: 2 * 3 * Float32Array.BYTES_PER_ELEMENT,
+								shaderLocation: 2,
+							}, {
+								format: "float32x3",
+								offset: 3 * 3 * Float32Array.BYTES_PER_ELEMENT,
+								shaderLocation: 3,
+							},
+						],
+					}, {
+						arrayStride: 1 * Uint32Array.BYTES_PER_ELEMENT,
+						stepMode: "instance",
+						attributes: [
+							{
+								format: "uint32",
+								offset: 0,
+								shaderLocation: 4,
 							},
 						],
 					},
@@ -172,6 +192,8 @@ export class Renderer extends WebGPURenderer {
 	 * @param {import("../../src/Loader/ImageBitmapLoader.js").Image[]} images
 	 */
 	loadImages(images) {
+		this.#images = images;
+
 		for (let i = 0, length = images.length; i < length; i++) {
 			if (images[i].bitmap.width > 512 || images[i].bitmap.height > 512) {
 				this._textures.array.destroy();
@@ -217,6 +239,7 @@ export class Renderer extends WebGPURenderer {
 		renderPass.setBindGroup(0, this.#bindGroup);
 		renderPass.setIndexBuffer(this._buffers.index, "uint16");
 		renderPass.setVertexBuffer(0, this._buffers.vertex);
+		renderPass.setVertexBuffer(1, this._buffers.material);
 		renderPass.drawIndexedIndirect(this._buffers.indirect, 0);
 		renderPass.end();
 
@@ -225,10 +248,25 @@ export class Renderer extends WebGPURenderer {
 		]);
 	}
 
+	/**
+	 * The mesh count is needed to fill in the indirect buffer
+	 */
+	#createBuffers() {
+		this._buffers.indirect = this._device.createBuffer({
+			size: 5 * Uint32Array.BYTES_PER_ELEMENT,
+			usage: GPUBufferUsage.INDIRECT | GPUBufferUsage.COPY_DST,
+		});
+
+		this._buffers.camera = this._device.createBuffer({
+			size: 16 * Float32Array.BYTES_PER_ELEMENT,
+			usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+		});
+	}
+
 	#buildScene() {
 		const meshes = this._scene.getMeshes();
 
-		this._device.queue.writeBuffer(this._buffers.indirect, 0, Uint32Array.of(meshes.length * 6, 1, 0, 0, 0));
+		this._device.queue.writeBuffer(this._buffers.indirect, 0, Uint32Array.of(meshes.length * 6, meshes.length, 0, 0, 0));
 
 		this._buffers.index = this._device.createBuffer({
 			size: meshes.length * 6 * Uint16Array.BYTES_PER_ELEMENT,
@@ -248,9 +286,16 @@ export class Renderer extends WebGPURenderer {
 			mappedAtCreation: true,
 		});
 
+		this._buffers.material = this._device.createBuffer({
+			size: meshes.length * 1 * Uint32Array.BYTES_PER_ELEMENT,
+			usage: GPUBufferUsage.VERTEX,
+			mappedAtCreation: true,
+		});
+
 		const indexMap = new Uint16Array(this._buffers.index.getMappedRange());
 		const vertexMap = new Float32Array(this._buffers.vertex.getMappedRange());
 		const uvMap = new Float32Array(this._buffers.uv.getMappedRange());
+		const materialMap = new Uint32Array(this._buffers.material.getMappedRange());
 
 		for (let i = 0, length = meshes.length; i < length; i++) {
 			const firstIndex = i * 4;
@@ -258,7 +303,7 @@ export class Renderer extends WebGPURenderer {
 			indexMap.set(Uint16Array.of(
 				firstIndex, firstIndex + 1, firstIndex + 2,
 				firstIndex, firstIndex + 2, firstIndex + 3,
-			), i * 2 * 3);
+			), i * 6);
 			vertexMap.set(meshes[i].getGeometry().getVertices(), i * 4 * 3);
 			uvMap.set(Uint8Array.of(
 				0, 1,
@@ -266,11 +311,15 @@ export class Renderer extends WebGPURenderer {
 				1, 0,
 				1, 1,
 			), i * 4 * 2);
+			materialMap.set(Uint32Array.of(
+				meshes[i].getMaterial().getTextureIndex(),
+			), i);
 		}
 
 		this._buffers.index.unmap();
 		this._buffers.vertex.unmap();
 		this._buffers.uv.unmap();
+		this._buffers.material.unmap();
 	}
 
 	#testTexture() {
