@@ -23,15 +23,19 @@ export class Mesh extends _Mesh {
 		const textureIndex = imagePaths.indexOf(json.texture);
 		const bitmap = images[textureIndex].bitmap;
 
+		const textureTranslation = new Vector2();
+		textureTranslation.set(json.uv);
+
+		const textureRotation = json.uv_rotation * PI;
+
+		const textureScale = new Vector2(h, w)
+			.divide(new Vector2(bitmap.width, bitmap.height))
+			.divide(new Vector2(json.uv_scale[0], json.uv_scale[1]));
+
 		const textureMatrix = Matrix3
-			.identity()
-			.multiply(Matrix3.translation(new Vector2(json.uv[0], json.uv[1])))
-			.multiply(Matrix3.rotation(json.uv_rotation * PI))
-			.multiply(Matrix3.scale(
-				new Vector2(h, w)
-					.divide(new Vector2(bitmap.height, bitmap.width))
-					.divide(new Vector2(json.uv_scale[0], json.uv_scale[1])),
-			));
+			.translation(textureTranslation)
+			.multiply(Matrix3.rotation(textureRotation))
+			.multiply(Matrix3.scale(textureScale));
 
 		return new Mesh(
 			SSDPlaneGeometry.fromAnchors([anchor1, anchor2, anchor3, anchor4]),

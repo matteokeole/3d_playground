@@ -10,7 +10,7 @@ import {Mesh} from "../Mesh.js";
  * @param {import("../../../src/Loader/ImageBitmapLoader.js").Image[]} images
  */
 export async function createScene(images) {
-	const response = await fetch("public/hl2/scenes/building_entrance.json");
+	const response = await fetch("public/webgpu/scenes/building_entrance.json");
 	const json = await response.json();
 	const meshes = [];
 
