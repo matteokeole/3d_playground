@@ -26,10 +26,10 @@ struct Camera {
 }
 
 const UV: array<vec2f, 4> = array(
-	vec2f(0, .5),
+	vec2f(0, 1),
 	vec2f(0, 0),
-	vec2f(.5, 0),
-	vec2f(.5, .5),
+	vec2f(1, 0),
+	vec2f(1, 1),
 );
 
 @vertex

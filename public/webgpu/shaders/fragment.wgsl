@@ -14,10 +14,7 @@ struct VertexOutput {
 fn main(input: VertexOutput) -> @location(0) vec4f {
 	let textureMatrix: mat3x3f = mat3x3f(input.textureMatrix0, input.textureMatrix1, input.textureMatrix2);
 
-	var uv: vec2f = input.uv;
-	uv = (textureMatrix * vec3f(uv, 1)).xy;
-
-	uv = uv % .125;
+	let uv: vec2f = (textureMatrix * vec3f(input.uv, 1)).xy;
 
 	return textureSample(texture, texture_sampler, uv, input.textureIndex);
 }
