@@ -1,10 +1,17 @@
-import {Renderer as _Renderer} from "../../src/index.js";
+import {WebGLRenderer} from "../../src/Renderer/index.js";
 import {Matrix4} from "../../src/math/index.js";
 import {ShaderLoader} from "../../src/Loader/index.js";
 
-export class Renderer extends _Renderer {
+export class Renderer extends WebGLRenderer {
+	/**
+	 * @type {WebGLTexture[]}
+	 */
+	#textures;
+
 	async build() {
 		super.build();
+
+		this.#textures = [];
 
 		const gl = this._context;
 
@@ -109,7 +116,9 @@ export class Renderer extends _Renderer {
 			gl.COLOR_ATTACHMENT3,
 		]);
 
-		if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) throw Error("Invalid framebuffer.");
+		if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) {
+			throw Error("Invalid framebuffer.");
+		}
 
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 	}
@@ -137,44 +146,58 @@ export class Renderer extends _Renderer {
 	}
 
 	buildGBufferDepthTexture() {
-		const texture = this._context.createTexture();
-		this._context.bindTexture(this._context.TEXTURE_2D, texture);
-		this._context.texImage2D(
-			this._context.TEXTURE_2D,
+		const gl = this._context;
+
+		const texture = gl.createTexture();
+		gl.bindTexture(gl.TEXTURE_2D, texture);
+		gl.texImage2D(
+			gl.TEXTURE_2D,
 			0,
-			this._context.DEPTH_COMPONENT24,
+			gl.DEPTH_COMPONENT24,
 			this._viewport[2],
 			this._viewport[3],
 			0,
-			this._context.DEPTH_COMPONENT,
-			this._context.UNSIGNED_INT,
+			gl.DEPTH_COMPONENT,
+			gl.UNSIGNED_INT,
 			null,
 		);
-		this._context.texParameteri(this._context.TEXTURE_2D, this._context.TEXTURE_MIN_FILTER, this._context.NEAREST);
-		this._context.texParameteri(this._context.TEXTURE_2D, this._context.TEXTURE_MAG_FILTER, this._context.NEAREST);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
 		return texture;
 	}
 
-	setupTexture(image) {
-		this._context.texImage2D(this._context.TEXTURE_2D, 0, this._context.RGB, this._context.RGB, this._context.UNSIGNED_BYTE, image);
-		this._context.texParameteri(this._context.TEXTURE_2D, this._context.TEXTURE_MAG_FILTER, this._context.NEAREST);
-		this._context.generateMipmap(this._context.TEXTURE_2D);
+	/**
+	 * @param {import("../../src/Loader/ImageBitmapLoader.js").Image[]} textureDescriptors
+	 */
+	loadTextures(textureDescriptors) {
+		const gl = this._context;
+
+		for (let i = 0; i < textureDescriptors.length; i++) {
+			const textureDescriptor = textureDescriptors[i];
+			const texture = gl.createTexture();
+
+			gl.bindTexture(gl.TEXTURE_2D, texture);
+			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, textureDescriptor.bitmap);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+			gl.generateMipmap(gl.TEXTURE_2D);
+
+			this.#textures.push(texture);
+		}
 	}
 
 	prerender() {
-		const {scene} = this;
-		const {meshes, lights} = scene;
-		const {length} = meshes;
+		const meshes = this._scene.getMeshes();
+		const lights = this._scene.lights;
 
 		this._context.useProgram(this._programs.gBuffer);
 		this._context.bindVertexArray(this._vaos.gBuffer);
 
 		this._context.bindBuffer(this._context.ARRAY_BUFFER, this._buffers.world);
 
-		const worlds = new Float32Array(length * 16);
+		const worlds = new Float32Array(meshes.length * 16);
 
-		for (let i = 0, mesh; i < length; i++) {
+		for (let i = 0, mesh; i < meshes.length; i++) {
 			mesh = meshes[i];
 
 			const world = Matrix4
@@ -202,110 +225,111 @@ export class Renderer extends _Renderer {
 	}
 
 	render() {
-		const {scene, camera} = this;
+		const gl = this._context;
+
 		const viewportHalf = this._viewport.clone().divideScalar(2);
-		const {meshes} = scene;
+		const meshes = this._scene.getMeshes();
 		const firstMesh = meshes[0];
 		const firstMeshGeometry = firstMesh.getGeometry();
 		const firstMeshMaterial = firstMesh.getMaterial();
 
 		// G-Buffer
 		{
-			this._context.useProgram(this._programs.gBuffer);
-			this._context.bindVertexArray(this._vaos.gBuffer);
-			this._context.bindFramebuffer(this._context.FRAMEBUFFER, this.gBuffer.framebuffer);
+			gl.useProgram(this._programs.gBuffer);
+			gl.bindVertexArray(this._vaos.gBuffer);
+			gl.bindFramebuffer(gl.FRAMEBUFFER, this.gBuffer.framebuffer);
 
-			this._context.clearColor(.125, .129, .141, 1);
-			this._context.clear(this._context.COLOR_BUFFER_BIT | this._context.DEPTH_BUFFER_BIT);
+			gl.clearColor(.125, .129, .141, 1);
+			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-			this._context.uniformMatrix4fv(this._uniforms.projection, false, camera.getProjection());
-			this._context.uniformMatrix4fv(this._uniforms.view, false, camera.getView());
+			gl.uniformMatrix4fv(this._uniforms.projection, false, this._camera.getProjection());
+			gl.uniformMatrix4fv(this._uniforms.view, false, this._camera.getView());
 
-			this._context.bufferData(this._context.ELEMENT_ARRAY_BUFFER, firstMeshGeometry.getIndices(), this._context.STATIC_DRAW);
+			gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, firstMeshGeometry.getIndices(), gl.STATIC_DRAW);
 
-			this._context.bindBuffer(this._context.ARRAY_BUFFER, this._buffers.vertex);
-			this._context.bufferData(this._context.ARRAY_BUFFER, firstMeshGeometry.getVertices(), this._context.STATIC_DRAW);
+			gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.vertex);
+			gl.bufferData(gl.ARRAY_BUFFER, firstMeshGeometry.getVertices(), gl.STATIC_DRAW);
 
-			this._context.bindBuffer(this._context.ARRAY_BUFFER, this._buffers.normal);
-			this._context.bufferData(this._context.ARRAY_BUFFER, firstMeshGeometry.getNormals(), this._context.STATIC_DRAW);
+			gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.normal);
+			gl.bufferData(gl.ARRAY_BUFFER, firstMeshGeometry.getNormals(), gl.STATIC_DRAW);
 
-			this._context.bindBuffer(this._context.ARRAY_BUFFER, this._buffers.uv);
-			this._context.bufferData(this._context.ARRAY_BUFFER, firstMeshGeometry.getUVs(), this._context.STATIC_DRAW);
+			gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.uv);
+			gl.bufferData(gl.ARRAY_BUFFER, firstMeshGeometry.getUVs(), gl.STATIC_DRAW);
 
-			this._context.bindTexture(this._context.TEXTURE_2D, firstMeshMaterial.texture);
+			gl.bindTexture(gl.TEXTURE_2D, this.#textures[firstMeshMaterial.getTextureIndex()]);
 
-			this._context.drawElementsInstanced(this._context.TRIANGLES, 36, this._context.UNSIGNED_BYTE, 0, meshes.length);
+			gl.drawElementsInstanced(gl.TRIANGLES, 36, gl.UNSIGNED_BYTE, 0, meshes.length);
 
-			this._context.bindFramebuffer(this._context.FRAMEBUFFER, null);
+			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		}
 
 		if (this.debug) {
-			this._context.enable(this._context.SCISSOR_TEST);
-			this._context.useProgram(this._programs.screen);
-			this._context.bindVertexArray(this._vaos.screen);
+			gl.enable(gl.SCISSOR_TEST);
+			gl.useProgram(this._programs.screen);
+			gl.bindVertexArray(this._vaos.screen);
 
 			// Position
 			{
-				this._context.scissor(0, viewportHalf[3], viewportHalf[2], viewportHalf[3]);
+				gl.scissor(0, viewportHalf[3], viewportHalf[2], viewportHalf[3]);
 
-				this._context.bindTexture(this._context.TEXTURE_2D, this.gBuffer.position);
+				gl.bindTexture(gl.TEXTURE_2D, this.gBuffer.position);
 
-				this._context.drawArrays(this._context.TRIANGLE_FAN, 0, 4);
+				gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 			}
 
 			// Normal
 			{
-				this._context.scissor(viewportHalf[2], viewportHalf[3], viewportHalf[2], viewportHalf[3]);
+				gl.scissor(viewportHalf[2], viewportHalf[3], viewportHalf[2], viewportHalf[3]);
 
-				this._context.bindTexture(this._context.TEXTURE_2D, this.gBuffer.normal);
+				gl.bindTexture(gl.TEXTURE_2D, this.gBuffer.normal);
 
-				this._context.drawArrays(this._context.TRIANGLE_FAN, 0, 4);
+				gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 			}
 
 			// Color
 			{
-				this._context.scissor(0, 0, viewportHalf[2], viewportHalf[3]);
+				gl.scissor(0, 0, viewportHalf[2], viewportHalf[3]);
 
-				this._context.bindTexture(this._context.TEXTURE_2D, this.gBuffer.color);
+				gl.bindTexture(gl.TEXTURE_2D, this.gBuffer.color);
 
-				this._context.drawArrays(this._context.TRIANGLE_FAN, 0, 4);
+				gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 			}
 
 			// Depth
 			{
-				this._context.scissor(viewportHalf[2], 0, viewportHalf[2], viewportHalf[3]);
+				gl.scissor(viewportHalf[2], 0, viewportHalf[2], viewportHalf[3]);
 
-				this._context.bindTexture(this._context.TEXTURE_2D, this.gBuffer.depthRGB);
+				gl.bindTexture(gl.TEXTURE_2D, this.gBuffer.depthRGB);
 
-				this._context.drawArrays(this._context.TRIANGLE_FAN, 0, 4);
+				gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 			}
 
-			this._context.disable(this._context.SCISSOR_TEST);
+			gl.disable(gl.SCISSOR_TEST);
 		} else {
-			this._context.useProgram(this._programs.lighting);
-			this._context.bindVertexArray(this._vaos.lighting);
+			gl.useProgram(this._programs.lighting);
+			gl.bindVertexArray(this._vaos.lighting);
 
-			this._context.activeTexture(this._context.TEXTURE0);
-			this._context.bindTexture(this._context.TEXTURE_2D, this.gBuffer.position);
-			this._context.activeTexture(this._context.TEXTURE1);
-			this._context.bindTexture(this._context.TEXTURE_2D, this.gBuffer.normal);
-			this._context.activeTexture(this._context.TEXTURE2);
-			this._context.bindTexture(this._context.TEXTURE_2D, this.gBuffer.color);
-			this._context.activeTexture(this._context.TEXTURE3);
-			this._context.bindTexture(this._context.TEXTURE_2D, this.gBuffer.depthRGB);
+			gl.activeTexture(gl.TEXTURE0);
+			gl.bindTexture(gl.TEXTURE_2D, this.gBuffer.position);
+			gl.activeTexture(gl.TEXTURE1);
+			gl.bindTexture(gl.TEXTURE_2D, this.gBuffer.normal);
+			gl.activeTexture(gl.TEXTURE2);
+			gl.bindTexture(gl.TEXTURE_2D, this.gBuffer.color);
+			gl.activeTexture(gl.TEXTURE3);
+			gl.bindTexture(gl.TEXTURE_2D, this.gBuffer.depthRGB);
 
-			this._context.drawArrays(this._context.TRIANGLE_FAN, 0, 4);
+			gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 
-			this._context.bindTexture(this._context.TEXTURE_2D, null);
-			this._context.activeTexture(this._context.TEXTURE2);
-			this._context.bindTexture(this._context.TEXTURE_2D, null);
-			this._context.activeTexture(this._context.TEXTURE1);
-			this._context.bindTexture(this._context.TEXTURE_2D, null);
-			this._context.activeTexture(this._context.TEXTURE0);
-			this._context.bindTexture(this._context.TEXTURE_2D, null);
+			gl.bindTexture(gl.TEXTURE_2D, null);
+			gl.activeTexture(gl.TEXTURE2);
+			gl.bindTexture(gl.TEXTURE_2D, null);
+			gl.activeTexture(gl.TEXTURE1);
+			gl.bindTexture(gl.TEXTURE_2D, null);
+			gl.activeTexture(gl.TEXTURE0);
+			gl.bindTexture(gl.TEXTURE_2D, null);
 		}
 
-		this._context.bindVertexArray(null);
-		this._context.useProgram(null);
+		gl.bindVertexArray(null);
+		gl.useProgram(null);
 	}
 }

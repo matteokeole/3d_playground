@@ -38,7 +38,7 @@ export class Mesh extends _Mesh {
 		translation.set(json.uv);
 		const rotation = json.uv_rotation * PI;
 		const scale = new Vector2(h, w)
-			.divide(image.getViewport())
+			.divide(new Vector2(bitmap.width, bitmap.height))
 			.divide(uvScale);
 
 		return new Mesh(

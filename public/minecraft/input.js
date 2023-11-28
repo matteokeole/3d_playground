@@ -24,7 +24,7 @@ export function listen(renderer) {
 		movement[0] = event.movementX;
 		movement[1] = event.movementY;
 
-		renderer.camera.lookAt(movement);
+		renderer.getCamera().lookAt(movement);
 	}
 
 	addEventListener("click", function(event) {

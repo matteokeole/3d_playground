@@ -1,4 +1,4 @@
-import {ImageBitmapLoader, TextureLoader} from "../../src/Loader/index.js";
+import {ImageBitmapLoader} from "../../src/Loader/index.js";
 import {Vector2, Vector4} from "../../src/math/index.js";
 import {Renderer} from "./Renderer.js";
 import {listen} from "./input.js";

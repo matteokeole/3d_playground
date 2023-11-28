@@ -1,3 +1,3 @@
-import main from "./webgpu/main.js";
+import main from "./hl2/main.js";
 
 main();

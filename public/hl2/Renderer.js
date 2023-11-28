@@ -1,7 +1,6 @@
-import {Mesh, Scene, TextureImage} from "../../src/index.js";
+import {Mesh, Scene} from "../../src/index.js";
 import {ShaderLoader} from "../../src/Loader/index.js";
 import {Material} from "../../src/materials/index.js";
-import {Vector2} from "../../src/math/index.js";
 import {WebGLRenderer} from "../../src/Renderer/index.js";
 import {SSDPlaneGeometry} from "./SSDPlaneGeometry.js";
 
@@ -131,12 +130,13 @@ export class Renderer extends WebGLRenderer {
 	render() {
 		const gl = this._context;
 
+		gl.clearColor(0, 0, 0, 1);
+		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
 		gl.useProgram(this._programs.main);
 		gl.bindVertexArray(this._vaos.scene);
 
 		const scene = this._scene;
-		const meshes = scene.getMeshes();
-		const materials = scene.getMaterials();
 		const pointLight = scene.pointLight;
 		const camera = this._camera;
 
@@ -190,35 +190,4 @@ export class Renderer extends WebGLRenderer {
 
 		gl.useProgram(null);
 	}
-
-	/**
-	 * Adds a sub-rectangle to the texture array.
-	 * 
-	 * @param {Number} index
-	 * @param {import("../../src/Loader/TextureLoader.js").TextureDescriptor} textureDescriptor
-	 */
-	/* #addSubRectangle(index, textureDescriptor) {
-		const gl = this._context;
-		const viewport = new Vector2(textureDescriptor.image.width, textureDescriptor.image.height);
-
-		gl.texSubImage3D(
-			gl.TEXTURE_2D_ARRAY,
-			0,
-			0,
-			0,
-			index,
-			viewport[0],
-			viewport[1],
-			1,
-			gl.RGBA,
-			gl.UNSIGNED_BYTE,
-			textureDescriptor.image,
-		);
-
-		this._images[textureDescriptor.path] = new TextureImage({
-			image: textureDescriptor.image,
-			viewport: viewport.clone(),
-			zOffset: index,
-		});
-	} */
 }

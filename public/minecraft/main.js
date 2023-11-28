@@ -1,11 +1,12 @@
-import {AbstractCamera, AbstractScene} from "../../src/index.js";
-import {TextureLoader} from "../../src/Loader/index.js";
+import {AbstractCamera} from "../../src/index.js";
+import {ImageBitmapLoader} from "../../src/Loader/index.js";
 import {PI, Vector2} from "../../src/math/index.js";
 import {Renderer} from "./Renderer.js";
-import {setup} from "./scenes/instancing.js";
 import {enableDebugging} from "./debug.js";
 import {listen} from "./input.js";
-import {update} from "./update.js";
+import {Instance} from "./Instance.js";
+
+import {createScene} from "./scenes/texture.js";
 
 export const FRAMES_PER_SECOND = 60;
 export const FIELD_OF_VIEW = 90;
@@ -19,21 +20,27 @@ export const NOISE_INC = .05;
 
 export default async function() {
 	const canvas = document.createElement("canvas");
+	const renderer = new Renderer(canvas);
+	const instance = new Instance({
+		renderer,
+		framesPerSecond: FRAMES_PER_SECOND,
+	});
 
 	const viewport = new Vector2(innerWidth, innerHeight);
-
-	const renderer = new Renderer(canvas);
 	renderer.getViewport().set(viewport, 2);
-	await renderer.build();
 
-	const textureLoader = new TextureLoader();
-	const textures = await textureLoader.load("public/minecraft/textures/textures.json");
+	await instance.build();
 
-	for (let i = 0, length = textures.length; i < length; i++) {
-		renderer.addTexture(textures[i]);
-	}
+	renderer.resize();
+
+	const imageBitmapLoader = new ImageBitmapLoader();
+	const textures = await imageBitmapLoader.load("public/minecraft/textures/textures.json");
+
+	renderer.loadTextures(textures);
 
 	const camera = new AbstractCamera();
+	camera.getPosition()[1] = ENTITY_HEIGHT_STAND;
+	camera.target[1] = ENTITY_HEIGHT_STAND;
 	camera.fieldOfView = FIELD_OF_VIEW;
 	camera.aspectRatio = viewport[0] / viewport[1];
 	camera.near = .01;
@@ -41,12 +48,9 @@ export default async function() {
 	camera.bias = PI * .5; // This cancels the perspective matrix bias
 	camera.turnVelocity = .001;
 
-	renderer.scene = new AbstractScene();
-	renderer.camera = camera;
-	renderer.framesPerSecond = FRAMES_PER_SECOND;
-	renderer.update = update;
+	renderer.setScene(createScene());
+	renderer.setCamera(camera);
 
-	setup(renderer);
 	enableDebugging(renderer);
 	listen(renderer);
 
@@ -54,5 +58,5 @@ export default async function() {
 
 	document.body.appendChild(canvas);
 
-	renderer.loop();
+	instance.loop();
 }
