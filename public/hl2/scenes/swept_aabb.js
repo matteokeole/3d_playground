@@ -5,7 +5,7 @@ import {Mesh} from "../Mesh.js";
 import {Camera} from "../Camera.js";
 import {FIELD_OF_VIEW, SENSITIVITY} from "../main.js";
 import {BoxGeometry} from "../../../src/geometries/index.js";
-import {TextureMaterial} from "../../../src/materials/index.js";
+import {Material} from "../../../src/materials/index.js";
 
 /**
  * @todo Use a loader to fetch the scene geometry file
@@ -28,7 +28,7 @@ export async function createScene(textures) {
 
 	const wall = new Mesh(
 		new BoxGeometry(new Vector3(64, 64, 0)),
-		new TextureMaterial({
+		new Material({
 			textureMatrix: Matrix3.identity(),
 			texture: textures["plaster/plasterwall030c.jpg"],
 			normalMap: textures["plaster/plasterwall030c_normal.jpg"],
@@ -39,7 +39,7 @@ export async function createScene(textures) {
 
 	const player = new Mesh(
 		new BoxGeometry(new Vector3(16, 16, 16)),
-		new TextureMaterial({
+		new Material({
 			textureMatrix: Matrix3.identity(),
 			texture: textures["metal/metalcombine001.jpg"],
 			normalMap: textures["metal/metalcombine001_normal.jpg"],

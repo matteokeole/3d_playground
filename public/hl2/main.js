@@ -1,4 +1,4 @@
-import {TextureLoader} from "../../src/Loader/index.js";
+import {ImageBitmapLoader, TextureLoader} from "../../src/Loader/index.js";
 import {Vector2, Vector4} from "../../src/math/index.js";
 import {Renderer} from "./Renderer.js";
 import {listen} from "./input.js";
@@ -30,12 +30,12 @@ export default async function() {
 	renderer.setViewport(new Vector4(0, 0, viewport[0], viewport[1]));
 	renderer.resize();
 
-	const textureLoader = new TextureLoader();
-	const textureDescriptors = await textureLoader.load("public/hl2/textures/textures.json");
+	const imageBitmapLoader = new ImageBitmapLoader();
+	const textureDescriptors = await imageBitmapLoader.load("public/hl2/textures/textures.json");
 
-	renderer.createTextureArray(textureDescriptors);
+	renderer.loadTextures(textureDescriptors);
 
-	renderer.setScene(await createScene(renderer.getImages(), textureDescriptors));
+	renderer.setScene(await createScene(textureDescriptors));
 	renderer.setCamera(createCamera(viewport[0] / viewport[1]));
 
 	listen(renderer);

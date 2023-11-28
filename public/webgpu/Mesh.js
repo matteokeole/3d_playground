@@ -1,7 +1,7 @@
 import {Mesh as _Mesh} from "../../src/index.js";
 import {Matrix3, PI, Vector2, Vector3} from "../../src/math/index.js";
 import {SSDPlaneGeometry} from "../hl2/SSDPlaneGeometry.js";
-import {TextureMaterial} from "./TextureMaterial.js";
+import {Material} from "./Material.js";
 
 export class Mesh extends _Mesh {
 	/**
@@ -39,7 +39,7 @@ export class Mesh extends _Mesh {
 
 		return new Mesh(
 			SSDPlaneGeometry.fromAnchors([anchor1, anchor2, anchor3, anchor4]),
-			new TextureMaterial({
+			new Material({
 				textureMatrix,
 				textureIndex,
 				normalMapIndex: imagePaths.indexOf(json.normal_map),

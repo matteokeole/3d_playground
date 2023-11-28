@@ -2,13 +2,13 @@ import {Material} from "../../src/materials/index.js";
 import {Matrix3} from "../../src/math/index.js";
 
 /**
- * @typedef {Object} TextureMaterialDescriptor
+ * @typedef {Object} MaterialDescriptor
  * @property {Matrix3} textureMatrix
  * @property {Number} textureIndex
  * @property {Number} normalMapIndex
  */
 
-export class TextureMaterial extends Material {
+export class Material extends Material {
 	/**
 	 * @type {Matrix3}
 	 */
@@ -25,7 +25,7 @@ export class TextureMaterial extends Material {
 	#normalMapIndex;
 
 	/**
-	 * @param {TextureMaterialDescriptor} descriptor
+	 * @param {MaterialDescriptor} descriptor
 	 */
 	constructor(descriptor) {
 		super();

@@ -1,12 +1,26 @@
-import {Scene, TextureImage} from "../../src/index.js";
+import {Mesh, Scene, TextureImage} from "../../src/index.js";
 import {ShaderLoader} from "../../src/Loader/index.js";
+import {Material} from "../../src/materials/index.js";
 import {Vector2} from "../../src/math/index.js";
 import {WebGLRenderer} from "../../src/Renderer/index.js";
 import {SSDPlaneGeometry} from "./SSDPlaneGeometry.js";
 
 export class Renderer extends WebGLRenderer {
+	/**
+	 * @type {Map.<Material, Mesh[]>}
+	 */
+	#meshesPerMaterial;
+
+	/**
+	 * @type {WebGLTexture[]}
+	 */
+	#textures;
+
 	async build() {
 		super.build();
+
+		this.#meshesPerMaterial = new Map();
+		this.#textures = [];
 
 		const shaderLoader = new ShaderLoader();
 		const mainVertexShaderSource = await shaderLoader.load("public/hl2/shaders/main.vert");
@@ -61,8 +75,10 @@ export class Renderer extends WebGLRenderer {
 		this._uniforms.cameraPosition = gl.getUniformLocation(this._programs.main, "u_camera.position");
 		this._uniforms.lightPosition = gl.getUniformLocation(this._programs.main, "u_light.position");
 		this._uniforms.textureMatrix = gl.getUniformLocation(this._programs.main, "u_texture_matrix");
-		this._uniforms.textureIndex = gl.getUniformLocation(this._programs.main, "u_texture_index");
-		this._uniforms.normalMapIndex = gl.getUniformLocation(this._programs.main, "u_normal_map_index");
+		this._uniforms.texture = gl.getUniformLocation(this._programs.main, "u_texture");
+		gl.uniform1i(this._uniforms.texture, 0);
+		this._uniforms.normalMap = gl.getUniformLocation(this._programs.main, "u_normal_map");
+		gl.uniform1i(this._uniforms.normalMap, 1);
 		this._uniforms.lightColor = gl.getUniformLocation(this._programs.main, "u_light_color");
 		this._uniforms.lightIntensity = gl.getUniformLocation(this._programs.main, "u_light_intensity");
 
@@ -77,19 +93,20 @@ export class Renderer extends WebGLRenderer {
 	}
 
 	/**
-	 * @param {import("../../src/Loader/TextureLoader.js").TextureDescriptor[]} textureDescriptors
+	 * @param {import("../../src/Loader/ImageBitmapLoader.js").Image[]} textureDescriptors
 	 */
-	createTextureArray(textureDescriptors) {
+	loadTextures(textureDescriptors) {
 		const gl = this._context;
-		const length = textureDescriptors.length;
 
-		this._textures.array = gl.createTexture();
+		for (let i = 0; i < textureDescriptors.length; i++) {
+			const textureDescriptor = textureDescriptors[i];
+			const texture = gl.createTexture();
 
-		gl.bindTexture(gl.TEXTURE_2D_ARRAY, this._textures.array);
-		gl.texStorage3D(gl.TEXTURE_2D_ARRAY, 1, gl.RGBA8, 512, 512, length);
+			gl.bindTexture(gl.TEXTURE_2D, texture);
+			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, textureDescriptor.bitmap);
+			gl.generateMipmap(gl.TEXTURE_2D);
 
-		for (let i = 0; i < length; i++) {
-			this.#addSubRectangle(i, textureDescriptors[i]);
+			this.#textures.push(texture);
 		}
 	}
 
@@ -99,11 +116,16 @@ export class Renderer extends WebGLRenderer {
 	setScene(scene) {
 		this._scene = scene;
 
-		const gl = this._context;
+		const meshes = this._scene.getMeshes();
 
-		this._buffers.scene = gl.createBuffer();
+		for (let i = 0; i < meshes.length; i++) {
+			const material = meshes[i].getMaterial();
 
-		gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.scene);
+			const materialMeshes = this.#meshesPerMaterial.get(material) ?? [];
+			materialMeshes.push(meshes[i]);
+
+			this.#meshesPerMaterial.set(material, materialMeshes);
+		}
 	}
 
 	render() {
@@ -114,6 +136,7 @@ export class Renderer extends WebGLRenderer {
 
 		const scene = this._scene;
 		const meshes = scene.getMeshes();
+		const materials = scene.getMaterials();
 		const pointLight = scene.pointLight;
 		const camera = this._camera;
 
@@ -124,35 +147,39 @@ export class Renderer extends WebGLRenderer {
 		gl.uniform3fv(this._uniforms.lightColor, pointLight.color);
 		gl.uniform1f(this._uniforms.lightIntensity, pointLight.intensity);
 
-		for (let i = 0, length = meshes.length; i < length; i++) {
-			const mesh = meshes[i];
-			const geometry = mesh.getGeometry();
-			const material = mesh.getMaterial();
+		for (const [material, meshes] of this.#meshesPerMaterial) {
+			gl.uniformMatrix3fv(this._uniforms.textureMatrix, false, material.getTextureMatrix());
 
-			gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.vertex);
-			gl.bufferData(gl.ARRAY_BUFFER, geometry.getVertices(), gl.STATIC_DRAW);
+			gl.activeTexture(gl.TEXTURE0);
+			gl.bindTexture(gl.TEXTURE_2D, this.#textures[material.getTextureIndex()]);
 
-			gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.normal);
-			gl.bufferData(gl.ARRAY_BUFFER, geometry.getNormals(), gl.STATIC_DRAW);
+			gl.activeTexture(gl.TEXTURE1);
+			gl.bindTexture(gl.TEXTURE_2D, this.#textures[material.getNormalMapIndex()]);
 
-			gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.tangent);
-			gl.bufferData(gl.ARRAY_BUFFER, geometry.getTangents(), gl.STATIC_DRAW);
+			for (let i = 0, length = meshes.length; i < length; i++) {
+				const mesh = meshes[i];
+				const geometry = mesh.getGeometry();
 
-			gl.uniformMatrix3fv(this._uniforms.textureMatrix, false, material.textureMatrix);
+				gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.vertex);
+				gl.bufferData(gl.ARRAY_BUFFER, geometry.getVertices(), gl.STATIC_DRAW);
 
-			gl.uniform1ui(this._uniforms.textureIndex, material.texture.getZOffset());
-			gl.uniform1ui(this._uniforms.normalMapIndex, material.normalMap.getZOffset());
+				gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.normal);
+				gl.bufferData(gl.ARRAY_BUFFER, geometry.getNormals(), gl.STATIC_DRAW);
 
-			gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.uv);
-			gl.bufferData(gl.ARRAY_BUFFER, geometry.getUVs(), gl.STATIC_DRAW);
+				gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.tangent);
+				gl.bufferData(gl.ARRAY_BUFFER, geometry.getTangents(), gl.STATIC_DRAW);
 
-			if (geometry instanceof SSDPlaneGeometry) {
-				gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
-			} else {
-				const indices = geometry.getIndices();
+				gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.uv);
+				gl.bufferData(gl.ARRAY_BUFFER, geometry.getUVs(), gl.STATIC_DRAW);
 
-				gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
-				gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_BYTE, 0);
+				if (geometry instanceof SSDPlaneGeometry) {
+					gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+				} else {
+					const indices = geometry.getIndices();
+
+					gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
+					gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_BYTE, 0);
+				}
 			}
 		}
 
@@ -170,7 +197,7 @@ export class Renderer extends WebGLRenderer {
 	 * @param {Number} index
 	 * @param {import("../../src/Loader/TextureLoader.js").TextureDescriptor} textureDescriptor
 	 */
-	#addSubRectangle(index, textureDescriptor) {
+	/* #addSubRectangle(index, textureDescriptor) {
 		const gl = this._context;
 		const viewport = new Vector2(textureDescriptor.image.width, textureDescriptor.image.height);
 
@@ -193,5 +220,5 @@ export class Renderer extends WebGLRenderer {
 			viewport: viewport.clone(),
 			zOffset: index,
 		});
-	}
+	} */
 }

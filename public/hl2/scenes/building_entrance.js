@@ -8,20 +8,22 @@ import {Mesh} from "../Mesh.js";
 /**
  * @todo Use a loader to fetch the scene geometry file
  * 
- * @param {Object.<String, TextureImage>} textureImages
+ * @param {import("../../../src/Loader/ImageBitmapLoader.js").Image[]} images
  * @returns {Promise.<Scene>}
  */
-export async function createScene(textureImages) {
+export async function createScene(images) {
 	const response = await fetch("public/hl2/scenes/building_entrance.json");
 	const json = await response.json();
 	const meshes = [];
+
+	const imagePaths = images.map(image => image.path);
 
 	for (let i = 0, length = json.length; i < length; i++) {
 		if (!("label" in json[i])) {
 			continue;
 		}
 
-		meshes.push(Mesh.fromJson(json[i], textureImages));
+		meshes.push(Mesh.fromJson(json[i], images, imagePaths));
 	}
 
 	const scene = new Scene(meshes);
