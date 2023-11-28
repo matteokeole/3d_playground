@@ -5,7 +5,7 @@ import {Material} from "./materials/index.js";
 /**
  * @abstract
  */
-export class AbstractMesh {
+export class Mesh {
 	/**
 	 * @type {Geometry}
 	 */
@@ -20,16 +20,6 @@ export class AbstractMesh {
 	 * @type {Vector3}
 	 */
 	_position = new Vector3(0, 0, 0);
-
-	/**
-	 * @type {Vector3}
-	 */
-	#rotation = new Vector3(0, 0, 0);
-
-	/**
-	 * @type {Vector3}
-	 */
-	#scale = new Vector3(1, 1, 1);
 
 	/**
 	 * @param {Geometry} geometry
@@ -57,33 +47,5 @@ export class AbstractMesh {
 	 */
 	setPosition(position) {
 		this._position = position;
-	}
-
-	/**
-	 * @returns {Vector3}
-	 */
-	get rotation() {
-		return this.#rotation;
-	}
-
-	/**
-	 * @param {Vector3} rotation
-	 */
-	set rotation(rotation) {
-		this.#rotation = rotation;
-	}
-
-	/**
-	 * @returns {Vector3}
-	 */
-	get scale() {
-		return this.#scale;
-	}
-
-	/**
-	 * @param {Vector3} scale
-	 */
-	set scale(scale) {
-		this.#scale = scale;
 	}
 }

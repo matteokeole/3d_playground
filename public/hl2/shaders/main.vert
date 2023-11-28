@@ -1,33 +1,43 @@
 #version 300 es
 
+struct Vertex {
+	vec3 position;
+	vec3 normal;
+	vec3 tangent;
+	vec2 uv;
+};
+
+struct Camera {
+	mat4 projection;
+	mat4 view;
+	vec3 position;
+};
+
+struct Light {
+	vec3 position;
+};
+
+layout(location = 0)
 in vec4 a_vertex;
 in vec3 a_normal;
 in vec3 a_tangent;
 in vec2 a_uv;
 
-uniform mat4 u_projection;
-uniform mat4 u_view;
-uniform vec3 u_camera_position;
-uniform vec3 u_mesh_position;
-uniform vec3 u_light_position;
+uniform Camera u_camera;
+uniform Light u_light;
 
 out vec2 v_uv;
 out vec3 v_surface_to_camera;
 out vec3 v_surface_to_light;
 
 void main() {
-	vec3 vertex = u_mesh_position + a_vertex.xyz;
+	gl_Position = u_camera.projection * u_camera.view * a_vertex;
 
-	gl_Position = u_projection * u_view * (a_vertex + vec4(u_mesh_position, 0));
-
-	vec3 tangent = normalize(a_tangent);
-	vec3 normal = normalize(a_normal);
-	tangent = normalize(tangent - dot(tangent, normal) * normal);
-	vec3 bitangent = cross(tangent, normal);
-
-	mat3 tangent_bitangent_normal = transpose(mat3(tangent, bitangent, normal));
+	vec3 tangent = normalize(a_tangent - dot(a_tangent, a_normal) * a_normal);
+	vec3 bitangent = cross(tangent, a_normal);
+	mat3 tangent_bitangent_normal = transpose(mat3(tangent, bitangent, a_normal));
 
 	v_uv = a_uv;
-	v_surface_to_camera = tangent_bitangent_normal * (u_camera_position - vertex);
-	v_surface_to_light = tangent_bitangent_normal * (u_light_position - vertex);
+	v_surface_to_camera = tangent_bitangent_normal * (u_camera.position - a_vertex.xyz);
+	v_surface_to_light = tangent_bitangent_normal * (u_light.position - a_vertex.xyz);
 }

@@ -69,7 +69,7 @@ export class Geometry {
 		const u = anchor2.clone().subtract(anchor1);
 		const v = anchor3.clone().subtract(anchor1);
 
-		return u.cross(v);
+		return u.cross(v).normalize();
 	}
 
 	/**

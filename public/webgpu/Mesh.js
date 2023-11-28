@@ -1,16 +1,9 @@
 import {Mesh as _Mesh} from "../../src/index.js";
-import {BoxGeometry} from "../../src/geometries/index.js";
-import {Material} from "../../src/materials/index.js";
 import {Matrix3, PI, Vector2, Vector3} from "../../src/math/index.js";
-import {Hitbox} from "./Hitbox.js";
-import {SSDPlaneGeometry} from "./SSDPlaneGeometry.js";
+import {SSDPlaneGeometry} from "../hl2/SSDPlaneGeometry.js";
+import {Material} from "./Material.js";
 
 export class Mesh extends _Mesh {
-	/**
-	 * @type {?Hitbox}
-	 */
-	#hitbox;
-
 	/**
 	 * @param {Object} json
 	 * @param {import("../../src/Loader/ImageBitmapLoader.js").Image[]} images
@@ -24,48 +17,33 @@ export class Mesh extends _Mesh {
 		const anchor4 = anchors.length === 9 ?
 			anchor3.clone().add(anchor1).subtract(anchor2) :
 			new Vector3(anchors[9], anchors[10], anchors[11]);
+		const w = anchor1.to(anchor2);
+		const h = anchor2.to(anchor3);
 
 		const textureIndex = imagePaths.indexOf(json.texture);
 		const bitmap = images[textureIndex].bitmap;
 
-		const w = anchor1.to(anchor2);
-		const h = anchor2.to(anchor3);
+		const textureTranslation = new Vector2();
+		textureTranslation.set(json.uv);
 
-		const uvScale = new Vector2();
-		uvScale.set(json.uv_scale);
+		const textureRotation = json.uv_rotation * PI;
 
-		const translation = new Vector2();
-		translation.set(json.uv);
-		const rotation = json.uv_rotation * PI;
-		const scale = new Vector2(h, w)
+		const textureScale = new Vector2(h, w)
 			.divide(new Vector2(bitmap.width, bitmap.height))
-			.divide(uvScale);
+			.divide(new Vector2(json.uv_scale[0], json.uv_scale[1]));
+
+		const textureMatrix = Matrix3
+			.translation(textureTranslation)
+			.multiply(Matrix3.rotation(textureRotation))
+			.multiply(Matrix3.scale(textureScale));
 
 		return new Mesh(
 			SSDPlaneGeometry.fromAnchors([anchor1, anchor2, anchor3, anchor4]),
 			new Material({
-				textureMatrix: Matrix3
-					.translation(translation)
-					.multiply(Matrix3.rotation(rotation))
-					.multiply(Matrix3.scale(scale)),
+				textureMatrix,
 				textureIndex,
 				normalMapIndex: imagePaths.indexOf(json.normal_map),
 			}),
 		);
-	}
-
-	getHitbox() {
-		return this.#hitbox;
-	}
-
-	buildHitbox() {
-		if (!(this._geometry instanceof BoxGeometry)) {
-			throw Error("Can't initialize the hitbox of a non-3D mesh.");
-		}
-
-		this.#hitbox = new Hitbox({
-			position: this._position,
-			size: this._geometry.getSize(),
-		});
 	}
 }

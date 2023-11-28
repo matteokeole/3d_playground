@@ -1,12 +1,13 @@
-import {AbstractCamera, AbstractScene, Texture} from "./index.js";
+import {AbstractCamera, AbstractScene, TextureImage} from "./index.js";
 import {Vector4} from "./math/index.js";
 
 /**
+ * @deprecated
  * @abstract
  */
-export class AbstractRenderer {
+export class Renderer {
 	/**
-	 * @type {?HTMLCanvasElement}
+	 * @type {HTMLCanvasElement}
 	 */
 	#canvas;
 
@@ -41,7 +42,7 @@ export class AbstractRenderer {
 	_uniforms;
 
 	/**
-	 * @type {Object.<String, Texture>}
+	 * @type {Object.<String, TextureImage>}
 	 */
 	_textures;
 
@@ -85,8 +86,11 @@ export class AbstractRenderer {
 	 */
 	debug;
 
-	constructor() {
-		this.#canvas = null;
+	/**
+	 * @param {HTMLCanvasElement} canvas
+	 */
+	constructor(canvas) {
+		this.#canvas = canvas;
 		this._context = null;
 		this._viewport = new Vector4(0, 0, 300, 150);
 		this._programs = {};
@@ -139,86 +143,54 @@ export class AbstractRenderer {
 	 * Initializes the canvas and its WebGL context.
 	 */
 	build() {
-		this.#canvas = document.createElement("canvas");
 		this.#canvas.width = this._viewport[2];
 		this.#canvas.height = this._viewport[3];
 		this._context = this.#canvas.getContext("webgl2");
 	}
 
 	/**
-	 * Creates a program from the shader sources.
-	 * Dumps the program and shader logs if a link error occurs.
-	 * 
-	 * @param {String} programName
 	 * @param {String} vertexShaderSource
 	 * @param {String} fragmentShaderSource
-	 * @throws {Error}
+	 * @throws {Error} if the program linking was not successful
 	 */
-	createProgram(programName, vertexShaderSource, fragmentShaderSource) {
-		const vertexShader = this.createShader(this._context.VERTEX_SHADER, vertexShaderSource);
-		const fragmentShader = this.createShader(this._context.FRAGMENT_SHADER, fragmentShaderSource);
-
+	_createProgram(vertexShaderSource, fragmentShaderSource) {
 		const program = this._context.createProgram();
+		const vertexShader = this.#createShader(this._context.VERTEX_SHADER, vertexShaderSource);
+		const fragmentShader = this.#createShader(this._context.FRAGMENT_SHADER, fragmentShaderSource);
+
 		this._context.attachShader(program, vertexShader);
 		this._context.attachShader(program, fragmentShader);
+
 		this._context.linkProgram(program);
 
 		if (!this._context.getProgramParameter(program, this._context.LINK_STATUS)) {
-			const vertexShaderLog = this._context.getShaderInfoLog(vertexShader);
-			if (vertexShaderLog !== '') console.warn(`Vertex shader log:\n${vertexShaderLog}`);
-
-			const fragmentShaderLog = this._context.getShaderInfoLog(fragmentShader);
-			if (fragmentShaderLog !== '') console.warn(`Fragment shader log:\n${fragmentShaderLog}`);
-
-			throw Error(this._context.getProgramInfoLog(program));
-		}
-
-		this._programs[programName] = program;
-	}
-
-	/**
-	 * Creates, compiles and returns a shader.
-	 * 
-	 * @param {GLenum} shaderType
-	 * @param {String} shaderSource
-	 * @returns {WebGLShader}
-	 */
-	createShader(shaderType, shaderSource) {
-		const shader = this._context.createShader(shaderType);
-
-		this._context.shaderSource(shader, shaderSource);
-		this._context.compileShader(shader);
-
-		return shader;
-	}
-
-	/**
-	 * @param {String[]} paths
-	 */
-	async loadTextures(basePath, paths) {
-		for (let i = 0, l = paths.length, path, image, texture; i < l; i++) {
-			path = paths[i];
-			image = new Image();
-			image.src = `${basePath}${path}`;
-
-			try {
-				await image.decode();
-			} catch (_) {
-				continue;
+			if (this._context.getShaderInfoLog(vertexShader) !== "") {
+				throw new Error(`VERTEX SHADER ${this._context.getShaderInfoLog(vertexShader)}`);
 			}
 
-			texture = this._context.createTexture();
-			this._context.bindTexture(this._context.TEXTURE_2D, texture);
-
-			this.setupTexture(image);
-
-			this._textures[path] = new Texture(texture, image);
+			if (this._context.getShaderInfoLog(fragmentShader) !== "") {
+				throw new Error(`FRAGMENT SHADER ${this._context.getShaderInfoLog(fragmentShader)}`);
+			}
 		}
+
+		return program;
+	}
+
+	/**
+	 * @param {import("./Loader/TextureLoader.js").TextureDescriptor} descriptor
+	 */
+	addTexture(descriptor) {
+		const texture = this._context.createTexture();
+
+		this._context.bindTexture(this._context.TEXTURE_2D, texture);
+		this.setupTexture(descriptor.image);
+
+		this._textures[descriptor.path] = texture;
 	}
 
 	/**
 	 * @abstract
-	 * @param {Image} image
+	 * @param {HTMLImageElement} image
 	 */
 	setupTexture(image) {}
 
@@ -259,4 +231,17 @@ export class AbstractRenderer {
 	 * @abstract
 	 */
 	render() {}
+
+	/**
+	 * @param {GLint} type
+	 * @param {String} source
+	 */
+	#createShader(type, source) {
+		const shader = this._context.createShader(type);
+
+		this._context.shaderSource(shader, source);
+		this._context.compileShader(shader);
+
+		return shader;
+	}
 }

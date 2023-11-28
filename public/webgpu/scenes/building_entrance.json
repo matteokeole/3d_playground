@@ -1,0 +1,27 @@
+[
+	{
+		"label": "hall_floor",
+		"anchors": [-16, 0, -16, -16, 0, 184, 128, 0, 184],
+		"texture": "debug.jpg",
+		"normal_map": "normal.jpg",
+		"uv": [0.625, 0.25],
+		"uv_rotation": 0.5,
+		"uv_scale": [0.25, 0.25]
+	}, {
+		"label": "hall_to_bike_room_floor",
+		"anchors": [-24, 0, 104, -24, 0, 152, -16, 0, 152],
+		"texture": "debug.jpg",
+		"normal_map": "normal.jpg",
+		"uv": [0.125, 0.375],
+		"uv_rotation": 0.5,
+		"uv_scale": [0.25, 0.25]
+	}, {
+		"label": "bike_room_floor",
+		"anchors": [-96, 0, 48, -96, 0, 184, -24, 0, 184],
+		"texture": "debug.jpg",
+		"normal_map": "normal.jpg",
+		"uv": [0.625, 0.5],
+		"uv_rotation": 0.5,
+		"uv_scale": [0.25, 0.25]
+	}
+]

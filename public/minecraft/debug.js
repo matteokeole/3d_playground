@@ -1,4 +1,9 @@
-export function debug(renderer) {
+import {Renderer} from "./Renderer.js";
+
+/**
+ * @param {Renderer} renderer
+ */
+export function enableDebugging(renderer) {
 	const container = document.createElement("div");
 	const visualizeStepsLabel = document.createElement("label");
 	const visualizeSteps = document.createElement("input");

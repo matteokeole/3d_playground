@@ -1,28 +1,28 @@
 import {Material} from "./Material.js";
-import {Texture} from "../index.js";
+import {TextureImage} from "../index.js";
 import {Matrix3} from "../math/index.js";
 
-export class TextureMaterial extends Material {
+export class Material extends Material {
 	/**
 	 * @type {Matrix3}
 	 */
 	#textureMatrix;
 
 	/**
-	 * @type {Texture}
+	 * @type {TextureImage}
 	 */
 	#texture;
 
 	/**
-	 * @type {Texture}
+	 * @type {TextureImage}
 	 */
 	#normalMap;
 
 	/**
 	 * @param {Object} options
 	 * @param {Matrix3} options.textureMatrix
-	 * @param {Texture} options.texture
-	 * @param {Texture} options.normalMap
+	 * @param {TextureImage} options.texture
+	 * @param {TextureImage} options.normalMap
 	 */
 	constructor({textureMatrix, texture, normalMap}) {
 		super();
@@ -32,23 +32,14 @@ export class TextureMaterial extends Material {
 		this.#normalMap = normalMap;
 	}
 
-	/**
-	 * @returns {Matrix3}
-	 */
 	get textureMatrix() {
 		return this.#textureMatrix;
 	}
 
-	/**
-	 * @returns {Texture}
-	 */
 	get texture() {
 		return this.#texture;
 	}
 
-	/**
-	 * @returns {Texture}
-	 */
 	get normalMap() {
 		return this.#normalMap;
 	}

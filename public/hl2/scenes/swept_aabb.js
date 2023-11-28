@@ -1,59 +1,85 @@
-import {BoxGeometry} from "../../../src/geometries/index.js";
+import {Scene, TextureImage} from "../../../src/index.js";
 import {PointLight} from "../../../src/lights/index.js";
-import {TextureMaterial} from "../../../src/materials/index.js";
-import {Matrix3, Vector3} from "../../../src/math/index.js";
+import {Matrix3, PI, Vector2, Vector3} from "../../../src/math/index.js";
 import {Mesh} from "../Mesh.js";
+import {Camera} from "../Camera.js";
+import {FIELD_OF_VIEW, SENSITIVITY} from "../main.js";
+import {BoxGeometry} from "../../../src/geometries/index.js";
+import {Material} from "../../../src/materials/index.js";
 
-export async function setup(renderer) {
-	const {scene, camera} = renderer;
+/**
+ * @todo Use a loader to fetch the scene geometry file
+ * 
+ * @param {Object.<String, TextureImage>} textures
+ * @returns {Promise.<Scene>}
+ */
+export async function createScene(textures) {
+	const response = await fetch("public/hl2/scenes/swept_aabb.json");
+	const json = await response.json();
+	const meshes = [];
 
-	scene.lights.push(
-		new PointLight({
-			color: new Vector3(1, 1, 1),
-			intensity: .5,
-			position: new Vector3(0, 64, -128),
-			direction: new Vector3(),
-		}),
-	);
-
-	const position = new Vector3(0, 8, 0);
-
-	camera.position = position.clone();
-	camera.target = position.clone();
-	camera.rotation = new Vector3(-Math.PI / 6, 0, 0);
-	camera.setDistance(new Vector3(0, 0, -64));
-
-	const meshes = await (await fetch("public/hl2/scenes/swept_aabb.json")).json();
-
-	for (let i = 0, length = meshes.length; i < length; i++) {
-		if (meshes[i].label == null) {
+	for (let i = 0, length = json.length; i < length; i++) {
+		if (!("label" in json[i])) {
 			continue;
 		}
 
-		scene.meshes.push(Mesh.fromJSON(meshes[i], renderer._textures));
+		meshes.push(Mesh.fromJson(json[i], textures));
 	}
 
-	renderer.player = new Mesh(
-		new BoxGeometry(new Vector3(16, 16, 16)),
-		new TextureMaterial({
-			textureMatrix: Matrix3.identity(),
-			texture: renderer._textures["metal/metalcombine001.jpg"],
-			normalMap: renderer._textures["metal/metalcombine001_normal.jpg"],
-		}),
-	);
-	renderer.player.setPosition(position.clone());
-	renderer.player.buildHitbox();
-
-	renderer.wall = new Mesh(
+	const wall = new Mesh(
 		new BoxGeometry(new Vector3(64, 64, 0)),
-		new TextureMaterial({
+		new Material({
 			textureMatrix: Matrix3.identity(),
-			texture: renderer._textures["plaster/plasterwall030c.jpg"],
-			normalMap: renderer._textures["plaster/plasterwall030c_normal.jpg"],
+			texture: textures["plaster/plasterwall030c.jpg"],
+			normalMap: textures["plaster/plasterwall030c_normal.jpg"],
 		}),
 	);
-	renderer.wall.setPosition(new Vector3(0, 32, 64));
-	renderer.wall.buildHitbox();
+	wall.setPosition(new Vector3(0, 32, 64));
+	wall.buildHitbox();
 
-	scene.meshes.push(renderer.player, renderer.wall);
+	const player = new Mesh(
+		new BoxGeometry(new Vector3(16, 16, 16)),
+		new Material({
+			textureMatrix: Matrix3.identity(),
+			texture: textures["metal/metalcombine001.jpg"],
+			normalMap: textures["metal/metalcombine001_normal.jpg"],
+		}),
+	);
+	player.setPosition(new Vector3(0, 8, 0));
+	player.buildHitbox();
+
+	meshes.push(wall, player);
+
+	const scene = new Scene(meshes);
+
+	scene.pointLight = new PointLight({
+		color: new Vector3(1, 1, 1),
+		intensity: .5,
+		position: new Vector3(0, 64, -128),
+		direction: new Vector3(),
+	});
+
+	return scene;
+}
+
+/**
+ * @param {Number} aspectRatio
+ */
+export function createCamera(aspectRatio) {
+	const camera = new Camera();
+
+	camera.setPosition(new Vector3(0, 8, 0));
+	camera.target = camera.getPosition().clone();
+	camera.rotation = new Vector3(-PI / 6, 0, 0);
+	camera.setDistance(new Vector3(0, 0, -64));
+
+	camera.fieldOfView = FIELD_OF_VIEW;
+	camera.aspectRatio = aspectRatio;
+	camera.near = .5;
+	camera.far = 1000;
+	camera.bias = PI * .545; // ~1.712
+	camera.turnVelocity = SENSITIVITY;
+	camera.lookAt(new Vector2());
+
+	return camera;
 }

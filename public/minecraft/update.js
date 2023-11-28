@@ -1,4 +1,4 @@
-import {VELOCITY, VELOCITY_SQRT1_2, CAMERA_LERP_FACTOR} from "./index.js";
+import {VELOCITY, VELOCITY_SQRT1_2, CAMERA_LERP_FACTOR} from "./main.js";
 import {Keybind, keys} from "./input.js";
 
 const diagonalMovement = () =>
@@ -16,8 +16,8 @@ export function update(delta, renderer) {
 	if (keys.has("Space")) camera.moveY(velocity);
 	if (keys.has("ControlLeft")) camera.moveY(-velocity);
 
-	camera.position.set(camera.target.clone().lerp(camera.position, CAMERA_LERP_FACTOR));
+	camera.setPosition(camera.target.clone().lerp(camera.getPosition(), CAMERA_LERP_FACTOR);
 	camera.update();
 
-	DebugDelta.textContent = delta.toFixed(2);
+	document.getElementById("DebugDelta").textContent = delta.toFixed(2);
 };

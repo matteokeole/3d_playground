@@ -37,11 +37,4 @@ export class SSDPlaneGeometry extends Geometry {
 			),
 		});
 	}
-
-	/**
-	 * @param {import("../../src/geometries/Geometry.js").GeometryDescriptor} descriptor
-	 */
-	constructor(descriptor) {
-		super(descriptor);
-	}
 }

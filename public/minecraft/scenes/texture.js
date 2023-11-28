@@ -1,14 +1,14 @@
-import {AbstractMesh as Mesh} from "../../../src/index.js";
+import {Mesh} from "../../../src/index.js";
 import {BoxGeometry} from "../../../src/geometries/index.js";
 import {DirectionalLight} from "../../../src/lights/index.js";
-import {TextureMaterial} from "../../../src/materials/index.js";
+import {Material} from "../../../src/materials/index.js";
 import {Vector3} from "../../../src/math/index.js";
-import {BLOCK_SCALE, ENTITY_HEIGHT_STAND} from "../index.js";
+import {BLOCK_SCALE, ENTITY_HEIGHT_STAND} from "../main.js";
 
 export function setup(renderer) {
 	const {scene, camera} = renderer;
 
-	camera.position[1] = ENTITY_HEIGHT_STAND;
+	camera.getPosition()[1] = ENTITY_HEIGHT_STAND;
 	camera.target[1] = ENTITY_HEIGHT_STAND;
 
 	scene.lights.push(
@@ -21,7 +21,7 @@ export function setup(renderer) {
 
 	const mesh = new Mesh(
 		new BoxGeometry(new Vector3(1, 1, 1)),
-		new TextureMaterial({texture: renderer._textures["block/crafting_table_top.png"]}),
+		new Material({texture: renderer._textures["block/crafting_table_top.png"]}),
 	);
 
 	mesh.setPosition(new Vector3(0, 1.3, 2).multiplyScalar(.85));
