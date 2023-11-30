@@ -25,6 +25,11 @@ export class Instance {
 	/**
 	 * @type {Number}
 	 */
+	_frameIndex;
+
+	/**
+	 * @type {Number}
+	 */
 	#frameInterval;
 
 	/**
@@ -44,6 +49,7 @@ export class Instance {
 		this._renderer = descriptor.renderer;
 		this._frameIndex = 0;
 		this.#framesPerSecond = descriptor.framesPerSecond;
+		this._frameIndex = 0;
 		this.#frameInterval = 1000 / this.#framesPerSecond;
 		this.#timeSinceLastFrame = -this.#frameInterval;
 		this.#animationFrameRequestId = null;
