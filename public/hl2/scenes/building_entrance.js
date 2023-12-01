@@ -1,9 +1,9 @@
-import {Scene, TextureImage} from "../../../src/index.js";
 import {PointLight} from "../../../src/lights/index.js";
 import {PI, Vector2, Vector3} from "../../../src/math/index.js";
 import {Camera} from "../Camera.js";
 import {ENTITY_HEIGHT_STAND, FIELD_OF_VIEW, SENSITIVITY} from "../main.js";
 import {Mesh} from "../Mesh.js";
+import {Scene} from "../Scene.js";
 
 /**
  * @todo Use a loader to fetch the scene geometry file
@@ -27,13 +27,14 @@ export async function createScene(images) {
 	}
 
 	const scene = new Scene(meshes);
-
-	scene.pointLight = new PointLight({
-		color: new Vector3(1, 1, 1),
-		intensity: .75,
-		position: new Vector3(),
-		direction: new Vector3(),
-	});
+	scene.setPointLight(
+		new PointLight({
+			color: new Vector3(1, 1, 1),
+			intensity: .75,
+			position: new Vector3(),
+			direction: new Vector3(),
+		}),
+	);
 
 	return scene;
 }

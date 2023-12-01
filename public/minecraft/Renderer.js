@@ -22,7 +22,7 @@ export class Renderer extends WebGLRenderer {
 		const screenFragmentShaderSource = await shaderLoader.load("public/minecraft/shaders/screen.frag");
 		const lightVertexShaderSource = await shaderLoader.load("public/minecraft/shaders/light.vert");
 		const lightFragmentShaderSource = await shaderLoader.load("public/minecraft/shaders/light.frag");
-		const depthFragmentShaderSource = await shaderLoader.load("public/minecraft/shaders/depth.frag");
+		const depthFragmentShaderSource = await shaderLoader.load("assets/shaders/depth.frag");
 
 		this._programs.gBuffer = this._createProgram(gBufferVertexShaderSource, gBufferFragmentShaderSource);
 		this._programs.screen = this._createProgram(screenVertexShaderSource, screenFragmentShaderSource);

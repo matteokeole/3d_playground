@@ -47,7 +47,7 @@ export class Instance extends _Instance {
 		camera.getPosition().lerp(camera.target, CAMERA_LERP_FACTOR);
 		camera.update();
 
-		this._renderer.getScene().pointLight.setPosition(camera.getPosition());
+		this._renderer.getScene().getPointLight().setPosition(camera.getPosition());
 
 		document.getElementById("DebugPosition").textContent = `${camera.getPosition()}`;
 		document.getElementById("DebugRotation").textContent = `${camera.rotation}`;

@@ -1,4 +1,4 @@
-import {Scene, TextureImage} from "../../../src/index.js";
+import {TextureImage} from "../../../src/index.js";
 import {PointLight} from "../../../src/lights/index.js";
 import {Matrix3, PI, Vector2, Vector3} from "../../../src/math/index.js";
 import {Mesh} from "../Mesh.js";
@@ -6,6 +6,7 @@ import {Camera} from "../Camera.js";
 import {FIELD_OF_VIEW, SENSITIVITY} from "../main.js";
 import {BoxGeometry} from "../../../src/geometries/index.js";
 import {Material} from "../../../src/materials/index.js";
+import {Scene} from "../Scene.js";
 
 /**
  * @todo Use a loader to fetch the scene geometry file
@@ -51,13 +52,14 @@ export async function createScene(textures) {
 	meshes.push(wall, player);
 
 	const scene = new Scene(meshes);
-
-	scene.pointLight = new PointLight({
-		color: new Vector3(1, 1, 1),
-		intensity: .5,
-		position: new Vector3(0, 64, -128),
-		direction: new Vector3(),
-	});
+	scene.setPointLight(
+		new PointLight({
+			color: new Vector3(1, 1, 1),
+			intensity: .5,
+			position: new Vector3(0, 64, -128),
+			direction: new Vector3(),
+		}),
+	);
 
 	return scene;
 }
