@@ -1,3 +1,3 @@
-import main from "./visibility/main.js";
+import main from "./hl2/main.js";
 
 main();
