@@ -20,13 +20,13 @@ export class Renderer extends WebGLRenderer {
 		const gBufferFragmentShaderSource = await shaderLoader.load("public/minecraft/shaders/g_buffer.frag");
 		const screenVertexShaderSource = await shaderLoader.load("public/minecraft/shaders/screen.vert");
 		const screenFragmentShaderSource = await shaderLoader.load("public/minecraft/shaders/screen.frag");
-		const lightingVertexShaderSource = await shaderLoader.load("public/minecraft/shaders/lighting.vert");
-		const lightingFragmentShaderSource = await shaderLoader.load("public/minecraft/shaders/lighting.frag");
+		const lightVertexShaderSource = await shaderLoader.load("public/minecraft/shaders/light.vert");
+		const lightFragmentShaderSource = await shaderLoader.load("public/minecraft/shaders/light.frag");
 		const depthFragmentShaderSource = await shaderLoader.load("public/minecraft/shaders/depth.frag");
 
 		this._programs.gBuffer = this._createProgram(gBufferVertexShaderSource, gBufferFragmentShaderSource);
 		this._programs.screen = this._createProgram(screenVertexShaderSource, screenFragmentShaderSource);
-		this._programs.lighting = this._createProgram(lightingVertexShaderSource, lightingFragmentShaderSource);
+		this._programs.light = this._createProgram(lightVertexShaderSource, lightFragmentShaderSource);
 		this._programs.depth = this._createProgram(screenVertexShaderSource, depthFragmentShaderSource);
 
 		gl.frontFace(gl.CW);
@@ -37,7 +37,7 @@ export class Renderer extends WebGLRenderer {
 
 		this._vaos.gBuffer = gl.createVertexArray();
 		this._vaos.screen = gl.createVertexArray();
-		this._vaos.lighting = gl.createVertexArray();
+		this._vaos.light = gl.createVertexArray();
 
 		gl.useProgram(this._programs.gBuffer);
 		gl.bindVertexArray(this._vaos.gBuffer);
@@ -78,16 +78,16 @@ export class Renderer extends WebGLRenderer {
 
 		this.buildGBuffer();
 
-		gl.useProgram(this._programs.lighting);
-		gl.bindVertexArray(this._vaos.lighting);
+		gl.useProgram(this._programs.light);
+		gl.bindVertexArray(this._vaos.light);
 
-		this._uniforms.positionSampler = gl.getUniformLocation(this._programs.lighting, "u_position_sampler");
-		this._uniforms.normalSampler = gl.getUniformLocation(this._programs.lighting, "u_normal_sampler");
-		this._uniforms.colorSampler = gl.getUniformLocation(this._programs.lighting, "u_color_sampler");
-		this._uniforms.depthSampler = gl.getUniformLocation(this._programs.lighting, "u_depth_sampler");
-		this._uniforms.lightDirection = gl.getUniformLocation(this._programs.lighting, "u_light_direction");
-		this._uniforms.lightColor = gl.getUniformLocation(this._programs.lighting, "u_light_color");
-		this._uniforms.lightIntensity = gl.getUniformLocation(this._programs.lighting, "u_light_intensity");
+		this._uniforms.positionSampler = gl.getUniformLocation(this._programs.light, "u_position_sampler");
+		this._uniforms.normalSampler = gl.getUniformLocation(this._programs.light, "u_normal_sampler");
+		this._uniforms.colorSampler = gl.getUniformLocation(this._programs.light, "u_color_sampler");
+		this._uniforms.depthSampler = gl.getUniformLocation(this._programs.light, "u_depth_sampler");
+		this._uniforms.lightDirection = gl.getUniformLocation(this._programs.light, "u_light_direction");
+		this._uniforms.lightColor = gl.getUniformLocation(this._programs.light, "u_light_color");
+		this._uniforms.lightIntensity = gl.getUniformLocation(this._programs.light, "u_light_intensity");
 
 		gl.bindVertexArray(null);
 		gl.useProgram(null);
@@ -187,7 +187,7 @@ export class Renderer extends WebGLRenderer {
 
 	prerender() {
 		const meshes = this._scene.getMeshes();
-		const lights = this._scene.lights;
+		const directionalLight = this._scene.getDirectionalLight();
 
 		this._context.useProgram(this._programs.gBuffer);
 		this._context.bindVertexArray(this._vaos.gBuffer);
@@ -208,16 +208,16 @@ export class Renderer extends WebGLRenderer {
 	
 		this._context.bufferData(this._context.ARRAY_BUFFER, worlds, this._context.STATIC_DRAW);
 
-		this._context.useProgram(this._programs.lighting);
-		this._context.bindVertexArray(this._vaos.lighting);
+		this._context.useProgram(this._programs.light);
+		this._context.bindVertexArray(this._vaos.light);
 
 		this._context.uniform1i(this._uniforms.positionSampler, 0);
 		this._context.uniform1i(this._uniforms.normalSampler, 1);
 		this._context.uniform1i(this._uniforms.colorSampler, 2);
 		this._context.uniform1i(this._uniforms.depthSampler, 3);
-		this._context.uniform3fv(this._uniforms.lightDirection, lights[0].direction.clone().multiplyScalar(-1));
-		this._context.uniform3fv(this._uniforms.lightColor, lights[0].color);
-		this._context.uniform1f(this._uniforms.lightIntensity, lights[0].intensity);
+		this._context.uniform3fv(this._uniforms.lightDirection, directionalLight.direction.clone().multiplyScalar(-1));
+		this._context.uniform3fv(this._uniforms.lightColor, directionalLight.color);
+		this._context.uniform1f(this._uniforms.lightIntensity, directionalLight.intensity);
 
 		this._context.bindVertexArray(null);
 		this._context.useProgram(null);
@@ -315,8 +315,8 @@ export class Renderer extends WebGLRenderer {
 
 			gl.disable(gl.SCISSOR_TEST);
 		} else {
-			gl.useProgram(this._programs.lighting);
-			gl.bindVertexArray(this._vaos.lighting);
+			gl.useProgram(this._programs.light);
+			gl.bindVertexArray(this._vaos.light);
 
 			gl.activeTexture(gl.TEXTURE0);
 			gl.bindTexture(gl.TEXTURE_2D, this.gBuffer.position);

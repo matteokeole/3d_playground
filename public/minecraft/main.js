@@ -6,7 +6,7 @@ import {enableDebugging} from "./debug.js";
 import {listen} from "./input.js";
 import {Instance} from "./Instance.js";
 
-import {createScene} from "./scenes/instancing.js";
+import {createScene} from "./scenes/chunk.js";
 
 export const FRAMES_PER_SECOND = 60;
 export const FIELD_OF_VIEW = 90;
