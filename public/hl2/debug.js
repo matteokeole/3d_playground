@@ -1,5 +1,4 @@
 const container = document.createElement("div");
-container.id = "DebugTest1";
 container.className = "debug";
 
 const position = document.createElement("span");

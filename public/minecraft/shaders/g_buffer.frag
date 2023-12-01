@@ -11,12 +11,7 @@ uniform sampler2D u_sampler;
 out vec4 FragData[3];
 
 void main() {
-	// Position
 	FragData[0] = v_position;
-
-	// Normal
 	FragData[1] = vec4(normalize(v_normal), 1);
-
-	// Color
 	FragData[2] = texture(u_sampler, v_uv);
 }

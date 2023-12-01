@@ -33,7 +33,7 @@ export class Renderer extends WebGLRenderer {
 		this.#gBuffer = null;
 		this.#gBufferDepth = null;
 
-		await this.#loadPrograms();
+		await this.#loadShaders();
 
 		const gl = this._context;
 
@@ -199,23 +199,23 @@ export class Renderer extends WebGLRenderer {
 		gl.useProgram(null);
 	}
 
-	async #loadPrograms() {
+	async #loadShaders() {
 		const shaderLoader = new ShaderLoader();
 
-		const quadVertexShaderSource = await shaderLoader.load("assets/shaders/quad.vert");
+		// const quadVertexShaderSource = await shaderLoader.load("assets/shaders/quad.vert");
 		const mainVertexShaderSource = await shaderLoader.load("public/hl2/shaders/main.vert");
-		const depthVertexShaderSource = await shaderLoader.load("public/hl2/shaders/depth.vert");
+		// const depthVertexShaderSource = await shaderLoader.load("public/hl2/shaders/depth.vert");
 		const crosshairVertexShaderSource = await shaderLoader.load("public/hl2/shaders/crosshair.vert");
 
-		const depthFragmentShaderSource = await shaderLoader.load("assets/shaders/depth.frag");
-		const emptyFragmentShaderSource = await shaderLoader.load("assets/shaders/empty.frag");
+		// const depthFragmentShaderSource = await shaderLoader.load("assets/shaders/depth.frag");
+		// const emptyFragmentShaderSource = await shaderLoader.load("assets/shaders/empty.frag");
 		const mainFragmentShaderSource = await shaderLoader.load("public/hl2/shaders/main.frag");
 		const crosshairFragmentShaderSource = await shaderLoader.load("public/hl2/shaders/crosshair.frag");
 
 		this._programs.main = this._createProgram(mainVertexShaderSource, mainFragmentShaderSource);
 		this._programs.crosshair = this._createProgram(crosshairVertexShaderSource, crosshairFragmentShaderSource);
-		this._programs.depth = this._createProgram(depthVertexShaderSource, emptyFragmentShaderSource);
-		this._programs.debugDepth = this._createProgram(quadVertexShaderSource, depthFragmentShaderSource);
+		// this._programs.depth = this._createProgram(depthVertexShaderSource, emptyFragmentShaderSource);
+		// this._programs.debugDepth = this._createProgram(quadVertexShaderSource, depthFragmentShaderSource);
 	}
 
 	#createGBuffer() {
@@ -258,7 +258,7 @@ export class Renderer extends WebGLRenderer {
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 	}
 
-	#draw() {
+	/* #draw() {
 		const gl = this._context;
 
 		gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
@@ -280,5 +280,5 @@ export class Renderer extends WebGLRenderer {
 		gl.useProgram(this._programs.debugDepth);
 			gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 		gl.useProgram(null);
-	}
+	} */
 }

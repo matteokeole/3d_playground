@@ -24,6 +24,8 @@ export class Instance extends _Instance {
 		camera.setPosition(camera.target.clone().lerp(camera.getPosition(), CAMERA_LERP_FACTOR));
 		camera.update();
 
+		document.getElementById("DebugPosition").textContent = `${camera.getPosition()}`;
+		document.getElementById("DebugRotation").textContent = `${camera.rotation}`;
 		document.getElementById("DebugDelta").textContent = delta.toFixed(2);
 	}
 

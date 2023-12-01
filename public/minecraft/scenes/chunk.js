@@ -1,6 +1,6 @@
 import {Mesh} from "../../../src/index.js";
 import {BoxGeometry} from "../../../src/geometries/index.js";
-import {DirectionalLight} from "../../../src/lights/index.js";
+import {PointLight} from "../../../src/lights/index.js";
 import {Material} from "../../../src/materials/index.js";
 import {Matrix3, Vector3} from "../../../src/math/index.js";
 import {BLOCK_SCALE, NOISE_AMPLITUDE, NOISE_INC} from "../main.js";
@@ -41,10 +41,11 @@ export function createScene() {
 	}
 
 	const scene = new Scene(meshes);
-	scene.setDirectionalLight(
-		new DirectionalLight({
+	scene.setPointLight(
+		new PointLight({
 			color: new Vector3(1, 1, 1),
 			intensity: 1,
+			position: new Vector3(-2, 1.8, 4),
 			direction: new Vector3(-.8, -.2, .15),
 		}),
 	);

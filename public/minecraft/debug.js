@@ -9,7 +9,6 @@ export function enableDebugging(renderer) {
 	const visualizeSteps = document.createElement("input");
 	const deltaTime = document.createElement("span");
 
-	container.id = "DebugTest2";
 	container.className = "debug";
 	visualizeStepsLabel.id = "DebugVisualizeStepsLabel";
 	visualizeSteps.id = "DebugVisualizeSteps";
@@ -18,6 +17,14 @@ export function enableDebugging(renderer) {
 		renderer.debug = this.checked;
 	};
 	deltaTime.id = "DebugDelta";
+
+	const position = document.createElement("span");
+	position.id = "DebugPosition";
+	container.appendChild(position);
+
+	const rotation = document.createElement("span");
+	rotation.id = "DebugRotation";
+	container.appendChild(rotation);
 
 	visualizeStepsLabel.appendChild(visualizeSteps);
 	container.appendChild(visualizeStepsLabel);

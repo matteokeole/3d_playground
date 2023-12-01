@@ -33,6 +33,11 @@ export class WebGLRenderer extends Renderer {
 	_textures;
 
 	/**
+	 * @type {Record.<String, WebGLFramebuffer>}
+	 */
+	_framebuffers;
+
+	/**
 	 * @type {Record.<String, TextureImage>}
 	 */
 	_images;
@@ -48,6 +53,7 @@ export class WebGLRenderer extends Renderer {
 		this._buffers = {};
 		this._uniforms = {};
 		this._textures = {};
+		this._framebuffers = {};
 		this._images = {};
 	}
 
