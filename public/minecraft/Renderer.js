@@ -22,10 +22,12 @@ export class Renderer extends WebGLRenderer {
 		const screenFragmentShaderSource = await shaderLoader.load("public/minecraft/shaders/screen.frag");
 		const lightingVertexShaderSource = await shaderLoader.load("public/minecraft/shaders/lighting.vert");
 		const lightingFragmentShaderSource = await shaderLoader.load("public/minecraft/shaders/lighting.frag");
+		const depthFragmentShaderSource = await shaderLoader.load("public/minecraft/shaders/depth.frag");
 
 		this._programs.gBuffer = this._createProgram(gBufferVertexShaderSource, gBufferFragmentShaderSource);
 		this._programs.screen = this._createProgram(screenVertexShaderSource, screenFragmentShaderSource);
 		this._programs.lighting = this._createProgram(lightingVertexShaderSource, lightingFragmentShaderSource);
+		this._programs.depth = this._createProgram(screenVertexShaderSource, depthFragmentShaderSource);
 
 		gl.frontFace(gl.CW);
 		gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
@@ -100,20 +102,17 @@ export class Renderer extends WebGLRenderer {
 			normal: this.buildGBufferTexture(),
 			color: this.buildGBufferTexture(),
 			depth: this.buildGBufferDepthTexture(),
-			depthRGB: this.buildGBufferTexture(),
 		};
 
 		gl.bindFramebuffer(gl.FRAMEBUFFER, this.gBuffer.framebuffer);
 		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.gBuffer.position, 0);
 		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT1, gl.TEXTURE_2D, this.gBuffer.normal, 0);
 		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT2, gl.TEXTURE_2D, this.gBuffer.color, 0);
-		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT3, gl.TEXTURE_2D, this.gBuffer.depthRGB, 0);
 		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, this.gBuffer.depth, 0);
 		gl.drawBuffers([
 			gl.COLOR_ATTACHMENT0,
 			gl.COLOR_ATTACHMENT1,
 			gl.COLOR_ATTACHMENT2,
-			gl.COLOR_ATTACHMENT3,
 		]);
 
 		if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) {
@@ -265,43 +264,53 @@ export class Renderer extends WebGLRenderer {
 
 		if (this.debug) {
 			gl.enable(gl.SCISSOR_TEST);
-			gl.useProgram(this._programs.screen);
-			gl.bindVertexArray(this._vaos.screen);
 
-			// Position
 			{
-				gl.scissor(0, viewportHalf[3], viewportHalf[2], viewportHalf[3]);
+				gl.useProgram(this._programs.screen);
+				gl.bindVertexArray(this._vaos.screen);
 
-				gl.bindTexture(gl.TEXTURE_2D, this.gBuffer.position);
+				// Position
+				{
+					gl.scissor(0, viewportHalf[3], viewportHalf[2], viewportHalf[3]);
 
-				gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
-			}
+					gl.bindTexture(gl.TEXTURE_2D, this.gBuffer.position);
 
-			// Normal
-			{
-				gl.scissor(viewportHalf[2], viewportHalf[3], viewportHalf[2], viewportHalf[3]);
+					gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+				}
 
-				gl.bindTexture(gl.TEXTURE_2D, this.gBuffer.normal);
+				// Normal
+				{
+					gl.scissor(viewportHalf[2], viewportHalf[3], viewportHalf[2], viewportHalf[3]);
 
-				gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
-			}
+					gl.bindTexture(gl.TEXTURE_2D, this.gBuffer.normal);
 
-			// Color
-			{
-				gl.scissor(0, 0, viewportHalf[2], viewportHalf[3]);
+					gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+				}
 
-				gl.bindTexture(gl.TEXTURE_2D, this.gBuffer.color);
+				// Color
+				{
+					gl.scissor(0, 0, viewportHalf[2], viewportHalf[3]);
 
-				gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+					gl.bindTexture(gl.TEXTURE_2D, this.gBuffer.color);
+
+					gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+				}
+
+				gl.bindVertexArray(null);
+				gl.useProgram(null);
 			}
 
 			// Depth
 			{
+				gl.useProgram(this._programs.depth);
+
 				gl.scissor(viewportHalf[2], 0, viewportHalf[2], viewportHalf[3]);
 
-				gl.bindTexture(gl.TEXTURE_2D, this.gBuffer.depthRGB);
+				gl.bindTexture(gl.TEXTURE_2D, this.gBuffer.depth);
 
 				gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+
+				gl.useProgram(null);
 			}
 
 			gl.disable(gl.SCISSOR_TEST);
@@ -315,13 +324,9 @@ export class Renderer extends WebGLRenderer {
 			gl.bindTexture(gl.TEXTURE_2D, this.gBuffer.normal);
 			gl.activeTexture(gl.TEXTURE2);
 			gl.bindTexture(gl.TEXTURE_2D, this.gBuffer.color);
-			gl.activeTexture(gl.TEXTURE3);
-			gl.bindTexture(gl.TEXTURE_2D, this.gBuffer.depthRGB);
 
 			gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 
-			gl.bindTexture(gl.TEXTURE_2D, null);
-			gl.activeTexture(gl.TEXTURE2);
 			gl.bindTexture(gl.TEXTURE_2D, null);
 			gl.activeTexture(gl.TEXTURE1);
 			gl.bindTexture(gl.TEXTURE_2D, null);

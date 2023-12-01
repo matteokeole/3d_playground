@@ -12,7 +12,6 @@ uniform mat4 u_view_inverse_transpose;
 out vec4 v_position;
 out vec3 v_normal;
 out vec2 v_uv;
-out float v_depth;
 
 void main() {
 	vec4 position = u_view * a_world * a_vertex;
@@ -22,5 +21,4 @@ void main() {
 	v_position = position;
 	v_normal = a_vertex.xyz * a_normal;
 	v_uv = a_uv;
-	v_depth = gl_Position.z / gl_Position.w;
 }
