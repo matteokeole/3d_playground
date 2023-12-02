@@ -19,7 +19,7 @@ export function createScene() {
 	);
 
 	mesh.setPosition(new Vector3(0, 1.3, 2).multiplyScalar(.85));
-	mesh.scale = new Vector3(1, 1, 1).multiplyScalar(BLOCK_SCALE);
+	mesh.scale = new Vector3().addScalar(BLOCK_SCALE);
 
 	const pointLight = new AbstractCamera();
 	pointLight.setPosition(new Vector3(1.04, 2.90, 0.48));

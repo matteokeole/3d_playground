@@ -17,7 +17,7 @@ export function createScene() {
 			normalMapIndex: null,
 		}),
 		scale = .85,
-		scaleVector = new Vector3(BLOCK_SCALE, BLOCK_SCALE, BLOCK_SCALE),
+		scaleVector = new Vector3().addScalar(BLOCK_SCALE),
 		meshes = [];
 	let mesh, i;
 
@@ -60,9 +60,9 @@ export function createScene() {
 	}
 
 	const pointLight = new AbstractCamera();
-	pointLight.setPosition(new Vector3(-2.45, 4.25, 22.82));
+	pointLight.setPosition(new Vector3(-1.88, 4.71, -0.63));
 	pointLight.target = pointLight.getPosition().clone();
-	pointLight.rotation = new Vector3(-0.35, 2.93, 0);
+	pointLight.rotation = new Vector3(-0.64, 0.65, 0);
 	pointLight.fieldOfView = FIELD_OF_VIEW;
 	pointLight.aspectRatio = innerWidth / innerHeight;
 	pointLight.near = 1;

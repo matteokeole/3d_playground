@@ -33,7 +33,7 @@ export function createScene() {
 		y = Math.round(noise.perlin2(x * NOISE_INC, z * NOISE_INC) * NOISE_AMPLITUDE) + yOffset;
 
 		mesh.setPosition(new Vector3(x, y, z).subtractScalar(chunkCenter).multiplyScalar(.85));
-		mesh.scale = new Vector3(BLOCK_SCALE, BLOCK_SCALE, BLOCK_SCALE);
+		mesh.scale = new Vector3().addScalar(BLOCK_SCALE);
 
 		meshes.push(mesh);
 	}

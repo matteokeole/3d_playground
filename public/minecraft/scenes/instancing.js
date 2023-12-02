@@ -30,7 +30,7 @@ export function createScene() {
 		if (i % 100 === 0) k++;
 
 		mesh.setPosition(new Vector3(i % 10 - 4.5, 1 - k, j % 10 - 4.5));
-		mesh.scale = new Vector3(BLOCK_SCALE, BLOCK_SCALE, BLOCK_SCALE);
+		mesh.scale = new Vector3().addScalar(BLOCK_SCALE);
 
 		meshes.push(mesh);
 	}
