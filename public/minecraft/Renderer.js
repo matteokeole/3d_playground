@@ -22,7 +22,7 @@ export class Renderer extends WebGLRenderer {
 		gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 		gl.enable(gl.CULL_FACE);
 		gl.enable(gl.DEPTH_TEST);
-		gl.depthFunc(gl.LEQUAL);
+		// gl.depthFunc(gl.LEQUAL);
 
 		// this._vaos.gBuffer = gl.createVertexArray();
 		this._vaos.lightDepth = gl.createVertexArray();
@@ -394,22 +394,24 @@ export class Renderer extends WebGLRenderer {
 		const mesh = meshes[0];
 		const geometry = mesh.getGeometry();
 
-		gl.bindVertexArray(this._vaos.lightDepth);
-			gl.bindFramebuffer(gl.FRAMEBUFFER, this._framebuffers.lightDepth);
-				gl.clearColor(.125, .129, .141, 1);
-				gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+		gl.cullFace(gl.FRONT);
+			gl.bindVertexArray(this._vaos.lightDepth);
+				gl.bindFramebuffer(gl.FRAMEBUFFER, this._framebuffers.lightDepth);
+					gl.clearColor(.125, .129, .141, 1);
+					gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-				gl.useProgram(this._programs.lightDepth);
-					gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._buffers.lightDepth_index);
-					gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, geometry.getIndices(), gl.STATIC_DRAW);
+					gl.useProgram(this._programs.lightDepth);
+						gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._buffers.lightDepth_index);
+						gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, geometry.getIndices(), gl.STATIC_DRAW);
 
-					gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.lightDepth_vertex);
-					gl.bufferData(gl.ARRAY_BUFFER, geometry.getVertices(), gl.STATIC_DRAW);
+						gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.lightDepth_vertex);
+						gl.bufferData(gl.ARRAY_BUFFER, geometry.getVertices(), gl.STATIC_DRAW);
 
-					gl.drawElementsInstanced(gl.TRIANGLES, 36, gl.UNSIGNED_BYTE, 0, meshes.length);
-				gl.useProgram(null);
-			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-		gl.bindVertexArray(null);
+						gl.drawElementsInstanced(gl.TRIANGLES, 36, gl.UNSIGNED_BYTE, 0, meshes.length);
+					gl.useProgram(null);
+				gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+			gl.bindVertexArray(null);
+		gl.cullFace(gl.BACK);
 	}
 
 	/* #drawFinal() {
