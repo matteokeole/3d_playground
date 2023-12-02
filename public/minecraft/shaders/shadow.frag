@@ -28,6 +28,11 @@ const vec3 AMBIENT = LIGHT_COLOR * .015;
 
 float computeShadow(vec4 lightSpacePosition) {
 	vec3 projectedPosition = lightSpacePosition.xyz / lightSpacePosition.w * .5 + .5;
+
+	if (projectedPosition.z > 1.) {
+		return 0.;
+	}
+
 	float closestDepth = texture(u_depthSampler, projectedPosition.xy).r;
 	float currentDepth = projectedPosition.z;
 
