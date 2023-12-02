@@ -25,6 +25,7 @@ out vec4 FragColor;
 const vec3 LIGHT_COLOR = vec3(1);
 const vec3 SHADOW_COLOR = vec3(.1);
 const vec3 AMBIENT = LIGHT_COLOR * .015;
+const vec2 SHADOW_MAP_SIZE = vec2(1024);
 
 float computeShadow(vec4 lightSpacePosition) {
 	vec3 projectedPosition = lightSpacePosition.xyz / lightSpacePosition.w * .5 + .5;
@@ -33,10 +34,20 @@ float computeShadow(vec4 lightSpacePosition) {
 		return 0.;
 	}
 
-	float closestDepth = texture(u_depthSampler, projectedPosition.xy).r;
 	float currentDepth = projectedPosition.z;
+	float shadow = 0.;
 
-	return float(currentDepth < closestDepth);
+	vec2 texelSize = 1. / SHADOW_MAP_SIZE;
+
+	for (int x = -1; x <= 1; x++) {
+		for (int y = -1; y <= 1; y++) {
+			float depth = texture(u_depthSampler, projectedPosition.xy + vec2(x, y) * texelSize).r;
+
+			shadow += float(currentDepth > depth);
+		}
+	}
+
+	return shadow / 9.;
 }
 
 void main() {
@@ -54,7 +65,7 @@ void main() {
 
 	float shadow = computeShadow(v_out.lightSpacePosition);
 
-	vec3 color = (AMBIENT + (shadow + SHADOW_COLOR) * (diffuse + specular) * albedo);
+	vec3 color = (AMBIENT + (1. - shadow) * (diffuse + specular) * albedo);
 
 	FragColor = vec4(color, 1);
 }

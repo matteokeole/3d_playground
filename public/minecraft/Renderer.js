@@ -346,7 +346,6 @@ export class Renderer extends WebGLRenderer {
 
 		gl.bindFramebuffer(gl.FRAMEBUFFER, this._framebuffers.lightDepth);
 			gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, this._textures.lightDepth_depth, 0);
-			gl.drawBuffers([]);
 
 			if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) {
 				throw Error("The light depth buffer is invalid.");
