@@ -1,6 +1,5 @@
 import {AbstractCamera, Mesh} from "../../../src/index.js";
 import {BoxGeometry} from "../../../src/geometries/index.js";
-import {PointLight} from "../../../src/lights/index.js";
 import {Material} from "../../../src/materials/index.js";
 import {Matrix3, PI, Vector2, Vector3} from "../../../src/math/index.js";
 import {BLOCK_SCALE, FIELD_OF_VIEW, NOISE_AMPLITUDE, NOISE_INC} from "../main.js";
@@ -47,7 +46,7 @@ export function createScene() {
 	pointLight.fieldOfView = FIELD_OF_VIEW;
 	pointLight.aspectRatio = innerWidth / innerHeight;
 	pointLight.near = 1;
-	pointLight.far = 100;
+	pointLight.far = 200;
 	pointLight.bias = PI * .5;
 	pointLight.turnVelocity = 0;
 	pointLight.lookAt(new Vector2());

@@ -6,7 +6,7 @@ import {enableDebugging} from "./debug.js";
 import {listen} from "./input.js";
 import {Instance} from "./Instance.js";
 
-import {createScene} from "./scenes/chunk.js";
+import {createScene} from "./scenes/field_of_view.js";
 
 export const FRAMES_PER_SECOND = 60;
 export const FIELD_OF_VIEW = 90;
@@ -44,7 +44,7 @@ export default async function() {
 	camera.fieldOfView = FIELD_OF_VIEW;
 	camera.aspectRatio = viewport[0] / viewport[1];
 	camera.near = 1;
-	camera.far = 100;
+	camera.far = 200;
 	camera.bias = PI * .5; // This cancels the perspective matrix bias
 	camera.turnVelocity = .001;
 
