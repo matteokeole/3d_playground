@@ -12,7 +12,7 @@ export class Renderer extends WebGLRenderer {
 		super.build();
 
 		this.#textures = [];
-		this.debug = true;
+		this.debug = false;
 
 		await this.#loadShaders();
 
@@ -24,11 +24,12 @@ export class Renderer extends WebGLRenderer {
 		gl.enable(gl.DEPTH_TEST);
 		gl.depthFunc(gl.LEQUAL);
 
-		this._vaos.gBuffer = gl.createVertexArray();
+		// this._vaos.gBuffer = gl.createVertexArray();
 		this._vaos.lightDepth = gl.createVertexArray();
-		this._vaos.final = gl.createVertexArray();
+		// this._vaos.final = gl.createVertexArray();
+		this._vaos.shadow = gl.createVertexArray();
 
-		gl.bindVertexArray(this._vaos.gBuffer);
+		/* gl.bindVertexArray(this._vaos.gBuffer);
 			this._buffers.gBuffer_index = gl.createBuffer();
 			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._buffers.gBuffer_index);
 
@@ -56,7 +57,7 @@ export class Renderer extends WebGLRenderer {
 			gl.vertexAttribPointer(6, 2, gl.FLOAT, true, 0, 0);
 
 			this._uniforms.gBuffer_cameraProjection = gl.getUniformLocation(this._programs.gBuffer, "u_camera.projection");
-			this._uniforms.gBuffer_cameraView = gl.getUniformLocation(this._programs.gBuffer, "u_camera.view");
+			this._uniforms.gBuffer_cameraView = gl.getUniformLocation(this._programs.gBuffer, "u_camera.view"); */
 		gl.bindVertexArray(this._vaos.lightDepth);
 			this._buffers.lightDepth_index = gl.createBuffer();
 			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._buffers.lightDepth_index);
@@ -75,17 +76,51 @@ export class Renderer extends WebGLRenderer {
 			}
 
 			this._uniforms.lightDepth_lightViewProjection = gl.getUniformLocation(this._programs.lightDepth, "u_light.viewProjection");
-		gl.bindVertexArray(this._vaos.final);
+		/* gl.bindVertexArray(this._vaos.final);
 			this._uniforms.positionSampler = gl.getUniformLocation(this._programs.final, "u_position_sampler");
 			this._uniforms.normalSampler = gl.getUniformLocation(this._programs.final, "u_normal_sampler");
 			this._uniforms.colorSampler = gl.getUniformLocation(this._programs.final, "u_color_sampler");
 			this._uniforms.depthSampler = gl.getUniformLocation(this._programs.final, "u_depth_sampler");
+			this._uniforms.final_lightViewProjection = gl.getUniformLocation(this._programs.final, "u_light.viewProjection");
 			this._uniforms.lightDirection = gl.getUniformLocation(this._programs.final, "u_light_direction");
 			this._uniforms.lightColor = gl.getUniformLocation(this._programs.final, "u_light_color");
-			this._uniforms.lightIntensity = gl.getUniformLocation(this._programs.final, "u_light_intensity");
+			this._uniforms.lightIntensity = gl.getUniformLocation(this._programs.final, "u_light_intensity"); */
+		gl.bindVertexArray(this._vaos.shadow);
+			this._buffers.shadow_index = gl.createBuffer();
+			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._buffers.shadow_index);
+
+			this._buffers.shadow_vertex = gl.createBuffer();
+			gl.enableVertexAttribArray(0);
+			gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.shadow_vertex);
+			gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
+
+			this._buffers.shadow_world = gl.createBuffer();
+			gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.shadow_world);
+			for (let i = 0, index = 1; i < 4; i++, index++) {
+				gl.enableVertexAttribArray(index);
+				gl.vertexAttribPointer(index, 4, gl.FLOAT, false, 64, i * 16);
+				gl.vertexAttribDivisor(index, 1);
+			}
+
+			this._buffers.shadow_normal = gl.createBuffer();
+			gl.enableVertexAttribArray(5);
+			gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.shadow_normal);
+			gl.vertexAttribPointer(5, 3, gl.FLOAT, false, 0, 0);
+
+			this._buffers.shadow_uv = gl.createBuffer();
+			gl.enableVertexAttribArray(6);
+			gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.shadow_uv);
+			gl.vertexAttribPointer(6, 2, gl.FLOAT, true, 0, 0);
+
+			this._uniforms.shadow_cameraViewProjection = gl.getUniformLocation(this._programs.shadow, "u_camera.viewProjection");
+			this._uniforms.shadow_cameraPosition = gl.getUniformLocation(this._programs.shadow, "u_camera.position");
+			this._uniforms.shadow_lightViewProjection = gl.getUniformLocation(this._programs.shadow, "u_light.viewProjection");
+			this._uniforms.shadow_lightPosition = gl.getUniformLocation(this._programs.shadow, "u_light.position");
+			this._uniforms.depthSampler = gl.getUniformLocation(this._programs.shadow, "u_depthSampler");
+			this._uniforms.albedoSampler = gl.getUniformLocation(this._programs.shadow, "u_albedoSampler");
 		gl.bindVertexArray(null);
 
-		this.#createGBuffer();
+		// this.#createGBuffer();
 		this.#createLightDepthFramebuffer();
 	}
 
@@ -123,37 +158,48 @@ export class Renderer extends WebGLRenderer {
 			worlds.set(world, i * 16);
 		}
 
-		gl.bindVertexArray(this._vaos.gBuffer);
+		const pointLight = this._scene.getPointLight();
+		const pointLightViewProjection = pointLight
+			.getProjection()
+			.clone()
+			.multiply(pointLight.getView());
+
+		/* gl.bindVertexArray(this._vaos.gBuffer);
 			gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.gBuffer_world);
-			gl.bufferData(gl.ARRAY_BUFFER, worlds, gl.STATIC_DRAW);
+			gl.bufferData(gl.ARRAY_BUFFER, worlds, gl.STATIC_DRAW); */
 		gl.bindVertexArray(this._vaos.lightDepth);
 			gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.lightDepth_world);
 			gl.bufferData(gl.ARRAY_BUFFER, worlds, gl.STATIC_DRAW);
 
 			gl.useProgram(this._programs.lightDepth);
-				const pointLight = this._scene.getPointLight();
-				const pointLightViewProjection = pointLight
-					.getProjection()
-					.clone()
-					.multiply(pointLight.getView());
-
 				gl.uniformMatrix4fv(this._uniforms.lightDepth_lightViewProjection, false, pointLightViewProjection);
 			gl.useProgram(null);
-		gl.bindVertexArray(this._vaos.final);
+		/* gl.bindVertexArray(this._vaos.final);
 			gl.useProgram(this._programs.final);
 				gl.uniform1i(this._uniforms.positionSampler, 0);
 				gl.uniform1i(this._uniforms.normalSampler, 1);
 				gl.uniform1i(this._uniforms.colorSampler, 2);
 				gl.uniform1i(this._uniforms.depthSampler, 3);
+				gl.uniformMatrix4fv(this._uniforms.final_lightViewProjection, false, pointLightViewProjection);
 				gl.uniform3fv(this._uniforms.lightDirection, new Vector3(-.8, -.2, .15).multiplyScalar(-1));
 				gl.uniform3fv(this._uniforms.lightColor, new Vector3(1, 1, 1));
 				gl.uniform1f(this._uniforms.lightIntensity, 1);
+			gl.useProgram(null); */
+		gl.bindVertexArray(this._vaos.shadow);
+			gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.shadow_world);
+			gl.bufferData(gl.ARRAY_BUFFER, worlds, gl.STATIC_DRAW);
+
+			gl.useProgram(this._programs.shadow);
+				gl.uniformMatrix4fv(this._uniforms.shadow_lightViewProjection, false, pointLightViewProjection);
+				gl.uniform3fv(this._uniforms.shadow_lightPosition, pointLight.getPosition());
+				gl.uniform1i(this._uniforms.depthSampler, 0);
+				gl.uniform1i(this._uniforms.albedoSampler, 1);
 			gl.useProgram(null);
 		gl.bindVertexArray(null);
 	}
 
 	render() {
-		this.#drawGBuffer();
+		// this.#drawGBuffer();
 		this.#drawLightDepthFramebuffer();
 
 		if (this.debug) {
@@ -162,31 +208,35 @@ export class Renderer extends WebGLRenderer {
 			return;
 		}
 
-		this.#drawFinal();
+		// this.#drawFinal();
+		this.#drawShadow();
 	}
 
 	async #loadShaders() {
 		const shaderLoader = new ShaderLoader();
 
 		const quadVertexShaderSource = await shaderLoader.load("assets/shaders/quad.vert");
-		const gBufferVertexShaderSource = await shaderLoader.load("public/minecraft/shaders/g_buffer.vert");
+		// const gBufferVertexShaderSource = await shaderLoader.load("public/minecraft/shaders/g_buffer.vert");
 		const lightDepthVertexShaderSource = await shaderLoader.load("public/minecraft/shaders/light_depth.vert");
-		const finalVertexShaderSource = await shaderLoader.load("public/minecraft/shaders/final.vert");
+		// const finalVertexShaderSource = await shaderLoader.load("public/minecraft/shaders/final.vert");
+		const shadowVertexShaderSource = await shaderLoader.load("public/minecraft/shaders/shadow.vert");
 
 		const depthFragmentShaderSource = await shaderLoader.load("assets/shaders/depth.frag");
 		const emptyFragmentShaderSource = await shaderLoader.load("assets/shaders/empty.frag");
-		const textureFragmentShaderSource = await shaderLoader.load("assets/shaders/texture.frag");
-		const gBufferFragmentShaderSource = await shaderLoader.load("public/minecraft/shaders/g_buffer.frag");
-		const finalFragmentShaderSource = await shaderLoader.load("public/minecraft/shaders/final.frag");
+		// const textureFragmentShaderSource = await shaderLoader.load("assets/shaders/texture.frag");
+		// const gBufferFragmentShaderSource = await shaderLoader.load("public/minecraft/shaders/g_buffer.frag");
+		// const finalFragmentShaderSource = await shaderLoader.load("public/minecraft/shaders/final.frag");
+		const shadowFragmentShaderSource = await shaderLoader.load("public/minecraft/shaders/shadow.frag");
 
-		this._programs.gBuffer = this._createProgram(gBufferVertexShaderSource, gBufferFragmentShaderSource);
+		// this._programs.gBuffer = this._createProgram(gBufferVertexShaderSource, gBufferFragmentShaderSource);
 		this._programs.lightDepth = this._createProgram(lightDepthVertexShaderSource, emptyFragmentShaderSource);
-		this._programs.final = this._createProgram(finalVertexShaderSource, finalFragmentShaderSource);
-		this._programs.debugGBuffer = this._createProgram(quadVertexShaderSource, textureFragmentShaderSource);
+		// this._programs.final = this._createProgram(finalVertexShaderSource, finalFragmentShaderSource);
+		this._programs.shadow = this._createProgram(shadowVertexShaderSource, shadowFragmentShaderSource);
+		// this._programs.debugGBuffer = this._createProgram(quadVertexShaderSource, textureFragmentShaderSource);
 		this._programs.debugDepth = this._createProgram(quadVertexShaderSource, depthFragmentShaderSource);
 	}
 
-	#createGBuffer() {
+	/* #createGBuffer() {
 		const gl = this._context;
 
 		this._framebuffers.gBuffer = gl.createFramebuffer();
@@ -268,7 +318,7 @@ export class Renderer extends WebGLRenderer {
 				throw Error("The G-buffer is invalid.");
 			}
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-	}
+	} */
 
 	#createLightDepthFramebuffer() {
 		const gl = this._context;
@@ -302,7 +352,7 @@ export class Renderer extends WebGLRenderer {
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 	}
 
-	#drawGBuffer() {
+	/* #drawGBuffer() {
 		const gl = this._context;
 		const meshes = this._scene.getMeshes();
 		const mesh = meshes[0];
@@ -336,7 +386,7 @@ export class Renderer extends WebGLRenderer {
 				gl.useProgram(null);
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		gl.bindVertexArray(null);
-	}
+	} */
 
 	#drawLightDepthFramebuffer() {
 		const gl = this._context;
@@ -362,7 +412,7 @@ export class Renderer extends WebGLRenderer {
 		gl.bindVertexArray(null);
 	}
 
-	#drawFinal() {
+	/* #drawFinal() {
 		const gl = this._context;
 
 		gl.bindVertexArray(this._vaos.final);
@@ -387,6 +437,49 @@ export class Renderer extends WebGLRenderer {
 				gl.bindTexture(gl.TEXTURE_2D, null);
 			gl.useProgram(null);
 		gl.bindVertexArray(null);
+	} */
+
+	#drawShadow() {
+		const gl = this._context;
+		const meshes = this._scene.getMeshes();
+		const mesh = meshes[0];
+		const geometry = mesh.getGeometry();
+		const material = mesh.getMaterial();
+
+		gl.bindVertexArray(this._vaos.shadow);
+			gl.clearColor(.125, .129, .141, 1);
+			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+			gl.useProgram(this._programs.shadow);
+				const cameraViewProjection = this._camera
+					.getProjection()
+					.clone()
+					.multiply(this._camera.getView());
+
+				gl.uniformMatrix4fv(this._uniforms.shadow_cameraViewProjection, false, cameraViewProjection);
+				gl.uniform3fv(this._uniforms.shadow_cameraPosition, this._camera.getPosition());
+
+				gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._buffers.shadow_index);
+				gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, geometry.getIndices(), gl.STATIC_DRAW);
+
+				gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.shadow_vertex);
+				gl.bufferData(gl.ARRAY_BUFFER, geometry.getVertices(), gl.STATIC_DRAW);
+
+				gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.shadow_normal);
+				gl.bufferData(gl.ARRAY_BUFFER, geometry.getNormals(), gl.STATIC_DRAW);
+
+				gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.shadow_uv);
+				gl.bufferData(gl.ARRAY_BUFFER, geometry.getUVs(), gl.STATIC_DRAW);
+
+				gl.activeTexture(gl.TEXTURE0);
+				gl.bindTexture(gl.TEXTURE_2D, this._textures.lightDepth_depth);
+
+				gl.activeTexture(gl.TEXTURE1);
+				gl.bindTexture(gl.TEXTURE_2D, this.#textures[material.getTextureIndex()]);
+
+				gl.drawElementsInstanced(gl.TRIANGLES, 36, gl.UNSIGNED_BYTE, 0, meshes.length);
+			gl.useProgram(null);
+		gl.bindVertexArray(null);
 	}
 
 	#renderDebug() {
@@ -394,7 +487,7 @@ export class Renderer extends WebGLRenderer {
 		const viewportHalf = this._viewport.clone().divideScalar(2);
 
 		gl.enable(gl.SCISSOR_TEST);
-			gl.useProgram(this._programs.debugGBuffer);
+			/* gl.useProgram(this._programs.debugGBuffer);
 				gl.scissor(0, viewportHalf[3], viewportHalf[2], viewportHalf[3]);
 				gl.bindTexture(gl.TEXTURE_2D, this._textures.gBuffer_position);
 				gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
@@ -405,7 +498,7 @@ export class Renderer extends WebGLRenderer {
 
 				gl.scissor(0, 0, viewportHalf[2], viewportHalf[3]);
 				gl.bindTexture(gl.TEXTURE_2D, this._textures.gBuffer_color);
-				gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+				gl.drawArrays(gl.TRIANGLE_FAN, 0, 4); */
 			gl.useProgram(this._programs.debugDepth);
 				gl.scissor(viewportHalf[2], 0, viewportHalf[2], viewportHalf[3]);
 				gl.bindTexture(gl.TEXTURE_2D, this._textures.lightDepth_depth);
