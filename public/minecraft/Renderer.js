@@ -22,7 +22,8 @@ export class Renderer extends WebGLRenderer {
 		gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 		gl.enable(gl.CULL_FACE);
 		gl.enable(gl.DEPTH_TEST);
-		// gl.depthFunc(gl.LEQUAL);
+		gl.depthFunc(gl.LEQUAL);
+		gl.clearColor(.55, .62, .72, 1);
 
 		// this._vaos.gBuffer = gl.createVertexArray();
 		this._vaos.lightDepth = gl.createVertexArray();
@@ -398,8 +399,7 @@ export class Renderer extends WebGLRenderer {
 		gl.cullFace(gl.FRONT);
 			gl.bindVertexArray(this._vaos.lightDepth);
 				gl.bindFramebuffer(gl.FRAMEBUFFER, this._framebuffers.lightDepth);
-					gl.clearColor(.125, .129, .141, 1);
-					gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+					gl.clear(gl.DEPTH_BUFFER_BIT);
 
 					gl.useProgram(this._programs.lightDepth);
 						gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._buffers.lightDepth_index);
@@ -450,7 +450,6 @@ export class Renderer extends WebGLRenderer {
 		const material = mesh.getMaterial();
 
 		gl.bindVertexArray(this._vaos.shadow);
-			gl.clearColor(.125, .129, .141, 1);
 			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
 			gl.useProgram(this._programs.shadow);
