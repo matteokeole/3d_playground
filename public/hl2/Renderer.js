@@ -86,13 +86,8 @@ export class Renderer extends WebGLRenderer {
 		this._uniforms.lightColor = gl.getUniformLocation(this._programs.main, "u_light_color");
 		this._uniforms.lightIntensity = gl.getUniformLocation(this._programs.main, "u_light_intensity");
 
-		this._uniforms.crosshairViewport = gl.getUniformLocation(this._programs.crosshair, "u_viewport");
-
 		gl.useProgram(this._programs.crosshair);
-
-		this._uniforms.crosshairViewport = gl.getUniformLocation(this._programs.crosshair, "u_viewport");
-		gl.uniform2f(this._uniforms.crosshairViewport, this._viewport[2], this._viewport[3]);
-
+			this._uniforms.crosshairViewport = gl.getUniformLocation(this._programs.crosshair, "u_viewport");
 		gl.useProgram(null);
 
 		this.#createGBuffer();
@@ -192,11 +187,8 @@ export class Renderer extends WebGLRenderer {
 		}
 
 		gl.bindVertexArray(null);
-		gl.useProgram(this._programs.crosshair);
 
-		gl.drawArrays(gl.POINTS, 0, 5);
-
-		gl.useProgram(null);
+		this.#renderCrosshair();
 	}
 
 	async #loadShaders() {
@@ -281,4 +273,13 @@ export class Renderer extends WebGLRenderer {
 			gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 		gl.useProgram(null);
 	} */
+
+	#renderCrosshair() {
+		const gl = this._context;
+
+		gl.useProgram(this._programs.crosshair);
+			gl.uniform2f(this._uniforms.crosshairViewport, this._viewport[2], this._viewport[3]);
+			gl.drawArrays(gl.POINTS, 0, 5);
+		gl.useProgram(null);
+	}
 }
