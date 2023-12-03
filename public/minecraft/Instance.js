@@ -12,17 +12,28 @@ export class Instance extends _Instance {
 	 */
 	_update(delta) {
 		const camera = this._renderer.getCamera();
-		const velocity = (diagonalMovement() ? VELOCITY_SQRT1_2 : VELOCITY) * delta;
 
-		if (keys.has("KeyW")) camera.moveZ(velocity);
-		if (keys.has("KeyS")) camera.moveZ(-velocity);
-		if (keys.has("KeyA")) camera.truck(-velocity);
-		if (keys.has("KeyD")) camera.truck(velocity);
-		if (keys.has("Space")) camera.moveY(velocity);
-		if (keys.has("ControlLeft")) camera.moveY(-velocity);
+		// Update camera
+		{
+			const velocity = (diagonalMovement() ? VELOCITY_SQRT1_2 : VELOCITY) * delta;
 
-		camera.setPosition(camera.target.clone().lerp(camera.getPosition(), CAMERA_LERP_FACTOR));
-		camera.update();
+			if (keys.has("KeyW")) camera.moveZ(velocity);
+			if (keys.has("KeyS")) camera.moveZ(-velocity);
+			if (keys.has("KeyA")) camera.truck(-velocity);
+			if (keys.has("KeyD")) camera.truck(velocity);
+			if (keys.has("Space")) camera.moveY(velocity);
+			if (keys.has("ControlLeft")) camera.moveY(-velocity);
+
+			camera.setPosition(camera.target.clone().lerp(camera.getPosition(), CAMERA_LERP_FACTOR));
+			camera.update();
+		}
+
+		// Update point light
+		{
+			const pointLight = this._renderer.getScene().getPointLight();
+			pointLight.getPosition()[2] = Math.sin(this._frameIndex * .005) + 2.5;
+			pointLight.update();
+		}
 
 		document.getElementById("DebugPosition").textContent = `${camera.getPosition()}`;
 		document.getElementById("DebugRotation").textContent = `${camera.rotation}`;

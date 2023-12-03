@@ -402,6 +402,8 @@ export class Renderer extends WebGLRenderer {
 					gl.clear(gl.DEPTH_BUFFER_BIT);
 
 					gl.useProgram(this._programs.lightDepth);
+						gl.uniformMatrix4fv(this._uniforms.lightDepth_lightViewProjection, false, this._scene.getPointLight().getViewProjection());
+
 						gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._buffers.lightDepth_index);
 						gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, geometry.getIndices(), gl.STATIC_DRAW);
 
@@ -450,16 +452,13 @@ export class Renderer extends WebGLRenderer {
 		const material = mesh.getMaterial();
 
 		gl.bindVertexArray(this._vaos.shadow);
-			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+			gl.clear(gl.COLOR_BUFFER_BIT);
 
 			gl.useProgram(this._programs.shadow);
-				const cameraViewProjection = this._camera
-					.getProjection()
-					.clone()
-					.multiply(this._camera.getView());
-
-				gl.uniformMatrix4fv(this._uniforms.shadow_cameraViewProjection, false, cameraViewProjection);
+				gl.uniformMatrix4fv(this._uniforms.shadow_cameraViewProjection, false, this._camera.getViewProjection());
 				gl.uniform3fv(this._uniforms.shadow_cameraPosition, this._camera.getPosition());
+				gl.uniformMatrix4fv(this._uniforms.shadow_lightViewProjection, false, this._scene.getPointLight().getViewProjection());
+				gl.uniform3fv(this._uniforms.shadow_lightPosition, this._scene.getPointLight().getPosition());
 
 				gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._buffers.shadow_index);
 				gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, geometry.getIndices(), gl.STATIC_DRAW);

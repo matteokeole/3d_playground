@@ -15,6 +15,11 @@ export class Instance {
 	/**
 	 * @type {Number}
 	 */
+	_frameIndex;
+
+	/**
+	 * @type {Number}
+	 */
 	#framesPerSecond;
 
 	/**
@@ -37,6 +42,7 @@ export class Instance {
 	 */
 	constructor(descriptor) {
 		this._renderer = descriptor.renderer;
+		this._frameIndex = 0;
 		this.#framesPerSecond = descriptor.framesPerSecond;
 		this.#frameInterval = 1000 / this.#framesPerSecond;
 		this.#timeSinceLastFrame = -this.#frameInterval;
@@ -74,6 +80,8 @@ export class Instance {
 			try {
 				this._update(delta);
 				this._render();
+
+				this._frameIndex++;
 			} catch (error) {
 				console.error(error);
 
