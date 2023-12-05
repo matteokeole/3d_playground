@@ -15,22 +15,27 @@ export class Renderer extends WebGLRenderer {
 	 */
 	#textures;
 
+	/**
+	 * @type {WebGLFramebuffer}
+	 */
+	#gBuffer;
+
+	/**
+	 * @type {WebGLTexture}
+	 */
+	#gBufferDepth;
+
 	async build() {
 		super.build();
 
 		this.#meshesPerMaterial = new Map();
 		this.#textures = [];
+		this.#gBuffer = null;
+		this.#gBufferDepth = null;
 
-		const shaderLoader = new ShaderLoader();
-		const mainVertexShaderSource = await shaderLoader.load("public/hl2/shaders/main.vert");
-		const mainFragmentShaderSource = await shaderLoader.load("public/hl2/shaders/main.frag");
-		const crosshairVertexShaderSource = await shaderLoader.load("public/hl2/shaders/crosshair.vert");
-		const crosshairFragmentShaderSource = await shaderLoader.load("public/hl2/shaders/crosshair.frag");
+		await this.#loadShaders();
 
 		const gl = this._context;
-
-		this._programs.main = this._createProgram(mainVertexShaderSource, mainFragmentShaderSource);
-		this._programs.crosshair = this._createProgram(crosshairVertexShaderSource, crosshairFragmentShaderSource);
 
 		gl.frontFace(gl.CW);
 		gl.enable(gl.CULL_FACE);
@@ -81,14 +86,11 @@ export class Renderer extends WebGLRenderer {
 		this._uniforms.lightColor = gl.getUniformLocation(this._programs.main, "u_light_color");
 		this._uniforms.lightIntensity = gl.getUniformLocation(this._programs.main, "u_light_intensity");
 
-		this._uniforms.crosshairViewport = gl.getUniformLocation(this._programs.crosshair, "u_viewport");
-
 		gl.useProgram(this._programs.crosshair);
-
-		this._uniforms.crosshairViewport = gl.getUniformLocation(this._programs.crosshair, "u_viewport");
-		gl.uniform2f(this._uniforms.crosshairViewport, this._viewport[2], this._viewport[3]);
-
+			this._uniforms.crosshairViewport = gl.getUniformLocation(this._programs.crosshair, "u_viewport");
 		gl.useProgram(null);
+
+		this.#createGBuffer();
 	}
 
 	/**
@@ -107,6 +109,8 @@ export class Renderer extends WebGLRenderer {
 
 			this.#textures.push(texture);
 		}
+
+		gl.bindTexture(gl.TEXTURE_2D, null);
 	}
 
 	/**
@@ -128,16 +132,15 @@ export class Renderer extends WebGLRenderer {
 	}
 
 	render() {
-		const gl = this._context;
+		this.#clear();
 
-		gl.clearColor(0, 0, 0, 1);
-		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+		const gl = this._context;
 
 		gl.useProgram(this._programs.main);
 		gl.bindVertexArray(this._vaos.scene);
 
 		const scene = this._scene;
-		const pointLight = scene.pointLight;
+		const pointLight = scene.getPointLight();
 		const camera = this._camera;
 
 		gl.uniformMatrix4fv(this._uniforms.cameraProjection, false, camera.getProjection());
@@ -184,10 +187,99 @@ export class Renderer extends WebGLRenderer {
 		}
 
 		gl.bindVertexArray(null);
+
+		this.#renderCrosshair();
+	}
+
+	async #loadShaders() {
+		const shaderLoader = new ShaderLoader();
+
+		// const quadVertexShaderSource = await shaderLoader.load("assets/shaders/quad.vert");
+		const mainVertexShaderSource = await shaderLoader.load("public/hl2/shaders/main.vert");
+		// const depthVertexShaderSource = await shaderLoader.load("public/hl2/shaders/depth.vert");
+		const crosshairVertexShaderSource = await shaderLoader.load("public/hl2/shaders/crosshair.vert");
+
+		// const depthFragmentShaderSource = await shaderLoader.load("assets/shaders/depth.frag");
+		// const emptyFragmentShaderSource = await shaderLoader.load("assets/shaders/empty.frag");
+		const mainFragmentShaderSource = await shaderLoader.load("public/hl2/shaders/main.frag");
+		const crosshairFragmentShaderSource = await shaderLoader.load("public/hl2/shaders/crosshair.frag");
+
+		this._programs.main = this._createProgram(mainVertexShaderSource, mainFragmentShaderSource);
+		this._programs.crosshair = this._createProgram(crosshairVertexShaderSource, crosshairFragmentShaderSource);
+		// this._programs.depth = this._createProgram(depthVertexShaderSource, emptyFragmentShaderSource);
+		// this._programs.debugDepth = this._createProgram(quadVertexShaderSource, depthFragmentShaderSource);
+	}
+
+	#createGBuffer() {
+		const gl = this._context;
+
+		this.#gBuffer = gl.createFramebuffer();
+		this.#gBufferDepth = gl.createTexture();
+
+		// Create depth map
+		gl.bindTexture(gl.TEXTURE_2D, this.#gBufferDepth);
+			gl.texImage2D(
+				gl.TEXTURE_2D,
+				0,
+				gl.DEPTH_COMPONENT24,
+				1024,
+				1024,
+				0,
+				gl.DEPTH_COMPONENT,
+				gl.UNSIGNED_INT,
+				null,
+			);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+		gl.bindTexture(gl.TEXTURE_2D, null);
+
+		// Create G-buffer
+		gl.bindFramebuffer(gl.FRAMEBUFFER, this.#gBuffer);
+			gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, this.#gBufferDepth, 0);
+
+			if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) {
+				throw new Error("The G-buffer is invalid.");
+			}
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+	}
+
+	#clear() {
+		const gl = this._context;
+
+		gl.clearColor(0, 0, 0, 1);
+		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+	}
+
+	/* #draw() {
+		const gl = this._context;
+
+		gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+	}
+
+	#renderGBufferPass() {
+		const gl = this._context;
+
+		gl.bindFramebuffer(gl.FRAMEBUFFER, this.#gBuffer);
+			gl.useProgram(this._programs.depth);
+				this.#draw();
+			gl.useProgram(null);
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+	}
+
+	#renderDepth() {
+		const gl = this._context;
+
+		gl.useProgram(this._programs.debugDepth);
+			gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+		gl.useProgram(null);
+	} */
+
+	#renderCrosshair() {
+		const gl = this._context;
+
 		gl.useProgram(this._programs.crosshair);
-
-		gl.drawArrays(gl.POINTS, 0, 5);
-
+			gl.uniform2f(this._uniforms.crosshairViewport, this._viewport[2], this._viewport[3]);
+			gl.drawArrays(gl.POINTS, 0, 5);
 		gl.useProgram(null);
 	}
 }

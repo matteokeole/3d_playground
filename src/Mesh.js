@@ -19,7 +19,7 @@ export class Mesh {
 	/**
 	 * @type {Vector3}
 	 */
-	_position = new Vector3(0, 0, 0);
+	_position;
 
 	/**
 	 * @param {Geometry} geometry
@@ -28,6 +28,7 @@ export class Mesh {
 	constructor(geometry, material) {
 		this._geometry = geometry;
 		this._material = material;
+		this._position = new Vector3();
 	}
 
 	getGeometry() {

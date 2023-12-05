@@ -1,9 +1,9 @@
-import {Mesh, Scene} from "../../../src/index.js";
+import {Camera, Mesh} from "../../../src/index.js";
 import {BoxGeometry} from "../../../src/geometries/index.js";
-import {DirectionalLight} from "../../../src/lights/index.js";
 import {Material} from "../../../src/materials/index.js";
-import {Matrix3, Vector3} from "../../../src/math/index.js";
-import {BLOCK_SCALE} from "../main.js";
+import {Matrix3, PI, Vector2, Vector3} from "../../../src/math/index.js";
+import {BLOCK_SCALE, FIELD_OF_VIEW} from "../main.js";
+import {Scene} from "../Scene.js";
 
 /**
  * @returns {Scene}
@@ -17,7 +17,7 @@ export function createScene() {
 			normalMapIndex: null,
 		}),
 		scale = .85,
-		scaleVector = new Vector3(BLOCK_SCALE, BLOCK_SCALE, BLOCK_SCALE),
+		scaleVector = new Vector3().addScalar(BLOCK_SCALE),
 		meshes = [];
 	let mesh, i;
 
@@ -59,14 +59,20 @@ export function createScene() {
 		meshes.push(mesh);
 	}
 
+	const pointLight = new Camera();
+	pointLight.setPosition(new Vector3(-1.88, 4.71, -0.63));
+	pointLight.target = pointLight.getPosition().clone();
+	pointLight.setRotation(new Vector3(-0.64, 0.65, 0));
+	pointLight.fieldOfView = FIELD_OF_VIEW;
+	pointLight.aspectRatio = innerWidth / innerHeight;
+	pointLight.near = 1;
+	pointLight.far = 200;
+	pointLight.bias = PI * .5;
+	pointLight.turnVelocity = 0;
+	pointLight.lookAt(new Vector2());
+
 	const scene = new Scene(meshes);
-	scene.lights = [
-		new DirectionalLight({
-			color: new Vector3(1, 1, 1),
-			intensity: 1,
-			direction: new Vector3(-.8, -.2, .15),
-		}),
-	];
+	scene.setPointLight(pointLight);
 
 	return scene;
 }

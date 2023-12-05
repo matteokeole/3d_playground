@@ -22,7 +22,7 @@ export class Instance extends _Instance {
 		// @ts-ignore
 		document.getElementById("DebugPosition").textContent = camera.getPosition();
 		// @ts-ignore
-		document.getElementById("DebugRotation").textContent = camera.rotation;
+		document.getElementById("DebugRotation").textContent = camera.getRotation();
 	}
 
 	_render() {

@@ -1,4 +1,4 @@
-import {AbstractCamera} from "../../src/index.js";
+import {Camera} from "../../src/index.js";
 import {ImageBitmapLoader} from "../../src/Loader/index.js";
 import {PI, Vector2} from "../../src/math/index.js";
 import {Renderer} from "./Renderer.js";
@@ -6,7 +6,7 @@ import {enableDebugging} from "./debug.js";
 import {listen} from "./input.js";
 import {Instance} from "./Instance.js";
 
-import {createScene} from "./scenes/texture.js";
+import {createScene} from "./scenes/perspective_shadow.js";
 
 export const FRAMES_PER_SECOND = 60;
 export const FIELD_OF_VIEW = 90;
@@ -38,13 +38,13 @@ export default async function() {
 
 	renderer.loadTextures(textures);
 
-	const camera = new AbstractCamera();
+	const camera = new Camera();
 	camera.getPosition()[1] = ENTITY_HEIGHT_STAND;
 	camera.target[1] = ENTITY_HEIGHT_STAND;
 	camera.fieldOfView = FIELD_OF_VIEW;
 	camera.aspectRatio = viewport[0] / viewport[1];
 	camera.near = .01;
-	camera.far = 1000;
+	camera.far = 200;
 	camera.bias = PI * .5; // This cancels the perspective matrix bias
 	camera.turnVelocity = .001;
 

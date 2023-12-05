@@ -1,4 +1,4 @@
-import {AbstractCamera, Scene, TextureImage} from "../index.js";
+import {Camera, Scene, TextureImage} from "../index.js";
 import {Renderer} from "./Renderer.js";
 
 export class WebGLRenderer extends Renderer {
@@ -33,6 +33,11 @@ export class WebGLRenderer extends Renderer {
 	_textures;
 
 	/**
+	 * @type {Record.<String, WebGLFramebuffer>}
+	 */
+	_framebuffers;
+
+	/**
 	 * @type {Record.<String, TextureImage>}
 	 */
 	_images;
@@ -48,6 +53,7 @@ export class WebGLRenderer extends Renderer {
 		this._buffers = {};
 		this._uniforms = {};
 		this._textures = {};
+		this._framebuffers = {};
 		this._images = {};
 	}
 
@@ -88,7 +94,7 @@ export class WebGLRenderer extends Renderer {
 	}
 
 	/**
-	 * @param {AbstractCamera} camera
+	 * @param {Camera} camera
 	 */
 	setCamera(camera) {
 		this._camera = camera;

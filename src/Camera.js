@@ -3,7 +3,7 @@ import {clamp, Matrix4, PI, Vector2, Vector3} from "./math/index.js";
 /**
  * @abstract
  */
-export class AbstractCamera {
+export class Camera {
 	/**
 	 * @type {Matrix4}
 	 */
@@ -27,7 +27,7 @@ export class AbstractCamera {
 	/**
 	 * @type {Vector3}
 	 */
-	target = new Vector3();
+	target;
 
 	/**
 	 * @type {Vector3}
@@ -37,59 +37,70 @@ export class AbstractCamera {
 	/**
 	 * @type {Vector3}
 	 */
-	rotation = new Vector3();
+	#rotation;
 
 	/**
 	 * @type {Vector3}
 	 */
-	forward = new Vector3(0, 0, 1);
+	#forward;
 
 	/**
 	 * @type {Vector3}
 	 */
-	right = new Vector3(1, 0, 0);
+	#right;
 
 	/**
 	 * @type {Vector3}
 	 */
-	up = new Vector3(0, 1, 0);
+	#up;
 
 	/**
 	 * @type {Number}
 	 */
-	fieldOfView = 0;
+	fieldOfView;
 
 	/**
 	 * @type {Number}
 	 */
-	aspectRatio = 0;
+	aspectRatio;
 
 	/**
 	 * @type {Number}
 	 */
-	near = 0;
+	near;
 
 	/**
 	 * @type {Number}
 	 */
-	far = 0;
+	far;
 
 	/**
 	 * @type {Number}
 	 */
-	bias = 0;
+	bias;
 
 	/**
 	 * @type {Number}
 	 */
-	turnVelocity = 0;
+	turnVelocity;
 
 	constructor() {
 		this.#projection = new Matrix4();
 		this.#view = new Matrix4();
 		this.#viewProjection = new Matrix4();
 		this.#position = new Vector3();
+		this.target = new Vector3();
 		this.#distance = new Vector3();
+		this.#rotation = new Vector3();
+		this.#forward = new Vector3(0, 0, 1);
+		this.#right = new Vector3(1, 0, 0);
+		this.#up = new Vector3(0, 1, 0);
+		this.fieldOfView = 0;
+		this.aspectRatio = 0;
+		this.near = 0;
+		this.far = 0;
+		this.bias = 0;
+		this.turnVelocity = 0;
 	}
 
 	getProjection() {
@@ -115,6 +126,17 @@ export class AbstractCamera {
 		this.#position.set(position);
 	}
 
+	getRotation() {
+		return this.#rotation;
+	}
+
+	/**
+	 * @param {Vector3} rotation
+	 */
+	setRotation(rotation) {
+		this.#rotation.set(rotation);
+	}
+
 	getDistance() {
 		return this.#distance;
 	}
@@ -126,11 +148,23 @@ export class AbstractCamera {
 		this.#distance.set(distance);
 	}
 
+	getForward() {
+		return this.#forward;
+	}
+
+	getRight() {
+		return this.#right;
+	}
+
+	getUp() {
+		return this.#up;
+	}
+
 	/**
 	 * @param {Number} x
 	 */
 	truck(x) {
-		const right = this.right.clone();
+		const right = this.#right.clone();
 
 		this.target.add(right.multiplyScalar(x));
 	}
@@ -139,7 +173,7 @@ export class AbstractCamera {
 	 * @param {Number} y
 	 */
 	pedestal(y) {
-		const up = this.up.clone();
+		const up = this.#up.clone();
 
 		this.target.add(up.multiplyScalar(y));
 	}
@@ -148,7 +182,7 @@ export class AbstractCamera {
 	 * @param {Number} z
 	 */
 	dolly(z) {
-		const forward = this.forward.clone();
+		const forward = this.#forward.clone();
 
 		this.target.add(forward.multiplyScalar(z));
 	}
@@ -164,7 +198,7 @@ export class AbstractCamera {
 	 * @param {Number} z
 	 */
 	moveZ(z) {
-		const newForward = this.right.cross(new Vector3(0, 1, 0));
+		const newForward = this.#right.cross(new Vector3(0, 1, 0));
 
 		this.target.add(newForward.multiplyScalar(z));
 	}
@@ -178,17 +212,17 @@ export class AbstractCamera {
 		const newPitch = -delta[1];
 		const newYaw = delta[0];
 
-		this.rotation[0] = clamp(this.rotation[0] + newPitch, -PI * .5, PI * .5);
-		if (this.rotation[1] + newYaw > PI) this.rotation[1] = -PI;
-		if (this.rotation[1] + newYaw < -PI) this.rotation[1] = PI;
-		this.rotation[1] += newYaw;
+		this.#rotation[0] = clamp(this.#rotation[0] + newPitch, -PI * .5, PI * .5);
+		if (this.#rotation[1] + newYaw > PI) this.#rotation[1] = -PI;
+		if (this.#rotation[1] + newYaw < -PI) this.#rotation[1] = PI;
+		this.#rotation[1] += newYaw;
 
-		const pitch = this.rotation[0];
-		const yaw = this.rotation[1];
+		const pitch = this.#rotation[0];
+		const yaw = this.#rotation[1];
 
-		this.forward = sphericalToCartesian(yaw, pitch);
-		this.right = sphericalToCartesian(yaw + PI * .5, 0);
-		this.up = this.forward.cross(this.right);
+		this.#forward = sphericalToCartesian(yaw, pitch);
+		this.#right = sphericalToCartesian(yaw + PI * .5, 0);
+		this.#up = this.#forward.cross(this.#right);
 	};
 
 	update() {
@@ -202,8 +236,8 @@ export class AbstractCamera {
 		).multiply(Matrix4.translation(this.#distance.clone().multiplyScalar(-1)));
 		this.#view = Matrix4.lookAt(
 			this.#position,
-			this.#position.clone().add(this.forward),
-			this.up,
+			this.#position.clone().add(this.#forward),
+			this.#up,
 		);
 		this.#viewProjection = this.#projection.clone().multiply(this.#view);
 	}
@@ -217,15 +251,15 @@ export class AbstractCamera {
 		const position = this.#position.clone();
 
 		const xDistance = new Vector3(
-			Math.cos(this.rotation[1]),
+			Math.cos(this.#rotation[1]),
 			0,
-			-Math.sin(this.rotation[1]),
+			-Math.sin(this.#rotation[1]),
 		).multiplyScalar(this.#distance[0]);
 		const yDistance = new Vector3(1, this.#distance[1], 1);
 		const zDistance = new Vector3(
-			Math.sin(this.rotation[1]),
+			Math.sin(this.#rotation[1]),
 			0,
-			Math.cos(this.rotation[1]),
+			Math.cos(this.#rotation[1]),
 		).multiplyScalar(this.#distance[2]);
 
 		return position.add(xDistance).add(yDistance).add(zDistance);
