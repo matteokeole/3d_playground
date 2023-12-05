@@ -72,7 +72,7 @@ export function createCamera(aspectRatio) {
 
 	camera.setPosition(new Vector3(0, 8, 0));
 	camera.target = camera.getPosition().clone();
-	camera.rotation = new Vector3(-PI / 6, 0, 0);
+	camera.setRotation(new Vector3(-PI / 6, 0, 0));
 	camera.setDistance(new Vector3(0, 0, -64));
 
 	camera.fieldOfView = FIELD_OF_VIEW;

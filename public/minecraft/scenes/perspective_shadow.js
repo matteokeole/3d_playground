@@ -1,4 +1,4 @@
-import {AbstractCamera, Mesh} from "../../../src/index.js";
+import {Camera, Mesh} from "../../../src/index.js";
 import {BoxGeometry} from "../../../src/geometries/index.js";
 import {Material} from "../../../src/materials/index.js";
 import {Matrix3, PI, Vector2, Vector3} from "../../../src/math/index.js";
@@ -46,10 +46,10 @@ export function createScene() {
 		}
 	}
 
-	const pointLight = new AbstractCamera();
+	const pointLight = new Camera();
 	pointLight.setPosition(new Vector3(-2.5, 1.8, 3.5));
 	// pointLight.target = pointLight.getPosition().clone();
-	pointLight.rotation = new Vector3(-0.17, PI / 2, 0);
+	pointLight.setRotation(new Vector3(-0.17, PI / 2, 0));
 	pointLight.fieldOfView = FIELD_OF_VIEW;
 	pointLight.aspectRatio = 16 / 9;
 	pointLight.near = 1;

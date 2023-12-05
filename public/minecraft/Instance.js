@@ -36,7 +36,7 @@ export class Instance extends _Instance {
 		}
 
 		document.getElementById("DebugPosition").textContent = `${camera.getPosition()}`;
-		document.getElementById("DebugRotation").textContent = `${camera.rotation}`;
+		document.getElementById("DebugRotation").textContent = `${camera.getRotation()}`;
 		document.getElementById("DebugDelta").textContent = delta.toFixed(2);
 	}
 

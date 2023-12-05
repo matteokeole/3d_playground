@@ -1,9 +1,9 @@
-import {AbstractCamera, Mesh, Scene as _Scene} from "../../src/index.js";
+import {Camera, Mesh, Scene as _Scene} from "../../src/index.js";
 import {Material} from "../../src/materials/index.js";
 
 export class Scene extends _Scene {
 	/**
-	 * @type {?AbstractCamera}
+	 * @type {?Camera}
 	 */
 	#pointLight;
 
@@ -22,7 +22,7 @@ export class Scene extends _Scene {
 	}
 
 	/**
-	 * @param {AbstractCamera} pointLight
+	 * @param {Camera} pointLight
 	 */
 	setPointLight(pointLight) {
 		this.#pointLight = pointLight;

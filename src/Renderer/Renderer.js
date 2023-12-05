@@ -1,4 +1,4 @@
-import {AbstractCamera, Scene} from "../index.js";
+import {Camera, Scene} from "../index.js";
 import {Vector4} from "../math/index.js";
 
 /**
@@ -21,7 +21,7 @@ export class Renderer {
 	_scene;
 
 	/**
-	 * @type {?AbstractCamera}
+	 * @type {?Camera}
 	 */
 	_camera;
 
@@ -65,7 +65,7 @@ export class Renderer {
 
 	/**
 	 * @abstract
-	 * @param {AbstractCamera} camera
+	 * @param {Camera} camera
 	 */
 	setCamera(camera) {}
 

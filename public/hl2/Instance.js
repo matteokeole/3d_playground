@@ -50,7 +50,7 @@ export class Instance extends _Instance {
 		this._renderer.getScene().getPointLight().setPosition(camera.getPosition());
 
 		document.getElementById("DebugPosition").textContent = `${camera.getPosition()}`;
-		document.getElementById("DebugRotation").textContent = `${camera.rotation}`;
+		document.getElementById("DebugRotation").textContent = `${camera.getRotation()}`;
 	}
 
 	_render() {

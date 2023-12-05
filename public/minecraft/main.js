@@ -1,4 +1,4 @@
-import {AbstractCamera} from "../../src/index.js";
+import {Camera} from "../../src/index.js";
 import {ImageBitmapLoader} from "../../src/Loader/index.js";
 import {PI, Vector2} from "../../src/math/index.js";
 import {Renderer} from "./Renderer.js";
@@ -38,7 +38,7 @@ export default async function() {
 
 	renderer.loadTextures(textures);
 
-	const camera = new AbstractCamera();
+	const camera = new Camera();
 	camera.getPosition()[1] = ENTITY_HEIGHT_STAND;
 	camera.target[1] = ENTITY_HEIGHT_STAND;
 	camera.fieldOfView = FIELD_OF_VIEW;
