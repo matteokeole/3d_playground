@@ -19,6 +19,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 		super.setScene(scene);
 
 		this._renderPipelines.visibility = this.#createVisibilityPipeline();
+		this._textures.depth = this.#createDepthTexture();
 
 		this.#writeIndirectBuffer();
 		// this.#writeIndexBuffer();
@@ -39,6 +40,12 @@ export class VisibilityRenderer extends WebGPURenderer {
 					storeOp: "store",
 				},
 			],
+			depthStencilAttachment: {
+				view: this._textures.depth.createView(),
+				depthClearValue: 1,
+				depthLoadOp: "clear",
+				depthStoreOp: "store",
+			},
 		});
 		renderPass.setPipeline(this._renderPipelines.visibility);
 		renderPass.setBindGroup(0, this._bindGroups.mesh);
@@ -94,6 +101,11 @@ export class VisibilityRenderer extends WebGPURenderer {
 						],
 					},
 				],
+			},
+			depthStencil: {
+				format: "depth24plus",
+				depthWriteEnabled: true,
+				depthCompare: "less",
 			},
 			fragment: {
 				module: this._shaderModules.visibilityFragment,
@@ -224,6 +236,17 @@ export class VisibilityRenderer extends WebGPURenderer {
 				this._bindGroupLayouts.mesh,
 				this._bindGroupLayouts.camera,
 			],
+		});
+	}
+
+	#createDepthTexture() {
+		return this._device.createTexture({
+			size: {
+				width: this._viewport[2],
+				height: this._viewport[3],
+			},
+			format: "depth24plus",
+			usage: GPUTextureUsage.RENDER_ATTACHMENT,
 		});
 	}
 
