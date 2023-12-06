@@ -3,6 +3,54 @@ import {Vector3} from "../math/index.js";
 
 export class BoxGeometry extends Geometry {
 	/**
+	 * @type {Float32Array}
+	 */
+	static #nonIndexedVertices = Float32Array.of(
+		// Front
+		-.5, -.5, -.5,
+		-.5, .5, -.5,
+		.5, .5, -.5,
+		-.5, -.5, -.5,
+		.5, .5, -.5,
+		.5, -.5, -.5,
+		// Back
+		.5, -.5, .5,
+		.5, .5, .5,
+		-.5, .5, .5,
+		.5, -.5, .5,
+		-.5, .5, .5,
+		-.5, -.5, .5,
+		// Left
+		-.5, -.5, .5,
+		-.5, .5, .5,
+		-.5, .5, -.5,
+		-.5, -.5, .5,
+		-.5, .5, -.5,
+		-.5, -.5, -.5,
+		// Right
+		.5, -.5, -.5,
+		.5, .5, -.5,
+		.5, .5, .5,
+		.5, -.5, -.5,
+		.5, .5, .5,
+		.5, -.5, .5,
+		// Top
+		-.5, .5, -.5,
+		-.5, .5, .5,
+		.5, .5, .5,
+		-.5, .5, -.5,
+		.5, .5, .5,
+		.5, .5, -.5,
+		// Bottom
+		-.5, -.5, .5,
+		-.5, -.5, -.5,
+		.5, -.5, -.5,
+		-.5, -.5, .5,
+		.5, -.5, -.5,
+		.5, -.5, .5,
+	);
+
+	/**
 	 * @type {Vector3}
 	 */
 	#size;
@@ -84,6 +132,10 @@ export class BoxGeometry extends Geometry {
 		this._normals = Geometry.getNormals(this._vertices);
 		this._tangents = Geometry.getTangents(this._vertices);
 		this._uvs = Geometry.getUVs(this._vertices.length);
+	}
+
+	getNonIndexedVertices() {
+		return BoxGeometry.#nonIndexedVertices;
 	}
 
 	getSize() {

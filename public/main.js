@@ -1,3 +1,3 @@
-import main from "./minecraft/main.js";
+import main from "./visibility/main.js";
 
 main();

@@ -2,7 +2,7 @@ import {Camera, Mesh} from "../../../src/index.js";
 import {BoxGeometry} from "../../../src/geometries/index.js";
 import {Material} from "../../../src/materials/index.js";
 import {Matrix3, PI, Vector2, Vector3} from "../../../src/math/index.js";
-import {BLOCK_SCALE, FIELD_OF_VIEW, NOISE_AMPLITUDE, NOISE_INC} from "../main.js";
+import {BLOCK_SCALE, FIELD_OF_VIEW} from "../main.js";
 import {Scene} from "../Scene.js";
 
 const GEOMETRY = new BoxGeometry(new Vector3(1, 1, 1));

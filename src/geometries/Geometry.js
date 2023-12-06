@@ -155,6 +155,14 @@ export class Geometry {
 		return this._vertices;
 	}
 
+	/**
+	 * @abstract
+	 * @returns {Float32Array}
+	 */
+	getNonIndexedVertices() {
+		throw new Error("Not implemented");
+	}
+
 	getNormals() {
 		return this._normals;
 	}

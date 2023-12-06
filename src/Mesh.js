@@ -1,5 +1,5 @@
 import {Geometry} from "./geometries/index.js";
-import {Vector3} from "./math/index.js";
+import {Matrix4, Vector3} from "./math/index.js";
 import {Material} from "./materials/index.js";
 
 /**
@@ -17,9 +17,24 @@ export class Mesh {
 	_material;
 
 	/**
+	 * @type {Matrix4}
+	 */
+	#projection;
+
+	/**
 	 * @type {Vector3}
 	 */
-	_position;
+	#position;
+
+	/**
+	 * @type {Vector3}
+	 */
+	#rotation;
+
+	/**
+	 * @type {Vector3}
+	 */
+	#scale;
 
 	/**
 	 * @param {Geometry} geometry
@@ -28,7 +43,10 @@ export class Mesh {
 	constructor(geometry, material) {
 		this._geometry = geometry;
 		this._material = material;
-		this._position = new Vector3();
+		this.#projection = new Matrix4();
+		this.#position = new Vector3();
+		this.#rotation = new Vector3();
+		this.#scale = new Vector3(1, 1, 1);
 	}
 
 	getGeometry() {
@@ -39,14 +57,46 @@ export class Mesh {
 		return this._material;
 	}
 
+	getProjection() {
+		return this.#projection;
+	}
+
+	updateProjection() {
+		this.#projection = Matrix4.translation(this.#position)
+			.multiply(Matrix4.rotation(this.#rotation))
+			.multiply(Matrix4.scale(this.#scale));
+	}
+
 	getPosition() {
-		return this._position;
+		return this.#position;
 	}
 
 	/**
 	 * @param {Vector3} position
 	 */
 	setPosition(position) {
-		this._position = position;
+		this.#position = position;
+	}
+
+	getRotation() {
+		return this.#rotation;
+	}
+
+	/**
+	 * @param {Vector3} rotation
+	 */
+	setRotation(rotation) {
+		this.#rotation = rotation;
+	}
+
+	getScale() {
+		return this.#scale;
+	}
+
+	/**
+	 * @param {Vector3} scale
+	 */
+	setScale(scale) {
+		this.#scale = scale;
 	}
 }
