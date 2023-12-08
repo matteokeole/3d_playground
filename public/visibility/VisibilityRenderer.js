@@ -29,35 +29,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 
 	render() {
 		this.#writeCameraBuffer();
-
-		const encoder = this._device.createCommandEncoder();
-
-		const renderPass = encoder.beginRenderPass({
-			colorAttachments: [
-				{
-					view: this._context.getCurrentTexture().createView(),
-					loadOp: "load",
-					storeOp: "store",
-				},
-			],
-			depthStencilAttachment: {
-				view: this._textures.depth.createView(),
-				depthClearValue: 1,
-				depthLoadOp: "clear",
-				depthStoreOp: "store",
-			},
-		});
-		renderPass.setPipeline(this._renderPipelines.visibility);
-		renderPass.setBindGroup(0, this._bindGroups.mesh);
-		renderPass.setBindGroup(1, this._bindGroups.camera);
-		// renderPass.setIndexBuffer(this._buffers.index, "uint16");
-		renderPass.setVertexBuffer(0, this._buffers.vertex);
-		renderPass.drawIndirect(this._buffers.indirect, 0);
-		renderPass.end();
-
-		this._device.queue.submit([
-			encoder.finish(),
-		]);
+		this.#renderPrePass();
 	}
 
 	/**
@@ -297,5 +269,36 @@ export class VisibilityRenderer extends WebGPURenderer {
 
 	#writeCameraBuffer() {
 		this._device.queue.writeBuffer(this._buffers.camera, 0, this._camera.getViewProjection());
+	}
+
+	#renderPrePass() {
+		const encoder = this._device.createCommandEncoder();
+
+		const renderPass = encoder.beginRenderPass({
+			colorAttachments: [
+				{
+					view: this._context.getCurrentTexture().createView(),
+					loadOp: "load",
+					storeOp: "store",
+				},
+			],
+			depthStencilAttachment: {
+				view: this._textures.depth.createView(),
+				depthClearValue: 1,
+				depthLoadOp: "clear",
+				depthStoreOp: "store",
+			},
+		});
+		renderPass.setPipeline(this._renderPipelines.visibility);
+		renderPass.setBindGroup(0, this._bindGroups.mesh);
+		renderPass.setBindGroup(1, this._bindGroups.camera);
+		// renderPass.setIndexBuffer(this._buffers.index, "uint16");
+		renderPass.setVertexBuffer(0, this._buffers.vertex);
+		renderPass.drawIndirect(this._buffers.indirect, 0);
+		renderPass.end();
+
+		this._device.queue.submit([
+			encoder.finish(),
+		]);
 	}
 }
