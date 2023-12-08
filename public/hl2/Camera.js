@@ -36,7 +36,7 @@ export class Camera extends _Camera {
 		}
 
 		this.setPosition(frame.getPosition());
-		this.rotation = frame.getRotation();
+		this.setRotation(frame.getRotation());
 	}
 
 	/**

@@ -235,9 +235,9 @@ export class Camera {
 		const pitch = this.#rotation[0];
 		const yaw = this.#rotation[1];
 
-		this.forward = Camera.#sphericalToCartesian(yaw, pitch);
-		this.right = Camera.#sphericalToCartesian(yaw + PI * .5, 0);
-		this.up = this.forward.cross(this.right);
+		this.#forward = Camera.#sphericalToCartesian(yaw, pitch);
+		this.#right = Camera.#sphericalToCartesian(yaw + PI * .5, 0);
+		this.#up = this.#forward.cross(this.#right);
 	};
 
 	captureLookAt() {
@@ -263,19 +263,19 @@ export class Camera {
 
 		const rotation = rollRotation.multiply(pitchRotation).multiply(yawRotation);
 
-		this.forward = new Vector3(
+		this.#forward = new Vector3(
 			rotation[2],
 			rotation[5],
 			rotation[8],
 		);
 
-		this.right = new Vector3(
+		this.#right = new Vector3(
 			rotation[0],
 			rotation[3],
 			rotation[6],
 		);
 
-		this.up = new Vector3(
+		this.#up = new Vector3(
 			rotation[1],
 			rotation[4],
 			rotation[7],
