@@ -1,7 +1,44 @@
 import {Camera as _Camera} from "../../src/index.js";
 import {Vector3} from "../../src/math/index.js";
+import {Session} from "../../src/Capture/index.js";
 
 export class Camera extends _Camera {
+	/**
+	 * @type {?Session}
+	 */
+	#captureSession;
+
+	constructor() {
+		super();
+
+		this.#captureSession = null;
+	}
+
+	getCaptureSession() {
+		return this.#captureSession;
+	}
+
+	/**
+	 * @param {Session} captureSession
+	 */
+	setCaptureSession(captureSession) {
+		this.#captureSession = captureSession;
+	}
+
+	/**
+	 * @param {Number} frameIndex
+	 */
+	readCaptureSession(frameIndex) {
+		const frame = this.#captureSession.read(frameIndex);
+
+		if (frame === null) {
+			return;
+		}
+
+		this.setPosition(frame.getPosition());
+		this.setRotation(frame.getRotation());
+	}
+
 	/**
 	 * @param {Vector3} velocity
 	 */

@@ -1,5 +1,5 @@
 import {Instance as _Instance} from "../../src/index.js";
-import {Vector3} from "../../src/math/index.js";
+import {Vector2, Vector3} from "../../src/math/index.js";
 import {keys} from "./input.js";
 import {Mesh} from "./Mesh.js";
 import {CAMERA_LERP_FACTOR, VELOCITY} from "./main.js";
@@ -20,31 +20,38 @@ export class Instance extends _Instance {
 
 		const camera = this._renderer.getCamera();
 
-		// Camera-space direction
-		const direction = new Vector3(
-			keys.KeyA + keys.KeyD,
-			keys.ControlLeft + keys.Space,
-			keys.KeyW + keys.KeyS,
-		)
-			.normalize()
-			.multiplyScalar(VELOCITY);
+		if (camera.getCaptureSession() !== null) {
+			// Read session
+			camera.readCaptureSession(this._frameIndex);
+			camera.captureLookAt();
+		} else {
+			// Camera-space direction
+			const direction = new Vector3(
+				keys.KeyA + keys.KeyD,
+				keys.ControlLeft + keys.Space,
+				keys.KeyW + keys.KeyS,
+			)
+				.normalize()
+				.multiplyScalar(VELOCITY);
 
-		const hasMoved = direction.magnitude() !== 0;
+			const hasMoved = direction.magnitude() !== 0;
 
-		if (player) {
-			camera.target[0] = player.getPosition()[0];
-			camera.target[2] = player.getPosition()[2];
-		}
-
-		if (hasMoved) {
-			const relativeVelocity = camera.getRelativeVelocity(direction);
-
-			if (!wall || !this.#collide(relativeVelocity, player, wall)) {
-				camera.target.add(relativeVelocity);
+			if (player) {
+				camera.target[0] = player.getPosition()[0];
+				camera.target[2] = player.getPosition()[2];
 			}
+
+			if (hasMoved) {
+				const relativeVelocity = camera.getRelativeVelocity(direction);
+
+				if (!wall || !this.#collide(relativeVelocity, player, wall)) {
+					camera.target.add(relativeVelocity);
+				}
+			}
+
+			camera.getPosition().lerp(camera.target, CAMERA_LERP_FACTOR);
 		}
 
-		camera.getPosition().lerp(camera.target, CAMERA_LERP_FACTOR);
 		camera.update();
 
 		this._renderer.getScene().getPointLight().setPosition(camera.getPosition());

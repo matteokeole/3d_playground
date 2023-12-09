@@ -1,9 +1,22 @@
-import {clamp, Matrix4, PI, Vector2, Vector3} from "./math/index.js";
+import {clamp, Matrix3, Matrix4, PI, Vector2, Vector3} from "./math/index.js";
 
 /**
  * @abstract
  */
 export class Camera {
+	/**
+	 * @param {Number} yaw
+	 * @param {Number} pitch
+	 * @returns {Vector3}
+	 */
+	static #sphericalToCartesian(yaw, pitch) {
+		return new Vector3(
+			Math.cos(pitch) * Math.sin(yaw),
+			Math.sin(pitch),
+			Math.cos(pitch) * Math.cos(yaw),
+		);
+	}
+
 	/**
 	 * @type {Matrix4}
 	 */
@@ -204,6 +217,8 @@ export class Camera {
 	}
 
 	/**
+	 * Note: Only yaw and pitch
+	 * 
 	 * @param {Vector2} delta
 	 */
 	lookAt(delta) {
@@ -220,10 +235,52 @@ export class Camera {
 		const pitch = this.#rotation[0];
 		const yaw = this.#rotation[1];
 
-		this.#forward = sphericalToCartesian(yaw, pitch);
-		this.#right = sphericalToCartesian(yaw + PI * .5, 0);
+		this.#forward = Camera.#sphericalToCartesian(yaw, pitch);
+		this.#right = Camera.#sphericalToCartesian(yaw + PI * .5, 0);
 		this.#up = this.#forward.cross(this.#right);
 	};
+
+	captureLookAt() {
+		const [yaw, pitch, roll] = this.#rotation;
+
+		const yawRotation = new Matrix3(
+			Math.cos(yaw), 0, Math.sin(yaw),
+			0, 1, 0,
+			-Math.sin(yaw), 0, Math.cos(yaw),
+		);
+
+		const pitchRotation = new Matrix3(
+			1, 0, 0,
+			0, Math.cos(pitch), -Math.sin(pitch),
+			0, Math.sin(pitch), Math.cos(pitch),
+		);
+
+		const rollRotation = new Matrix3(
+			Math.cos(roll), -Math.sin(roll), 0,
+			Math.sin(roll), Math.cos(roll), 0,
+			0, 0, 1,
+		);
+
+		const rotation = rollRotation.multiply(pitchRotation).multiply(yawRotation);
+
+		this.#forward = new Vector3(
+			rotation[2],
+			rotation[5],
+			rotation[8],
+		);
+
+		this.#right = new Vector3(
+			rotation[0],
+			rotation[3],
+			rotation[6],
+		);
+
+		this.#up = new Vector3(
+			rotation[1],
+			rotation[4],
+			rotation[7],
+		);
+	}
 
 	update() {
 		this.#projection = Matrix4.perspective(
@@ -265,14 +322,3 @@ export class Camera {
 		return position.add(xDistance).add(yDistance).add(zDistance);
 	}
 }
-
-/**
- * @param {Number} yaw
- * @param {Number} pitch
- * @returns {Vector3}
- */
-const sphericalToCartesian = (yaw, pitch) => new Vector3(
-	Math.cos(pitch) * Math.sin(yaw),
-	Math.sin(pitch),
-	Math.cos(pitch) * Math.cos(yaw),
-);

@@ -33,7 +33,7 @@ export class Renderer extends WebGLRenderer {
 		this.#gBuffer = null;
 		this.#gBufferDepth = null;
 
-		await this.#loadShaders();
+		await this.#loadPrograms();
 
 		const gl = this._context;
 
@@ -191,7 +191,7 @@ export class Renderer extends WebGLRenderer {
 		this.#renderCrosshair();
 	}
 
-	async #loadShaders() {
+	async #loadPrograms() {
 		const shaderLoader = new ShaderLoader();
 
 		// const quadVertexShaderSource = await shaderLoader.load("assets/shaders/quad.vert");
