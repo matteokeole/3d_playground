@@ -249,6 +249,19 @@
 			"uv": [0, 0.125],
 			"uv_rotation": 0,
 			"uv_scale": [0.25, 0.25]
+		}, {
+			"_label": "main_room_entrance_door_frame_left",
+			"anchors": [
+				20, 0, 184,
+				20, 112, 184,
+				24, 108, 184,
+				24, 0, 184
+			],
+			"texture": "wood/wooddoor048a.jpg",
+			"normal_map": "normal.jpg",
+			"uv": [0, 0.125],
+			"uv_rotation": 0,
+			"uv_scale": [0.25, 0.25]
 		}
 	],
 	"door": [

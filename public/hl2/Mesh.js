@@ -21,15 +21,15 @@ export class Mesh extends _Mesh {
 		const anchor1 = new Vector3(anchors[0], anchors[1], anchors[2]);
 		const anchor2 = new Vector3(anchors[3], anchors[4], anchors[5]);
 		const anchor3 = new Vector3(anchors[6], anchors[7], anchors[8]);
-		const anchor4 = anchors.length === 9 ?
-			anchor3.clone().add(anchor1).subtract(anchor2) :
-			new Vector3(anchors[9], anchors[10], anchors[11]);
+		const anchor4 = anchors.length === 12 ?
+			new Vector3(anchors[9], anchors[10], anchors[11]) :
+			anchor3.clone().add(anchor1).subtract(anchor2);
 
 		const textureIndex = imagePaths.indexOf(json.texture);
 		const bitmap = images[textureIndex].bitmap;
 
-		const w = anchor1.to(anchor2);
-		const h = anchor2.to(anchor3);
+		const textureWidth = Math.max(anchor1.to(anchor4), anchor2.to(anchor3));
+		const textureHeight = Math.max(anchor1.to(anchor2), anchor4.to(anchor3));
 
 		const uvScale = new Vector2();
 		uvScale.set(json.uv_scale);
@@ -37,17 +37,20 @@ export class Mesh extends _Mesh {
 		const translation = new Vector2();
 		translation.set(json.uv);
 		const rotation = json.uv_rotation * PI;
-		const scale = new Vector2(h, w)
+		const scale = new Vector2(textureWidth, textureHeight)
 			.divide(new Vector2(bitmap.width, bitmap.height))
 			.divide(uvScale);
+
+		const textureTransform = Matrix3
+			.identity()
+			.multiply(Matrix3.translation(translation))
+			.multiply(Matrix3.rotation(rotation))
+			.multiply(Matrix3.scale(scale));
 
 		return new Mesh(
 			SSDPlaneGeometry.fromAnchors([anchor1, anchor2, anchor3, anchor4]),
 			new Material({
-				textureMatrix: Matrix3
-					.translation(translation)
-					.multiply(Matrix3.rotation(rotation))
-					.multiply(Matrix3.scale(scale)),
+				textureMatrix: textureTransform,
 				textureIndex,
 				normalMapIndex: imagePaths.indexOf(json.normal_map),
 			}),

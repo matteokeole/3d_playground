@@ -35,9 +35,9 @@ export async function createScene(images) {
 export function createCamera(aspectRatio) {
 	const camera = new Camera();
 
-	camera.setPosition(new Vector3(47.36, 146.50, 147.45));
+	camera.setPosition(new Vector3(54, ENTITY_HEIGHT_STAND, 104));
 	camera.target = camera.getPosition().clone();
-	camera.setRotation(new Vector3(-1.57, 0, 0));
+	camera.setRotation(new Vector3(-.06, 0, 0));
 
 	camera.fieldOfView = FIELD_OF_VIEW;
 	camera.aspectRatio = aspectRatio;
