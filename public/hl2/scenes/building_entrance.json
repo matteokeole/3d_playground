@@ -1,283 +1,304 @@
-[
-	{
-		"label": "hall_floor",
-		"anchors": [-16, 0, -16, -16, 0, 184, 128, 0, 184],
-		"texture": "tile/tilefloor018a.jpg",
-		"normal_map": "tile/tilefloor018a_normal.jpg",
-		"uv": [0.25, 0.625],
-		"uv_rotation": 0,
-		"uv_scale": [-0.25, 0.25]
-	}, {
-		"label": "hall_to_bike_room_floor",
-		"anchors": [-24, 0, 104, -24, 0, 152, -16, 0, 152],
-		"texture": "tile/tilefloor018a.jpg",
-		"normal_map": "tile/tilefloor018a_normal.jpg",
-		"uv": [0.375, 0.125],
-		"uv_rotation": 0,
-		"uv_scale": [-0.25, 0.25]
-	}, {
-		"label": "bike_room_floor",
-		"anchors": [-96, 0, 48, -96, 0, 184, -24, 0, 184],
-		"texture": "tile/tilefloor018a.jpg",
-		"normal_map": "tile/tilefloor018a_normal.jpg",
-		"uv": [0.5, 0.624],
-		"uv_rotation": 0,
-		"uv_scale": [-0.25, 0.25]
-	}, {
-		"label": "hall_entrance_left_wall",
-		"anchors": [36, 0, -16, 36, 128, -16, -16, 128, -16],
-		"texture": "plaster/plasterwall030c.jpg",
-		"normal_map": "plaster/plasterwall030c_normal.jpg",
-		"uv": [0.281, 0],
-		"uv_rotation": 0,
-		"uv_scale": [-0.25, 0.25]
-	}, {
-		"label": "hall_entrance_right_wall",
-		"anchors": [128, 0, -16, 128, 128, -16, 92, 128, -16],
-		"texture": "plaster/plasterwall030c.jpg",
-		"normal_map": "plaster/plasterwall030c_normal.jpg",
-		"uv": [0, 0],
-		"uv_rotation": 0,
-		"uv_scale": [-0.25, 0.25]
-	}, {
-		"label": "hall_entrance_door_wall",
-		"anchors": [92, 112, -16, 92, 128, -16, 36, 128, -16],
-		"texture": "plaster/plasterwall030c.jpg",
-		"normal_map": "plaster/plasterwall030c_normal.jpg",
-		"uv": [0.71, 0],
-		"uv_rotation": 0,
-		"uv_scale": [-0.25, 0.25]
-	}, {
-		"label": "hall_entrance_door",
-		"anchors": [92, 0, -16, 92, 112, -16, 36, 112, -16],
-		"texture": "wood/wooddoor048a.jpg",
-		"normal_map": "wood/wooddoor048a_normal.jpg",
-		"uv": [0.875, 0.125],
-		"uv_rotation": 0,
-		"uv_scale": [-0.25, 0.25]
-	}, {
-		"label": "bike_room_entrance_left_wall",
-		"anchors": [-16, 0, -16, -16, 128, -16, -16, 128, 100],
-		"texture": "plaster/plasterwall030c.jpg",
-		"normal_map": "plaster/plasterwall030c_normal.jpg",
-		"uv": [0.39, 0],
-		"uv_rotation": 0,
-		"uv_scale": [0.25, 0.25]
-	}, {
-		"label": "bike_room_entrance_right_wall",
-		"anchors": [-16, 0, 156, -16, 128, 156, -16, 128, 184],
-		"texture": "plaster/plasterwall030c.jpg",
-		"normal_map": "plaster/plasterwall030c_normal.jpg",
-		"uv": [0.36, 0],
-		"uv_rotation": 0,
-		"uv_scale": [0.25, 0.25]
-	}, {
-		"label": "bike_room_entrance_door_wall",
-		"anchors": [-16, 112, 100, -16, 128, 100, -16, 128, 156],
-		"texture": "plaster/plasterwall030c.jpg",
-		"normal_map": "plaster/plasterwall030c_normal.jpg",
-		"uv": [0.36, 0],
-		"uv_rotation": 0,
-		"uv_scale": [0.25, 0.25]
-	}, {
-		"label": "bike_room_entrance_door_frame_left",
-		"anchors": [-16, 0, 100, -16, 108, 100, -16, 108, 104],
-		"texture": "wood/wooddoor048a.jpg",
-		"normal_map": "wood/wooddoor048a_normal.jpg",
-		"uv": [0.875, 0.155],
-		"uv_rotation": 0,
-		"uv_scale": [-0.25, 0.25]
-	}, {
-		"label": "bike_room_entrance_door_frame_right",
-		"anchors": [-16, 0, 152, -16, 108, 152, -16, 108, 156],
-		"texture": "wood/wooddoor048a.jpg",
-		"normal_map": "wood/wooddoor048a_normal.jpg",
-		"uv": [0.0625, 0.155],
-		"uv_rotation": 0,
-		"uv_scale": [-0.25, 0.25]
-	}, {
-		"label": "bike_room_entrance_door_frame_top",
-		"anchors": [-16, 108, 100, -16, 112, 100, -16, 112, 156],
-		"texture": "wood/wooddoor048a.jpg",
-		"normal_map": "wood/wooddoor048a_normal.jpg",
-		"uv": [-0.125, 0.125],
-		"uv_rotation": 0,
-		"uv_scale": [-0.25, 0.25]
-	}, {
-		"label": "bike_room_entrance_door_frame_left_inside",
-		"anchors": [-16, 0, 104, -16, 108, 104, -24, 108, 104],
-		"texture": "wood/wooddoor048a.jpg",
-		"normal_map": "wood/wooddoor048a_normal.jpg",
-		"uv": [0.195, 0.1575],
-		"uv_rotation": 0,
-		"uv_scale": [-0.25, 0.25]
-	}, {
-		"label": "bike_room_entrance_door_frame_right_inside",
-		"anchors": [-24, 0, 152, -24, 108, 152, -16, 108, 152],
-		"texture": "wood/wooddoor048a.jpg",
-		"normal_map": "wood/wooddoor048a_normal.jpg",
-		"uv": [0.0625, 0.1575],
-		"uv_rotation": 0,
-		"uv_scale": [0.25, 0.25]
-	}, {
-		"label": "bike_room_entrance_door_frame_top_inside",
-		"anchors": [-24, 108, 152, -24, 108, 104, -16, 108, 104],
-		"texture": "wood/wooddoor048a.jpg",
-		"normal_map": "wood/wooddoor048a_normal.jpg",
-		"uv": [0.0625, 0.6075],
-		"uv_rotation": 0,
-		"uv_scale": [0.25, 0.25]
-	}, {
-		"label": "main_entrance_left_wall",
-		"anchors": [-16, 0, 184, -16, 128, 184, 20, 128, 184],
-		"texture": "plaster/plasterwall030c.jpg",
-		"normal_map": "plaster/plasterwall030c_normal.jpg",
-		"uv": [0.125, 0],
-		"uv_rotation": 0,
-		"uv_scale": [-0.25, 0.25]
-	}, {
-		"label": "main_entrance_right_wall",
-		"anchors": [88, 0, 184, 88, 128, 184, 128, 128, 184],
-		"texture": "plaster/plasterwall030c.jpg",
-		"normal_map": "plaster/plasterwall030c_normal.jpg",
-		"uv": [0.312, 0],
-		"uv_rotation": 0,
-		"uv_scale": [-0.25, 0.25]
-	}, {
-		"label": "main_entrance_door_wall",
-		"anchors": [20, 112, 184, 20, 128, 184, 88, 128, 184],
-		"texture": "plaster/plasterwall030c.jpg",
-		"normal_map": "plaster/plasterwall030c_normal.jpg",
-		"uv": [0.53, 0],
-		"uv_rotation": 0,
-		"uv_scale": [-0.25, 0.25]
-	}, {
-		"label": "mailbox_wall",
-		"anchors": [128, 0, 184, 128, 128, 184, 128, 128, -16],
-		"texture": "plaster/plasterwall030c.jpg",
-		"normal_map": "plaster/plasterwall030c_normal.jpg",
-		"uv": [0.262, 0],
-		"uv_rotation": 0,
-		"uv_scale": [-0.25, 0.25]
-	}, {
-		"label": "bike_room_inside_left_wall",
-		"anchors": [-24, 0, 48, -24, 128, 48, -96, 128, 48],
-		"texture": "plaster/plasterwall030c.jpg",
-		"normal_map": "plaster/plasterwall030c_normal.jpg",
-		"uv": [0.812, 0],
-		"uv_rotation": 0,
-		"uv_scale": [-0.25, 0.25]
-	}, {
-		"label": "bike_room_inside_back_wall",
-		"anchors": [-96, 0, 48, -96, 128, 48, -96, 128, 184],
-		"texture": "plaster/plasterwall030c.jpg",
-		"normal_map": "plaster/plasterwall030c_normal.jpg",
-		"uv": [0.625, 0],
-		"uv_rotation": 0,
-		"uv_scale": [0.25, 0.25]
-	}, {
-		"label": "bike_room_inside_right_wall",
-		"anchors": [-96, 0, 184, -96, 128, 184, -24, 128, 184],
-		"texture": "plaster/plasterwall030c.jpg",
-		"normal_map": "plaster/plasterwall030c_normal.jpg",
-		"uv": [0.75, 0],
-		"uv_rotation": 0,
-		"uv_scale": [-0.25, 0.25]
-	}, {
-		"label": "bike_room_inside_entrance_left_wall",
-		"anchors": [-24, 0, 184, -24, 128, 184, -24, 128, 156],
-		"texture": "plaster/plasterwall030c.jpg",
-		"normal_map": "plaster/plasterwall030c_normal.jpg",
-		"uv": [0.58, 0],
-		"uv_rotation": 0,
-		"uv_scale": [-0.25, 0.25]
-	}, {
-		"label": "bike_room_inside_entrance_right_wall",
-		"anchors": [-24, 0, 100, -24, 128, 100, -24, 128, 48],
-		"texture": "plaster/plasterwall030c.jpg",
-		"normal_map": "plaster/plasterwall030c_normal.jpg",
-		"uv": [0.295, 0],
-		"uv_rotation": 0,
-		"uv_scale": [-0.25, 0.25]
-	}, {
-		"label": "bike_room_inside_entrance_door_wall",
-		"anchors": [-24, 112, 156, -24, 128, 156, -24, 128, 100],
-		"texture": "plaster/plasterwall030c.jpg",
-		"normal_map": "plaster/plasterwall030c_normal.jpg",
-		"uv": [0.797, 0],
-		"uv_rotation": 0,
-		"uv_scale": [-0.25, 0.25]
-	}, {
-		"label": "bike_room_inside_entrance_door_frame_left",
-		"anchors": [-24, 0, 156, -24, 108, 156, -24, 108, 152],
-		"texture": "wood/wooddoor048a.jpg",
-		"normal_map": "wood/wooddoor048a_normal.jpg",
-		"uv": [0, 0.155],
-		"uv_rotation": 0,
-		"uv_scale": [0.25, 0.25]
-	}, {
-		"label": "bike_room_inside_entrance_door_frame_right",
-		"anchors": [-24, 0, 104, -24, 108, 104, -24, 108, 100],
-		"texture": "wood/wooddoor048a.jpg",
-		"normal_map": "wood/wooddoor048a_normal.jpg",
-		"uv": [0.8125, 0.155],
-		"uv_rotation": 0,
-		"uv_scale": [0.25, 0.25]
-	}, {
-		"label": "bike_room_inside_entrance_door_frame_top",
-		"anchors": [-24, 108, 156, -24, 112, 156, -24, 112, 100],
-		"texture": "wood/wooddoor048a.jpg",
-		"normal_map": "wood/wooddoor048a_normal.jpg",
-		"uv": [0, 0.125],
-		"uv_rotation": 0,
-		"uv_scale": [0.25, 0.25]
-	}, {
-		"label": "hall_entrance_top_wall",
-		"anchors": [128, 128, -16, 128, 240, -16, -16, 240, -16],
-		"texture": "plaster/plasterwall030a.jpg",
-		"normal_map": "normal.jpg",
-		"uv": [0, 0.125],
-		"uv_rotation": 0,
-		"uv_scale": [-0.25, 0.25]
-	}, {
-		"label": "bike_room_entrance_top_wall",
-		"anchors": [-16, 128, -16, -16, 240, -16, -16, 240, 184],
-		"texture": "plaster/plasterwall030a.jpg",
-		"normal_map": "normal.jpg",
-		"uv": [0.125, 0.125],
-		"uv_rotation": 0,
-		"uv_scale": [0.25, 0.25]
-	}, {
-		"label": "main_entrance_top_wall",
-		"anchors": [-16, 128, 184, -16, 240, 184, 128, 240, 184],
-		"texture": "plaster/plasterwall030a.jpg",
-		"normal_map": "normal.jpg",
-		"uv": [0.125, 0.125],
-		"uv_rotation": 0,
-		"uv_scale": [-0.25, 0.25]
-	}, {
-		"label": "mailbox_top_wall",
-		"anchors": [128, 128, 184, 128, 240, 184, 128, 240, -16],
-		"texture": "plaster/plasterwall030a.jpg",
-		"normal_map": "normal.jpg",
-		"uv": [0.686, 0.125],
-		"uv_rotation": 0,
-		"uv_scale": [-0.25, 0.25]
-	}, {
-		"label": "hall_ceiling",
-		"anchors": [128, 240, -16, 128, 240, 184, -16, 240, 184],
-		"texture": "plaster/plasterwall030a.jpg",
-		"normal_map": "normal.jpg",
-		"uv": [0.498, 0.875],
-		"uv_rotation": 0.5,
-		"uv_scale": [0.25, -0.25]
-	}, {
-		"label": "bike_room_ceiling",
-		"anchors": [-24, 128, 48, -24, 128, 184, -96, 128, 184],
-		"texture": "plaster/plasterwall030a.jpg",
-		"normal_map": "normal.jpg",
-		"uv": [0.69, 0.258],
-		"uv_rotation": 0.5,
-		"uv_scale": [0.25, -0.25]
-	}
-]
+{
+	"floor": [
+		{
+			"label": "hall_floor",
+			"anchors": [-16, 0, -16, -16, 0, 184, 128, 0, 184],
+			"texture": "tile/tilefloor018a.jpg",
+			"normal_map": "tile/tilefloor018a_normal.jpg",
+			"uv": [0.25, 0.625],
+			"uv_rotation": 0,
+			"uv_scale": [-0.25, 0.25]
+		}, {
+			"label": "hall_to_bike_room_floor",
+			"anchors": [-24, 0, 104, -24, 0, 152, -16, 0, 152],
+			"texture": "tile/tilefloor018a.jpg",
+			"normal_map": "tile/tilefloor018a_normal.jpg",
+			"uv": [0.375, 0.125],
+			"uv_rotation": 0,
+			"uv_scale": [-0.25, 0.25]
+		}, {
+			"label": "bike_room_floor",
+			"anchors": [-96, 0, 48, -96, 0, 184, -24, 0, 184],
+			"texture": "tile/tilefloor018a.jpg",
+			"normal_map": "tile/tilefloor018a_normal.jpg",
+			"uv": [0.5, 0.624],
+			"uv_rotation": 0,
+			"uv_scale": [-0.25, 0.25]
+		}
+	],
+	"floor_connector": [],
+	"wall": [
+		{
+			"label": "hall_entrance_left_wall",
+			"anchors": [36, 0, -16, 36, 128, -16, -16, 128, -16],
+			"texture": "plaster/plasterwall030c.jpg",
+			"normal_map": "plaster/plasterwall030c_normal.jpg",
+			"uv": [0.281, 0],
+			"uv_rotation": 0,
+			"uv_scale": [-0.25, 0.25]
+		}, {
+			"label": "hall_entrance_right_wall",
+			"anchors": [128, 0, -16, 128, 128, -16, 92, 128, -16],
+			"texture": "plaster/plasterwall030c.jpg",
+			"normal_map": "plaster/plasterwall030c_normal.jpg",
+			"uv": [0, 0],
+			"uv_rotation": 0,
+			"uv_scale": [-0.25, 0.25]
+		}, {
+			"label": "bike_room_entrance_left_wall",
+			"anchors": [-16, 0, -16, -16, 128, -16, -16, 128, 100],
+			"texture": "plaster/plasterwall030c.jpg",
+			"normal_map": "plaster/plasterwall030c_normal.jpg",
+			"uv": [0.39, 0],
+			"uv_rotation": 0,
+			"uv_scale": [0.25, 0.25]
+		}, {
+			"label": "bike_room_entrance_right_wall",
+			"anchors": [-16, 0, 156, -16, 128, 156, -16, 128, 184],
+			"texture": "plaster/plasterwall030c.jpg",
+			"normal_map": "plaster/plasterwall030c_normal.jpg",
+			"uv": [0.36, 0],
+			"uv_rotation": 0,
+			"uv_scale": [0.25, 0.25]
+		}, {
+			"label": "main_entrance_left_wall",
+			"anchors": [-16, 0, 184, -16, 128, 184, 20, 128, 184],
+			"texture": "plaster/plasterwall030c.jpg",
+			"normal_map": "plaster/plasterwall030c_normal.jpg",
+			"uv": [0.125, 0],
+			"uv_rotation": 0,
+			"uv_scale": [-0.25, 0.25]
+		}, {
+			"label": "main_entrance_right_wall",
+			"anchors": [88, 0, 184, 88, 128, 184, 128, 128, 184],
+			"texture": "plaster/plasterwall030c.jpg",
+			"normal_map": "plaster/plasterwall030c_normal.jpg",
+			"uv": [0.312, 0],
+			"uv_rotation": 0,
+			"uv_scale": [-0.25, 0.25]
+		}, {
+			"label": "mailbox_wall",
+			"anchors": [128, 0, 184, 128, 128, 184, 128, 128, -16],
+			"texture": "plaster/plasterwall030c.jpg",
+			"normal_map": "plaster/plasterwall030c_normal.jpg",
+			"uv": [0.262, 0],
+			"uv_rotation": 0,
+			"uv_scale": [-0.25, 0.25]
+		}, {
+			"label": "bike_room_inside_left_wall",
+			"anchors": [-24, 0, 48, -24, 128, 48, -96, 128, 48],
+			"texture": "plaster/plasterwall030c.jpg",
+			"normal_map": "plaster/plasterwall030c_normal.jpg",
+			"uv": [0.812, 0],
+			"uv_rotation": 0,
+			"uv_scale": [-0.25, 0.25]
+		}, {
+			"label": "bike_room_inside_back_wall",
+			"anchors": [-96, 0, 48, -96, 128, 48, -96, 128, 184],
+			"texture": "plaster/plasterwall030c.jpg",
+			"normal_map": "plaster/plasterwall030c_normal.jpg",
+			"uv": [0.625, 0],
+			"uv_rotation": 0,
+			"uv_scale": [0.25, 0.25]
+		}, {
+			"label": "bike_room_inside_right_wall",
+			"anchors": [-96, 0, 184, -96, 128, 184, -24, 128, 184],
+			"texture": "plaster/plasterwall030c.jpg",
+			"normal_map": "plaster/plasterwall030c_normal.jpg",
+			"uv": [0.75, 0],
+			"uv_rotation": 0,
+			"uv_scale": [-0.25, 0.25]
+		}, {
+			"label": "bike_room_inside_entrance_left_wall",
+			"anchors": [-24, 0, 184, -24, 128, 184, -24, 128, 156],
+			"texture": "plaster/plasterwall030c.jpg",
+			"normal_map": "plaster/plasterwall030c_normal.jpg",
+			"uv": [0.58, 0],
+			"uv_rotation": 0,
+			"uv_scale": [-0.25, 0.25]
+		}, {
+			"label": "bike_room_inside_entrance_right_wall",
+			"anchors": [-24, 0, 100, -24, 128, 100, -24, 128, 48],
+			"texture": "plaster/plasterwall030c.jpg",
+			"normal_map": "plaster/plasterwall030c_normal.jpg",
+			"uv": [0.295, 0],
+			"uv_rotation": 0,
+			"uv_scale": [-0.25, 0.25]
+		}
+	],
+	"door_wall": [
+		{
+			"label": "hall_entrance_door_wall",
+			"anchors": [92, 112, -16, 92, 128, -16, 36, 128, -16],
+			"texture": "plaster/plasterwall030c.jpg",
+			"normal_map": "plaster/plasterwall030c_normal.jpg",
+			"uv": [0.71, 0],
+			"uv_rotation": 0,
+			"uv_scale": [-0.25, 0.25]
+		}, {
+			"label": "bike_room_entrance_door_wall",
+			"anchors": [-16, 112, 100, -16, 128, 100, -16, 128, 156],
+			"texture": "plaster/plasterwall030c.jpg",
+			"normal_map": "plaster/plasterwall030c_normal.jpg",
+			"uv": [0.36, 0],
+			"uv_rotation": 0,
+			"uv_scale": [0.25, 0.25]
+		}, {
+			"label": "main_entrance_door_wall",
+			"anchors": [20, 112, 184, 20, 128, 184, 88, 128, 184],
+			"texture": "plaster/plasterwall030c.jpg",
+			"normal_map": "plaster/plasterwall030c_normal.jpg",
+			"uv": [0.53, 0],
+			"uv_rotation": 0,
+			"uv_scale": [-0.25, 0.25]
+		}, {
+			"label": "bike_room_inside_entrance_door_wall",
+			"anchors": [-24, 112, 156, -24, 128, 156, -24, 128, 100],
+			"texture": "plaster/plasterwall030c.jpg",
+			"normal_map": "plaster/plasterwall030c_normal.jpg",
+			"uv": [0.797, 0],
+			"uv_rotation": 0,
+			"uv_scale": [-0.25, 0.25]
+		}
+	],
+	"door_frame": [
+		{
+			"label": "bike_room_entrance_door_frame_left",
+			"anchors": [-16, 0, 100, -16, 108, 100, -16, 108, 104],
+			"texture": "wood/wooddoor048a.jpg",
+			"normal_map": "wood/wooddoor048a_normal.jpg",
+			"uv": [0.875, 0.155],
+			"uv_rotation": 0,
+			"uv_scale": [-0.25, 0.25]
+		}, {
+			"label": "bike_room_entrance_door_frame_right",
+			"anchors": [-16, 0, 152, -16, 108, 152, -16, 108, 156],
+			"texture": "wood/wooddoor048a.jpg",
+			"normal_map": "wood/wooddoor048a_normal.jpg",
+			"uv": [0.0625, 0.155],
+			"uv_rotation": 0,
+			"uv_scale": [-0.25, 0.25]
+		}, {
+			"label": "bike_room_entrance_door_frame_top",
+			"anchors": [-16, 108, 100, -16, 112, 100, -16, 112, 156],
+			"texture": "wood/wooddoor048a.jpg",
+			"normal_map": "wood/wooddoor048a_normal.jpg",
+			"uv": [-0.125, 0.125],
+			"uv_rotation": 0,
+			"uv_scale": [-0.25, 0.25]
+		}, {
+			"label": "bike_room_entrance_door_frame_left_inside",
+			"anchors": [-16, 0, 104, -16, 108, 104, -24, 108, 104],
+			"texture": "wood/wooddoor048a.jpg",
+			"normal_map": "wood/wooddoor048a_normal.jpg",
+			"uv": [0.195, 0.1575],
+			"uv_rotation": 0,
+			"uv_scale": [-0.25, 0.25]
+		}, {
+			"label": "bike_room_entrance_door_frame_right_inside",
+			"anchors": [-24, 0, 152, -24, 108, 152, -16, 108, 152],
+			"texture": "wood/wooddoor048a.jpg",
+			"normal_map": "wood/wooddoor048a_normal.jpg",
+			"uv": [0.0625, 0.1575],
+			"uv_rotation": 0,
+			"uv_scale": [0.25, 0.25]
+		}, {
+			"label": "bike_room_entrance_door_frame_top_inside",
+			"anchors": [-24, 108, 152, -24, 108, 104, -16, 108, 104],
+			"texture": "wood/wooddoor048a.jpg",
+			"normal_map": "wood/wooddoor048a_normal.jpg",
+			"uv": [0.0625, 0.6075],
+			"uv_rotation": 0,
+			"uv_scale": [0.25, 0.25]
+		}, {
+			"label": "bike_room_inside_entrance_door_frame_left",
+			"anchors": [-24, 0, 156, -24, 108, 156, -24, 108, 152],
+			"texture": "wood/wooddoor048a.jpg",
+			"normal_map": "wood/wooddoor048a_normal.jpg",
+			"uv": [0, 0.155],
+			"uv_rotation": 0,
+			"uv_scale": [0.25, 0.25]
+		}, {
+			"label": "bike_room_inside_entrance_door_frame_right",
+			"anchors": [-24, 0, 104, -24, 108, 104, -24, 108, 100],
+			"texture": "wood/wooddoor048a.jpg",
+			"normal_map": "wood/wooddoor048a_normal.jpg",
+			"uv": [0.8125, 0.155],
+			"uv_rotation": 0,
+			"uv_scale": [0.25, 0.25]
+		}, {
+			"label": "bike_room_inside_entrance_door_frame_top",
+			"anchors": [-24, 108, 156, -24, 112, 156, -24, 112, 100],
+			"texture": "wood/wooddoor048a.jpg",
+			"normal_map": "wood/wooddoor048a_normal.jpg",
+			"uv": [0, 0.125],
+			"uv_rotation": 0,
+			"uv_scale": [0.25, 0.25]
+		}
+	],
+	"door": [
+		{
+			"label": "hall_entrance_door",
+			"anchors": [92, 0, -16, 92, 112, -16, 36, 112, -16],
+			"texture": "wood/wooddoor048a.jpg",
+			"normal_map": "wood/wooddoor048a_normal.jpg",
+			"uv": [0.875, 0.125],
+			"uv_rotation": 0,
+			"uv_scale": [-0.25, 0.25]
+		}
+	],
+	"top_wall": [
+		{
+			"label": "hall_entrance_top_wall",
+			"anchors": [128, 128, -16, 128, 240, -16, -16, 240, -16],
+			"texture": "plaster/plasterwall030a.jpg",
+			"normal_map": "normal.jpg",
+			"uv": [0, 0.125],
+			"uv_rotation": 0,
+			"uv_scale": [-0.25, 0.25]
+		}, {
+			"label": "bike_room_entrance_top_wall",
+			"anchors": [-16, 128, -16, -16, 240, -16, -16, 240, 184],
+			"texture": "plaster/plasterwall030a.jpg",
+			"normal_map": "normal.jpg",
+			"uv": [0.125, 0.125],
+			"uv_rotation": 0,
+			"uv_scale": [0.25, 0.25]
+		}, {
+			"label": "main_entrance_top_wall",
+			"anchors": [-16, 128, 184, -16, 240, 184, 128, 240, 184],
+			"texture": "plaster/plasterwall030a.jpg",
+			"normal_map": "normal.jpg",
+			"uv": [0.125, 0.125],
+			"uv_rotation": 0,
+			"uv_scale": [-0.25, 0.25]
+		}, {
+			"label": "mailbox_top_wall",
+			"anchors": [128, 128, 184, 128, 240, 184, 128, 240, -16],
+			"texture": "plaster/plasterwall030a.jpg",
+			"normal_map": "normal.jpg",
+			"uv": [0.686, 0.125],
+			"uv_rotation": 0,
+			"uv_scale": [-0.25, 0.25]
+		}
+	],
+	"ceiling": [
+		{
+			"label": "hall_ceiling",
+			"anchors": [128, 240, -16, 128, 240, 184, -16, 240, 184],
+			"texture": "plaster/plasterwall030a.jpg",
+			"normal_map": "normal.jpg",
+			"uv": [0.498, 0.875],
+			"uv_rotation": 0.5,
+			"uv_scale": [0.25, -0.25]
+		}, {
+			"label": "bike_room_ceiling",
+			"anchors": [-24, 128, 48, -24, 128, 184, -96, 128, 184],
+			"texture": "plaster/plasterwall030a.jpg",
+			"normal_map": "normal.jpg",
+			"uv": [0.69, 0.258],
+			"uv_rotation": 0.5,
+			"uv_scale": [0.25, -0.25]
+		}
+	]
+}
