@@ -4,25 +4,25 @@
 		"anchors": [-16, 0, -16, -16, 0, 184, 128, 0, 184],
 		"texture": "tile/tilefloor018a.jpg",
 		"normal_map": "tile/tilefloor018a_normal.jpg",
-		"uv": [0.625, 0.25],
-		"uv_rotation": 0.5,
-		"uv_scale": [0.25, 0.25]
+		"uv": [0.25, 0.625],
+		"uv_rotation": 0,
+		"uv_scale": [-0.25, 0.25]
 	}, {
 		"label": "hall_to_bike_room_floor",
 		"anchors": [-24, 0, 104, -24, 0, 152, -16, 0, 152],
 		"texture": "tile/tilefloor018a.jpg",
 		"normal_map": "tile/tilefloor018a_normal.jpg",
-		"uv": [0.125, 0.375],
-		"uv_rotation": 0.5,
-		"uv_scale": [0.25, 0.25]
+		"uv": [0.375, 0.125],
+		"uv_rotation": 0,
+		"uv_scale": [-0.25, 0.25]
 	}, {
 		"label": "bike_room_floor",
 		"anchors": [-96, 0, 48, -96, 0, 184, -24, 0, 184],
 		"texture": "tile/tilefloor018a.jpg",
 		"normal_map": "tile/tilefloor018a_normal.jpg",
-		"uv": [0.625, 0.5],
-		"uv_rotation": 0.5,
-		"uv_scale": [0.25, 0.25]
+		"uv": [0.5, 0.624],
+		"uv_rotation": 0,
+		"uv_scale": [-0.25, 0.25]
 	}, {
 		"label": "hall_entrance_left_wall",
 		"anchors": [36, 0, -16, 36, 128, -16, -16, 128, -16],
@@ -52,8 +52,6 @@
 		"anchors": [92, 0, -16, 92, 112, -16, 36, 112, -16],
 		"texture": "wood/wooddoor048a.jpg",
 		"normal_map": "wood/wooddoor048a_normal.jpg",
-		"_texture": "debug.jpg",
-		"_normal_map": "normal.jpg",
 		"uv": [0.875, 0.125],
 		"uv_rotation": 0,
 		"uv_scale": [-0.25, 0.25]
