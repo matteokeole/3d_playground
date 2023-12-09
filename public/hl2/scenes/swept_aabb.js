@@ -9,6 +9,7 @@ import {Material} from "../../../src/materials/index.js";
 import {Scene} from "../Scene.js";
 
 /**
+ * @deprecated
  * @todo Use a loader to fetch the scene geometry file
  * 
  * @param {Object.<String, TextureImage>} textures
