@@ -1,5 +1,5 @@
 import {Frame, Session} from "../Capture/index.js";
-import {PI, Vector3} from "../math/index.js";
+import {Matrix4, PI, Vector3} from "../math/index.js";
 import {Loader} from "./Loader.js";
 
 export class CaptureSessionLoader extends Loader {
@@ -40,17 +40,55 @@ export class CaptureSessionLoader extends Loader {
 			previousPosition.add(positionValue); */
 			const position = new Vector3(50, 64, 64);
 
-			const rotation = new Vector3();
-			rotation.set([
-				-json.frames[i].orientation[0],
-				-json.frames[i].orientation[1],
-				json.frames[i].orientation[2],
-			]);
-			rotation.add(baseOrientation);
+			const accelerometer = new Vector3();
+			accelerometer.set(json.frames[i].accelerometer);
+
+			const magnetometer = new Vector3();
+			magnetometer.set(json.frames[i].magnetometer);
+
+			const rotationMatrix = CaptureSessionLoader.#getRotationMatrix(accelerometer, magnetometer);
+
+			// const rotation = new Vector3();
+			const rotation = CaptureSessionLoader.#getOrientation(rotationMatrix);
+			/* rotation.set([
+				0,// json.frames[i].absolute_orientation[1],
+				json.frames[i].absolute_orientation_2[0],
+				0,// json.frames[i].absolute_orientation[2],
+			]); */
+			// rotation.add(baseOrientation);
 
 			frames.push(new Frame({position, rotation}));
 		}
 
 		return new Session(frames);
+	}
+
+	/**
+	 * @param {Vector3} gravity
+	 * @param {Vector3} geomagnetic
+	 */
+	static #getRotationMatrix(gravity, geomagnetic) {
+		const a = gravity.clone().normalize();
+		const e = geomagnetic.clone().normalize();
+		const h = e.cross(a).normalize();
+		const m = a.cross(h).normalize();
+
+		return new Matrix4(
+			h[0], m[0], a[0], 0,
+			h[1], m[1], a[1], 0,
+			h[2], m[2], a[2], 0,
+			0, 0, 0, 1,
+		);
+	}
+
+	/**
+	 * @param {Matrix4} rotationMatrix
+	 */
+	static #getOrientation(rotationMatrix) {
+		return new Vector3(
+			Math.atan2(-rotationMatrix[4], rotationMatrix[5]),
+			Math.asin(rotationMatrix[6]),
+			Math.atan2(-rotationMatrix[2], rotationMatrix[10]),
+		);
 	}
 }
