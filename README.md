@@ -2,8 +2,8 @@
 
 ### Setup
 
-```bash
-git clone git@github.com:matteokeole/webgl_playground --single-branch --recurse-submodules --remote-submodules --shallow-submodules
+```sh
+$ git clone git@github.com:matteokeole/3d_playground --recurse-submodules
 ```
 
 ### Controls
@@ -28,8 +28,8 @@ git clone git@github.com:matteokeole/webgl_playground --single-branch --recurse-
 - https://www.sitepoint.com/building-3d-engine-javascript
 
 Measures and methods for defining environments:
-- https://developer.valvesoftware.com/wiki/Dimensions_(Half-Life_2_and_Counter-Strike:_Source)
 - https://developer.valvesoftware.com/wiki/.vmf
+- https://developer.valvesoftware.com/wiki/Dimensions_(Half-Life_2_and_Counter-Strike:_Source)
 
 ### WebGPU TypeScript types
 

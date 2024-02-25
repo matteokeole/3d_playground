@@ -1,8 +1,8 @@
 import {PointLight} from "../../../src/lights/index.js";
 import {PI, Vector2, Vector3} from "../../../src/math/index.js";
 import {Camera} from "../Camera.js";
+import {SSDLoader} from "../Loader/SSDLoader.js";
 import {ENTITY_HEIGHT_STAND, FIELD_OF_VIEW, SENSITIVITY} from "../main.js";
-import {Mesh} from "../Mesh.js";
 import {Scene} from "../Scene.js";
 
 /**
@@ -12,19 +12,9 @@ import {Scene} from "../Scene.js";
  * @returns {Promise.<Scene>}
  */
 export async function createScene(images) {
-	const response = await fetch("public/hl2/scenes/building_entrance.json");
-	const json = await response.json();
-	const meshes = [];
-
-	const imagePaths = images.map(image => image.path);
-
-	for (let i = 0, length = json.length; i < length; i++) {
-		if (!("label" in json[i])) {
-			continue;
-		}
-
-		meshes.push(Mesh.fromJson(json[i], images, imagePaths));
-	}
+	const ssdLoader = new SSDLoader();
+	ssdLoader.setImages(images);
+	const meshes = await ssdLoader.load("public/hl2/scenes/building_entrance.json");
 
 	const scene = new Scene(meshes);
 	scene.setPointLight(
@@ -45,10 +35,11 @@ export async function createScene(images) {
 export function createCamera(aspectRatio) {
 	const camera = new Camera();
 
-	camera.setPosition(new Vector3(50, ENTITY_HEIGHT_STAND, 0));
+	camera.setPosition(new Vector3(54, ENTITY_HEIGHT_STAND, 104));
 	camera.target = camera.getPosition().clone();
-	camera.fieldOfView = FIELD_OF_VIEW;
+	camera.setRotation(new Vector3(-.06, 0, 0));
 
+	camera.fieldOfView = FIELD_OF_VIEW;
 	camera.aspectRatio = aspectRatio;
 	camera.near = .5;
 	camera.far = 1000;

@@ -1,4 +1,4 @@
-import {ImageBitmapLoader} from "../../src/Loader/index.js";
+import {/* CaptureSessionLoader, */ ImageBitmapLoader} from "../../src/Loader/index.js";
 import {Vector2, Vector4} from "../../src/math/index.js";
 import {Renderer} from "./Renderer.js";
 import {listen} from "./input.js";
@@ -34,7 +34,7 @@ export default async function() {
 	const textureDescriptors = await imageBitmapLoader.load("public/hl2/textures/textures.json");
 
 	// const captureSessionLoader = new CaptureSessionLoader();
-	// const captureSession = await captureSessionLoader.load("assets/capture/session_6.json");
+	// const captureSession = await captureSessionLoader.load("assets/capture/rotation/pitch.json");
 
 	const camera = createCamera(viewport[0] / viewport[1]);
 	// camera.setCaptureSession(captureSession);
