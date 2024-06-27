@@ -1,7 +1,7 @@
 import {Scene} from "../../../src/index.js";
 import {PI, Vector2, Vector3} from "../../../src/math/index.js";
 import {Camera} from "../../hl2/Camera.js";
-import {ENTITY_HEIGHT_STAND, FIELD_OF_VIEW, SENSITIVITY} from "../../hl2/main.js";
+import {FIELD_OF_VIEW, SENSITIVITY} from "../../hl2/main.js";
 import {Mesh} from "../Mesh.js";
 
 /**
@@ -12,16 +12,22 @@ import {Mesh} from "../Mesh.js";
 export async function createScene(images) {
 	const response = await fetch("public/hl2/scenes/building_entrance.json");
 	const json = await response.json();
+	const parts = Object.values(json);
 	const meshes = [];
-
 	const imagePaths = images.map(image => image.path);
 
-	for (let i = 0, length = json.length; i < length; i++) {
-		if (!("label" in json[i])) {
-			continue;
-		}
+	for (let i = 0; i < parts.length; i++) {
+		const part = parts[i];
 
-		meshes.push(Mesh.fromJson(json[i], images, imagePaths));
+		for (let j = 0; j < part.length; j++) {
+			if (!("label" in part[j])) {
+				continue;
+			}
+
+			const mesh = Mesh.fromJson(part[j], images, imagePaths);
+
+			meshes.push(mesh);
+		}
 	}
 
 	return new Scene(meshes);
