@@ -38,7 +38,7 @@ export class Scene extends _Scene {
 		const pointLightProjection = Matrix4.perspective(90, 16 / 9, 1, 100, 1);
 		const pointLightView = Matrix4.lookAt(
 			this.#pointLight.position,
-			this.#pointLight.position.clone().add(this.#pointLight.direction),
+			new Vector3(this.#pointLight.position).add(this.#pointLight.direction),
 			new Vector3(0, 1, 0),
 		);
 

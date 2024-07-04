@@ -43,10 +43,7 @@ export class Camera extends _Camera {
 	 * @param {Vector3} velocity
 	 */
 	getRelativeVelocity(velocity) {
-		const right = this
-			.getRight()
-			.clone()
-			.multiplyScalar(velocity[0]);
+		const right = new Vector3(this.getRight()).multiplyScalar(velocity[0]);
 		const up = new Vector3(0, velocity[1], 0);
 		const forward = this
 			.getRight()

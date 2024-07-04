@@ -15,7 +15,7 @@ export class Mesh extends _Mesh {
 		const anchor2 = new Vector3(anchors[3], anchors[4], anchors[5]);
 		const anchor3 = new Vector3(anchors[6], anchors[7], anchors[8]);
 		const anchor4 = anchors.length === 9 ?
-			anchor3.clone().add(anchor1).subtract(anchor2) :
+			new Vector3(anchor3).add(anchor1).subtract(anchor2) :
 			new Vector3(anchors[9], anchors[10], anchors[11]);
 		const w = anchor1.to(anchor2);
 		const h = anchor2.to(anchor3);

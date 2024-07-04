@@ -1,5 +1,5 @@
 import {WebGLRenderer} from "../../src/Renderer/index.js";
-import {Matrix4} from "../../src/math/index.js";
+import {Matrix4, Vector4} from "../../src/math/index.js";
 import {ShaderLoader} from "../../src/Loader/index.js";
 
 export class Renderer extends WebGLRenderer {
@@ -160,10 +160,7 @@ export class Renderer extends WebGLRenderer {
 		}
 
 		const pointLight = this._scene.getPointLight();
-		const pointLightViewProjection = pointLight
-			.getProjection()
-			.clone()
-			.multiply(pointLight.getView());
+		const pointLightViewProjection = new Matrix4(pointLight.getProjection()).multiply(pointLight.getView());
 
 		/* gl.bindVertexArray(this._vaos.gBuffer);
 			gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.gBuffer_world);
@@ -485,7 +482,7 @@ export class Renderer extends WebGLRenderer {
 
 	#renderDebug() {
 		const gl = this._context;
-		const viewportHalf = this._viewport.clone().divideScalar(2);
+		const viewportHalf = new Vector4(this._viewport).divideScalar(2);
 
 		gl.enable(gl.SCISSOR_TEST);
 			/* gl.useProgram(this._programs.debugGBuffer);

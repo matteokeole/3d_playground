@@ -177,7 +177,7 @@ export class Camera {
 	 * @param {Number} x
 	 */
 	truck(x) {
-		const right = this.#right.clone();
+		const right = new Vector3(this.#right);
 
 		this.target.add(right.multiplyScalar(x));
 	}
@@ -186,7 +186,7 @@ export class Camera {
 	 * @param {Number} y
 	 */
 	pedestal(y) {
-		const up = this.#up.clone();
+		const up = new Vector3(this.#up);
 
 		this.target.add(up.multiplyScalar(y));
 	}
@@ -195,7 +195,7 @@ export class Camera {
 	 * @param {Number} z
 	 */
 	dolly(z) {
-		const forward = this.#forward.clone();
+		const forward = new Vector3(this.#forward);
 
 		this.target.add(forward.multiplyScalar(z));
 	}
@@ -242,25 +242,21 @@ export class Camera {
 
 	captureLookAt() {
 		const [yaw, pitch, roll] = this.#rotation;
-
 		const yawRotation = new Matrix3(
 			Math.cos(yaw), 0, Math.sin(yaw),
 			0, 1, 0,
 			-Math.sin(yaw), 0, Math.cos(yaw),
 		);
-
 		const pitchRotation = new Matrix3(
 			1, 0, 0,
 			0, Math.cos(pitch), -Math.sin(pitch),
 			0, Math.sin(pitch), Math.cos(pitch),
 		);
-
 		const rollRotation = new Matrix3(
 			Math.cos(roll), -Math.sin(roll), 0,
 			Math.sin(roll), Math.cos(roll), 0,
 			0, 0, 1,
 		);
-
 		const rotation = rollRotation.multiply(pitchRotation).multiply(yawRotation);
 
 		this.#forward = new Vector3(
@@ -268,13 +264,11 @@ export class Camera {
 			rotation[5],
 			rotation[8],
 		);
-
 		this.#right = new Vector3(
 			rotation[0],
 			rotation[3],
 			rotation[6],
 		);
-
 		this.#up = new Vector3(
 			rotation[1],
 			rotation[4],
@@ -290,23 +284,19 @@ export class Camera {
 			this.far,
 			1,
 			this.bias,
-		).multiply(Matrix4.translation(this.#distance.clone().multiplyScalar(-1)));
+		).multiply(Matrix4.translation(new Vector3(this.#distance).multiplyScalar(-1)));
 		this.#view = Matrix4.lookAt(
 			this.#position,
-			this.#position.clone().add(this.#forward),
+			new Vector3(this.#position).add(this.#forward),
 			this.#up,
 		);
-		this.#viewProjection = this.#projection.clone().multiply(this.#view);
+		this.#viewProjection = new Matrix4(this.#projection).multiply(this.#view);
 	}
 
 	/**
 	 * Returns the current camera position, including the distance.
-	 * 
-	 * @returns {Vector3}
 	 */
 	getPhysicalPosition() {
-		const position = this.#position.clone();
-
 		const xDistance = new Vector3(
 			Math.cos(this.#rotation[1]),
 			0,
@@ -319,6 +309,9 @@ export class Camera {
 			Math.cos(this.#rotation[1]),
 		).multiplyScalar(this.#distance[2]);
 
-		return position.add(xDistance).add(yDistance).add(zDistance);
+		return new Vector3(this.#position)
+			.add(xDistance)
+			.add(yDistance)
+			.add(zDistance);
 	}
 }

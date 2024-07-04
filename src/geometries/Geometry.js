@@ -66,8 +66,8 @@ export class Geometry {
 	 * @returns {Vector3}
 	 */
 	static getNormal(anchor1, anchor2, anchor3) {
-		const u = anchor2.clone().subtract(anchor1);
-		const v = anchor3.clone().subtract(anchor1);
+		const u = new Vector3(anchor2).subtract(anchor1);
+		const v = new Vector3(anchor3).subtract(anchor1);
 
 		return u.cross(v).normalize();
 	}
@@ -79,8 +79,8 @@ export class Geometry {
 	 * @returns {Vector3}
 	 */
 	static getTangent(anchor1, anchor2, anchor3) {
-		const edge1 = anchor2.clone().subtract(anchor1);
-		const edge2 = anchor3.clone().subtract(anchor1);
+		const edge1 = new Vector3(anchor2).subtract(anchor1);
+		const edge2 = new Vector3(anchor3).subtract(anchor1);
 		const deltaUV1 = new Vector2(0, 0).subtract(new Vector2(0, 1));
 		const deltaUV2 = new Vector2(1, 0).subtract(new Vector2(0, 1));
 		const f = 1 / (deltaUV1[0] * deltaUV2[1] - deltaUV2[0] * deltaUV1[1]);

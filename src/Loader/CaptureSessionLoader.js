@@ -19,7 +19,7 @@ export class CaptureSessionLoader extends Loader {
 
 		const json = await response.json();
 		const frames = [];
-		const previousPosition = new Vector3();
+		// const previousPosition = new Vector3();
 
 		const baseOrientation = new Vector3();
 		baseOrientation.set(json.baseOrientation ?? []);
@@ -34,7 +34,7 @@ export class CaptureSessionLoader extends Loader {
 				json.frames[i].user_accelerometer[2],
 			]);
 
-			const position = previousPosition.clone();
+			const position = new Vector3(previousPosition);
 			position.add(positionValue);
 			position[1] = 64;
 			previousPosition.add(positionValue); */
@@ -68,8 +68,8 @@ export class CaptureSessionLoader extends Loader {
 	 * @param {Vector3} geomagnetic
 	 */
 	static #getRotationMatrix(gravity, geomagnetic) {
-		const a = gravity.clone().normalize();
-		const e = geomagnetic.clone().normalize();
+		const a = new Vector3(gravity).normalize();
+		const e = new Vector3(geomagnetic).normalize();
 		const h = e.cross(a).normalize();
 		const m = a.cross(h).normalize();
 

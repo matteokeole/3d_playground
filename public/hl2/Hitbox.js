@@ -75,8 +75,8 @@ export class Hitbox {
 		const exit = new Vector3();
 		const [x1, y1, z1] = this.getPosition();
 		const [x2, y2, z2] = hitbox.getPosition();
-		const [w1, h1, d1] = this.getSize().clone().multiplyScalar(.5);
-		const [w2, h2, d2] = hitbox.getSize().clone().multiplyScalar(.5);
+		const [w1, h1, d1] = new Vector3(this.getSize()).multiplyScalar(.5);
+		const [w2, h2, d2] = new Vector3(hitbox.getSize()).multiplyScalar(.5);
 		const [vx1, vy1, vz1] = this.getVelocity();
 
 		const negativeZ1 = z1 - d1;
