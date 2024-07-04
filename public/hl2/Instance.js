@@ -76,7 +76,7 @@ export class Instance extends _Instance {
 
 		if (time === 0) return true;
 
-		velocity = velocity.clone().multiplyScalar(time);
+		velocity = new Vector3(velocity).multiplyScalar(time);
 
 		player.getPosition().add(new Vector3(
 			velocity[0],

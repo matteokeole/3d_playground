@@ -1,4 +1,5 @@
 import {Instance as _Instance} from "../../src/index.js";
+import {Vector3} from "../../src/math/index.js";
 import {Keybind, keys} from "./input.js";
 import {CAMERA_LERP_FACTOR, VELOCITY, VELOCITY_SQRT1_2} from "./main.js";
 
@@ -24,7 +25,7 @@ export class Instance extends _Instance {
 			if (keys.has("Space")) camera.moveY(velocity);
 			if (keys.has("ControlLeft")) camera.moveY(-velocity);
 
-			camera.setPosition(camera.target.clone().lerp(camera.getPosition(), CAMERA_LERP_FACTOR));
+			camera.setPosition(new Vector3(camera.target).lerp(camera.getPosition(), CAMERA_LERP_FACTOR));
 			camera.update();
 		}
 

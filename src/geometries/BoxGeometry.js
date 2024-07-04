@@ -119,9 +119,7 @@ export class BoxGeometry extends Geometry {
 
 		this.#size = size;
 
-		const halfSize = this.#size
-			.clone()
-			.divideScalar(2);
+		const halfSize = new Vector3(this.#size).divideScalar(2);
 
 		for (let i = 0, length = this._vertices.length; i < length; i += 3) {
 			this._vertices[i + 0] *= halfSize[0];
