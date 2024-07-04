@@ -1,18 +1,18 @@
 .debug {
-	margin: 10px;
-	padding: 5px 10px;
-	bottom: 0;
+	margin: 8px;
+	padding: 4px 8px;
+	top: 0;
 	position: absolute;
-	border-radius: 5px;
 	background-color: #000a;
-	backdrop-filter: blur(20px);
 	color: #ddd;
 	font-family: Consolas, monospace;
+	font-size: 12px;
 }
 
 .debug span {
 	display: block;
 }
+
 .debug span::before, .debug label::before {
 	color: #aaa;
 	font-style: italic;
@@ -21,12 +21,15 @@
 #DebugPosition::before {
 	content: "Position: ";
 }
+
 #DebugRotation::before {
 	content: "Rotation: ";
 }
+
 #DebugVisualizeStepsLabel::before {
 	content: "Visualize Steps: ";
 }
+
 #DebugDelta::before {
 	content: "Δt: ";
 }
