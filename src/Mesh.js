@@ -37,16 +37,27 @@ export class Mesh {
 	#scale;
 
 	/**
+	 * @type {?String}
+	 */
+	#debugName;
+
+	/**
 	 * @param {Geometry} geometry
 	 * @param {Material} material
+	 * @param {?String} [debugName]
 	 */
-	constructor(geometry, material) {
+	constructor(geometry, material, debugName) {
 		this._geometry = geometry;
 		this._material = material;
 		this.#projection = new Matrix4();
 		this.#position = new Vector3();
 		this.#rotation = new Vector3();
 		this.#scale = new Vector3(1, 1, 1);
+		this.#debugName = debugName ?? null;
+	}
+
+	getDebugName() {
+		return this.#debugName;
 	}
 
 	getGeometry() {

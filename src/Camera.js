@@ -1,3 +1,4 @@
+import {Session} from "./Capture/index.js";
 import {clamp, Matrix3, Matrix4, PI, Vector2, Vector3} from "./math/index.js";
 
 /**
@@ -97,6 +98,11 @@ export class Camera {
 	 */
 	turnVelocity;
 
+	/**
+	 * @type {?Session}
+	 */
+	#captureSession;
+
 	constructor() {
 		this.#projection = new Matrix4();
 		this.#view = new Matrix4();
@@ -114,6 +120,7 @@ export class Camera {
 		this.far = 0;
 		this.bias = 0;
 		this.turnVelocity = 0;
+		this.#captureSession = null;
 	}
 
 	getProjection() {
@@ -171,6 +178,17 @@ export class Camera {
 
 	getUp() {
 		return this.#up;
+	}
+
+	getCaptureSession() {
+		return this.#captureSession;
+	}
+
+	/**
+	 * @param {Session} captureSession
+	 */
+	setCaptureSession(captureSession) {
+		this.#captureSession = captureSession;
 	}
 
 	/**
@@ -313,5 +331,33 @@ export class Camera {
 			.add(xDistance)
 			.add(yDistance)
 			.add(zDistance);
+	}
+
+	/**
+	 * @param {Number} frameIndex
+	 */
+	readCaptureSession(frameIndex) {
+		const frame = this.#captureSession.read(frameIndex);
+
+		if (frame === null) {
+			return;
+		}
+
+		this.setPosition(frame.getPosition());
+		this.setRotation(frame.getRotation());
+	}
+
+	/**
+	 * @param {Vector3} velocity
+	 */
+	getRelativeVelocity(velocity) {
+		const right = new Vector3(this.getRight()).multiplyScalar(velocity[0]);
+		const up = new Vector3(0, velocity[1], 0);
+		const forward = this
+			.getRight()
+			.cross(new Vector3(0, 1, 0))
+			.multiplyScalar(velocity[2]);
+
+		return right.add(up).add(forward);
 	}
 }

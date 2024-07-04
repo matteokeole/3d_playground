@@ -1,6 +1,5 @@
-import {Scene} from "../../../src/index.js";
+import {Camera, Scene} from "../../../src/index.js";
 import {PI, Vector2, Vector3} from "../../../src/math/index.js";
-import {Camera} from "../../hl2/Camera.js";
 import {FIELD_OF_VIEW, SENSITIVITY} from "../../hl2/main.js";
 import {Mesh} from "../Mesh.js";
 

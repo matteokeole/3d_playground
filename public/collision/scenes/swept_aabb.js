@@ -1,9 +1,12 @@
+import {Camera} from "../../../src/index.js";
+import {BoxGeometry} from "../../../src/geometries/BoxGeometry.js";
 import {PointLight} from "../../../src/lights/index.js";
 import {SSDLoader} from "../../../src/Loader/index.js";
-import {PI, Vector2, Vector3} from "../../../src/math/index.js";
-import {Camera} from "../Camera.js";
+import {Material} from "../../../src/materials/Material.js";
+import {Matrix3, PI, Vector2, Vector3} from "../../../src/math/index.js";
+import {Mesh} from "../../hl2/Mesh.js";
 import {Scene} from "../Scene.js";
-import {PlayerOverheadObstacleHeight} from "../index.js";
+import {PLAYER_COLLISION_HULL} from "../index.js";
 import {FIELD_OF_VIEW, SENSITIVITY} from "../main.js";
 
 /**
@@ -16,43 +19,26 @@ export async function createScene(imageBitmaps) {
 
 	const meshes = await ssdLoader.load("public/collision/scenes/swept_aabb.json");
 
-	/* const wall = new Mesh(
-		SSDPlaneGeometry.fromAnchors([
-			new Vector3(-64, 0, 0),
-			new Vector3(-64, 128, 0),
-			new Vector3(64, 128, 0),
-			new Vector3(64, 0, 0),
-		]),
+	const playerHitbox = new Mesh(
+		new BoxGeometry(PLAYER_COLLISION_HULL),
 		new Material({
 			textureMatrix: Matrix3.identity(),
-			textureIndex: imageBitmaps.findIndex(texture => texture.path === "plaster/plasterwall044c.jpg"),
-			normalMapIndex: imageBitmaps.findIndex(texture => texture.path === "plaster/plasterwall044c_normal.jpg"),
+			textureIndex: imageBitmaps.findIndex(texture => texture.path === "debug.jpg"),
+			normalMapIndex: imageBitmaps.findIndex(texture => texture.path === "normal.jpg"),
 		}),
+		"playerHitbox",
 	);
-	wall.setPosition(new Vector3(0, 128, -64));
-	wall.buildHitbox();
+	playerHitbox.setPosition(new Vector3(0, PLAYER_COLLISION_HULL[1] / 2, 0));
+	playerHitbox.buildHitbox();
 
-	meshes.push(wall); */
-
-	/* const player = new Mesh(
-		new BoxGeometry(new Vector3(16, 16, 16)),
-		new Material({
-			textureMatrix: Matrix3.identity(),
-			textureIndex: imageBitmaps.findIndex(texture => texture.path === "metal/metalcombine001.jpg"),
-			normalMapIndex: imageBitmaps.findIndex(texture => texture.path === "metal/metalcombine001_normal.jpg"),
-		}),
-	);
-	player.setPosition(new Vector3(0, 8, 0));
-	player.buildHitbox();
-
-	meshes.push(player); */
+	meshes.push(playerHitbox);
 
 	const scene = new Scene(meshes);
 	scene.setPointLight(
 		new PointLight({
 			color: new Vector3(1, 1, 1),
 			intensity: .5,
-			position: new Vector3(),
+			position: new Vector3(128, 128, -128),
 			direction: new Vector3(),
 		}),
 	);
@@ -66,10 +52,10 @@ export async function createScene(imageBitmaps) {
 export function createCamera(aspectRatio) {
 	const camera = new Camera();
 
-	camera.setPosition(new Vector3(0, PlayerOverheadObstacleHeight.STANDING, -128));
+	camera.setPosition(new Vector3(0, PLAYER_COLLISION_HULL[1], -128));
 	camera.target = new Vector3(camera.getPosition());
-	// camera.setRotation(new Vector3(-PI / 6, 0, 0));
-	// camera.setDistance(new Vector3(0, 0, -64));
+	camera.setRotation(new Vector3(-PI / 6, 0, 0));
+	camera.setDistance(new Vector3(0, 0, -64));
 
 	camera.fieldOfView = FIELD_OF_VIEW;
 	camera.aspectRatio = aspectRatio;

@@ -1,7 +1,6 @@
-import {Scene} from "../../src/index.js";
+import {Camera, Scene} from "../../src/index.js";
 import {ShaderLoader} from "../../src/Loader/index.js";
 import {WebGPURenderer} from "../../src/Renderer/index.js";
-import {Camera} from "../hl2/Camera.js";
 
 export class Renderer extends WebGPURenderer {
 	/**
