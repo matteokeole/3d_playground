@@ -1,5 +1,5 @@
 import {setPolyfills} from "../src/polyfill.js";
-import main from "./hl2/main.js";
+import main from "./collision/main.js";
 
 setPolyfills();
 main();
