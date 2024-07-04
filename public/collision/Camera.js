@@ -1,6 +1,6 @@
 import {Camera as _Camera} from "../../src/index.js";
-import {Vector3} from "../../src/math/index.js";
 import {Session} from "../../src/Capture/index.js";
+import {Vector3} from "../../src/math/index.js";
 
 export class Camera extends _Camera {
 	/**

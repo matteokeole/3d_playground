@@ -1,12 +1,12 @@
-import {BoxGeometry} from "../../../src/geometries/index.js";
 import {PointLight} from "../../../src/lights/index.js";
+import {SSDLoader} from "../../../src/Loader/index.js";
 import {Material} from "../../../src/materials/index.js";
 import {Matrix3, PI, Vector2, Vector3} from "../../../src/math/index.js";
+import {Mesh} from "../../hl2/Mesh.js";
 import {Camera} from "../Camera.js";
-import {SSDLoader} from "../Loader/SSDLoader.js";
-import {Mesh} from "../Mesh.js";
 import {Scene} from "../Scene.js";
 import {SSDPlaneGeometry} from "../SSDPlaneGeometry.js";
+import {PlayerOverheadObstacleHeight} from "../index.js";
 import {FIELD_OF_VIEW, SENSITIVITY} from "../main.js";
 
 /**
@@ -70,7 +70,7 @@ export async function createScene(imageBitmaps) {
 export function createCamera(aspectRatio) {
 	const camera = new Camera();
 
-	camera.setPosition(new Vector3(0, 73, -64));
+	camera.setPosition(new Vector3(0, PlayerOverheadObstacleHeight.STANDING, -64));
 	camera.target = new Vector3(camera.getPosition());
 	// camera.setRotation(new Vector3(-PI / 6, 0, 0));
 	camera.setDistance(new Vector3(0, 0, -64));

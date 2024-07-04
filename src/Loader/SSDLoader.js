@@ -1,9 +1,9 @@
-import {Loader} from "../../../src/Loader/index.js";
-import {Mesh} from "../Mesh.js";
+import {Mesh} from "../../public/hl2/Mesh.js";
+import {Loader} from "./Loader.js";
 
 export class SSDLoader extends Loader {
 	/**
-	 * @type {import("../../../src/Loader/ImageBitmapLoader.js").Image[]}
+	 * @type {import("./ImageBitmapLoader.js").Image[]}
 	 */
 	#images;
 
@@ -14,7 +14,7 @@ export class SSDLoader extends Loader {
 	}
 
 	/**
-	 * @param {import("../../../src/Loader/ImageBitmapLoader.js").Image[]} images
+	 * @param {import("./ImageBitmapLoader.js").Image[]} images
 	 */
 	setImages(images) {
 		this.#images = images;

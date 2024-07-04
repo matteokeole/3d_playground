@@ -1,7 +1,7 @@
 import {Instance as _Instance} from "../../src/index.js";
-import {Vector2, Vector3} from "../../src/math/index.js";
+import {Vector3} from "../../src/math/index.js";
+import {Mesh} from "../hl2/Mesh.js";
 import {keys} from "./input.js";
-import {Mesh} from "./Mesh.js";
 import {CAMERA_LERP_FACTOR, VELOCITY} from "./main.js";
 
 export class Instance extends _Instance {

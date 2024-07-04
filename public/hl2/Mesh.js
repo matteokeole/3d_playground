@@ -62,13 +62,19 @@ export class Mesh extends _Mesh {
 	}
 
 	buildHitbox() {
+		let size;
+
 		if (!(this._geometry instanceof BoxGeometry)) {
-			throw Error("Can't initialize the hitbox of a non-3D mesh.");
+			size = new Vector3(1, 1, 1);
+
+			console.warn("Non-3D mesh hitbox generation is experimental.");
+		} else {
+			size = this._geometry.getSize();
 		}
 
 		this.#hitbox = new Hitbox({
-			position: this._position,
-			size: this._geometry.getSize(),
+			position: this.getPosition(),
+			size,
 		});
 	}
 }
