@@ -1,4 +1,4 @@
-import {Instance as _Instance} from "../../src/index.js";
+import {Instance as _Instance, Hitbox} from "../../src/index.js";
 import {Vector3} from "../../src/math/index.js";
 import {Mesh} from "../hl2/Mesh.js";
 import {keys} from "./input.js";
@@ -13,6 +13,10 @@ export class Instance extends _Instance {
 		const playerHitbox = scene
 			.getMeshes()
 			.find(mesh => mesh.getDebugName() === "playerHitbox");
+		const wall = scene
+			.getMeshes()
+			.find(mesh => mesh.getDebugName() === "wall");
+
 		const camera = this._renderer.getCamera();
 
 		if (camera.getCaptureSession() !== null) {
@@ -38,16 +42,13 @@ export class Instance extends _Instance {
 
 		const hasMoved = direction.magnitude() !== 0;
 
-		if (playerHitbox) {
-			playerHitbox.setPosition(camera.getPosition());
-		}
+		playerHitbox.setPosition(camera.getPosition());
+
+		const relativeVelocity = camera.getRelativeVelocity(direction);
+		const collisionResult = this.#collide(relativeVelocity, playerHitbox, wall);
 
 		if (hasMoved) {
-			const relativeVelocity = camera.getRelativeVelocity(direction);
-
-			// if (!wall || !this.#collide(relativeVelocity, player, wall)) {
-				camera.target.add(relativeVelocity);
-			// }
+			camera.target.add(relativeVelocity);
 		}
 
 		camera.getPosition().lerp(camera.target, CAMERA_LERP_FACTOR);
@@ -69,19 +70,23 @@ export class Instance extends _Instance {
 	#collide(velocity, player, wall) {
 		player.getHitbox().setVelocity(velocity);
 
-		const time = player.getHitbox().sweptAABB(wall.getHitbox(), new Vector3());
+		const normal = new Vector3();
+		const collisionTime = Hitbox.sweptAabb(player.getHitbox(), wall.getHitbox(), normal);
 
-		if (time === 0) return true;
+		if (collisionTime === 0) {
+			return true;
+		}
 
-		velocity = new Vector3(velocity).multiplyScalar(time);
+		player.getPosition()[0] += player.getHitbox().getVelocity()[0] * collisionTime;
+		player.getPosition()[2] += player.getHitbox().getVelocity()[2] * collisionTime;
 
-		player.getPosition().add(new Vector3(
-			velocity[0],
-			0,
-			velocity[2],
-		));
+		const remainingTime = 1 - collisionTime;
 
-		player.getHitbox().setPosition(player.getPosition());
+		/**
+		 * @todo Collision response
+		 */
+
+		// player.getHitbox().setPosition(player.getPosition());
 
 		return false;
 	}

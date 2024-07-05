@@ -19,6 +19,20 @@ export async function createScene(imageBitmaps) {
 
 	const meshes = await ssdLoader.load("public/collision/scenes/swept_aabb.json");
 
+	const wall = new Mesh(
+		new BoxGeometry(new Vector3(512, 128, 16)),
+		new Material({
+			textureMatrix: Matrix3.identity(),
+			textureIndex: imageBitmaps.findIndex(texture => texture.path === "plaster/plasterwall044c.jpg"),
+			normalMapIndex: imageBitmaps.findIndex(texture => texture.path === "plaster/plasterwall044c_normal.jpg"),
+		}),
+		"wall",
+	);
+	wall.setPosition(new Vector3(0, 64, 0));
+	wall.buildHitbox();
+
+	meshes.push(wall);
+
 	const playerHitbox = new Mesh(
 		new BoxGeometry(PLAYER_COLLISION_HULL),
 		new Material({
