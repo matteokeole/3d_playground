@@ -46,15 +46,14 @@ export class Instance extends _Instance {
 			.normalize()
 			.multiplyScalar(VELOCITY);
 
-		// const hasMoved = direction.magnitude() !== 0;
-
 		const relativeVelocity = camera.getRelativeVelocity(direction);
 
 		playerHitbox.setPosition(camera.getPosition());
 		playerHitbox.getHitbox().setPosition(camera.getPosition());
-		playerHitbox.getHitbox().setVelocity(relativeVelocity);
 
-		this.#testCollide(playerHitbox, wall, camera);
+		const newVelocity = this.#testCollide(playerHitbox, wall, camera) ?? relativeVelocity;
+
+		playerHitbox.getHitbox().setVelocity(newVelocity);
 
 		// camera.getPosition().lerp(camera.target, CAMERA_LERP_FACTOR);
 		camera.getPosition().set(camera.target);
@@ -80,9 +79,22 @@ export class Instance extends _Instance {
 		const normal = new Vector3();
 		const collisionTime = Hitbox.sweptAabb(player.getHitbox(), wall.getHitbox(), normal);
 		const scaledVelocity = new Vector3(player.getHitbox().getVelocity()).multiplyScalar(collisionTime);
+		const remainingTime = 1 - collisionTime;
 
 		camera.target.add(scaledVelocity);
 
-		// const remainingTime = 1 - collisionTime;
+		const dot = (player.getHitbox().getVelocity()[0] * normal[2] + player.getHitbox().getVelocity()[2] * normal[0]) * remainingTime;
+
+		const velocity = new Vector3(dot * normal[2], 0, 0);
+
+		this.getDebugger().update({
+			debugElement: velocity,
+		});
+
+		if (velocity.isNull()) {
+			return null;
+		}
+
+		return velocity;
 	}
 }
