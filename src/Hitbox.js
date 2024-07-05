@@ -72,26 +72,22 @@ export class Hitbox {
 	static __sweptAABB_old(that, hitbox, normal) {
 		const invEntry = new Vector3();
 		const invExit = new Vector3();
-		const entry = new Vector3();
-		const exit = new Vector3();
 		const [x1, y1, z1] = that.getPosition();
 		const [x2, y2, z2] = hitbox.getPosition();
 		const [w1, h1, d1] = new Vector3(that.getSize()).multiplyScalar(.5);
 		const [w2, h2, d2] = new Vector3(hitbox.getSize()).multiplyScalar(.5);
 		const [vx1, vy1, vz1] = that.getVelocity();
 
-		const negativeZ1 = z1 - d1;
-		const positiveZ1 = z1 + d1;
-		const negativeZ2 = z2 - d2;
-		const positiveZ2 = z2 + d2;
-
 		if (vz1 > 0) {
-			invEntry[2] = negativeZ2 - positiveZ1;
-			invExit[2] = positiveZ2 - negativeZ1;
+			invEntry[2] = (z2 - d2) - (z1 + d1);
+			invExit[2] = (z2 + d2) - (z1 - d1);
 		} else {
-			invEntry[2] = positiveZ2 - negativeZ1;
-			invExit[2] = negativeZ2 - positiveZ1;
+			invEntry[2] = (z2 + d2) - (z1 - d1);
+			invExit[2] = (z2 - d2) - (z1 + d1);
 		}
+
+		const entry = new Vector3();
+		const exit = new Vector3();
 
 		if (vz1 === 0) {
 			entry[2] = -Infinity;
@@ -125,6 +121,12 @@ export class Hitbox {
 	}
 
 	/**
+	 * @todo Differences with the old method:
+	 * 0  0  24.5
+	 * 0  0 -24.5
+	 * VS (new)
+	 * 0  0  16
+	 * 0  0 -33
 	 * @todo Y velocity
 	 * 
 	 * @param {Hitbox} movingHitbox
@@ -135,13 +137,13 @@ export class Hitbox {
 		const invEntry = new Vector3();
 		const invExit = new Vector3();
 
-		if (movingHitbox.getVelocity()[0] > 0) {
+		/* if (movingHitbox.getVelocity()[0] > 0) {
 			invEntry[0] = staticHitbox.getPosition()[0] - (movingHitbox.getPosition()[0] + movingHitbox.getSize()[0]);
 			invExit[0] = (staticHitbox.getPosition()[0] + (staticHitbox.getSize()[0]) - movingHitbox.getPosition()[0]);
 		} else {
 			invEntry[0] = (staticHitbox.getPosition()[0] + (staticHitbox.getSize()[0]) - movingHitbox.getPosition()[0]);
 			invExit[0] = staticHitbox.getPosition()[0] - (movingHitbox.getPosition()[0] + movingHitbox.getSize()[0]);
-		}
+		} */
 
 		if (movingHitbox.getVelocity()[2] > 0) {
 			invEntry[2] = staticHitbox.getPosition()[2] - (movingHitbox.getPosition()[2] + movingHitbox.getSize()[2]);
@@ -151,16 +153,17 @@ export class Hitbox {
 			invExit[2] = staticHitbox.getPosition()[2] - (movingHitbox.getPosition()[2] + movingHitbox.getSize()[2]);
 		}
 
+
 		const entry = new Vector3();
 		const exit = new Vector3();
 
-		if (movingHitbox.getVelocity()[0] === 0) {
+		/* if (movingHitbox.getVelocity()[0] === 0) {
 			entry[0] = -Infinity;
 			exit[0] = Infinity;
 		} else {
 			entry[0] = invEntry[0] / movingHitbox.getVelocity()[0];
 			exit[0] = invExit[0] / movingHitbox.getVelocity()[0];
-		}
+		} */
 
 		if (movingHitbox.getVelocity()[2] === 0) {
 			entry[2] = -Infinity;
@@ -170,20 +173,22 @@ export class Hitbox {
 			exit[2] = invExit[2] / movingHitbox.getVelocity()[2];
 		}
 
-		const entryTime = max(entry[0], entry[2]);
-		const exitTime = min(exit[0], exit[2]);
+		// const entryTime = max(entry[0], entry[2]);
+		const entryTime = entry[2];
+		// const exitTime = min(exit[0], exit[2]);
+		const exitTime = exit[2];
 
 		if (
 			entryTime > exitTime ||
-			(entry[0] < 0 && entry[2] < 1) ||
-			entry[0] > 1 ||
+			(/* entry[0] < 0 && */ entry[2] < 1) ||
+			// entry[0] > 1 ||
 			entry[2] > 1
 		) {
 			return 1;
 		}
 
 		// Calculate the collided surface normal
-		if (entry[0] > entry[2]) {
+		/* if (entry[0] > entry[2]) {
 			if (invEntry[0] < 0) {
 				normal[0] = 1;
 			} else {
@@ -191,15 +196,15 @@ export class Hitbox {
 			}
 
 			normal[2] = 0;
-		} else {
+		} else { */
 			if (invEntry[2] < 0) {
 				normal[2] = 1;
 			} else {
 				normal[2] = -1;
 			}
 
-			normal[0] = 0;
-		}
+			// normal[0] = 0;
+		// }
 
 		return entryTime;
 	}
