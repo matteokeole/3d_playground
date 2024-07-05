@@ -15,6 +15,7 @@ export const ABSOLUTE_VELOCITY = 150;
 export const VELOCITY = ABSOLUTE_VELOCITY / FRAMES_PER_SECOND;
 export const CAMERA_LERP_FACTOR = .3;
 export const SENSITIVITY = .0012;
+export const debuggerInstance = new Debugger();
 
 export default async function() {
 	const canvas = document.createElement("canvas");
@@ -22,7 +23,7 @@ export default async function() {
 	const instance = new Instance({
 		renderer,
 		framesPerSecond: FRAMES_PER_SECOND,
-		debugger: new Debugger(),
+		debugger: debuggerInstance,
 	});
 
 	await instance.build();

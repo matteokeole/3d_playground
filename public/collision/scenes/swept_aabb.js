@@ -42,7 +42,7 @@ export async function createScene(imageBitmaps) {
 		}),
 		"playerHitbox",
 	);
-	playerHitbox.setPosition(new Vector3(0, PLAYER_COLLISION_HULL[1] / 2, 0));
+	playerHitbox.setPosition(new Vector3(0, PLAYER_COLLISION_HULL[1], -128));
 	playerHitbox.buildHitbox();
 
 	meshes.push(playerHitbox);
@@ -69,7 +69,7 @@ export function createCamera(aspectRatio) {
 	camera.setPosition(new Vector3(0, PLAYER_COLLISION_HULL[1], -128));
 	camera.target = new Vector3(camera.getPosition());
 	camera.setRotation(new Vector3(-PI / 6, 0, 0));
-	camera.setDistance(new Vector3(0, 0, -64));
+	// camera.setDistance(new Vector3(0, 0, -64));
 
 	camera.fieldOfView = FIELD_OF_VIEW;
 	camera.aspectRatio = aspectRatio;

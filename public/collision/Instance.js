@@ -1,8 +1,8 @@
-import {Instance as _Instance, Hitbox} from "../../src/index.js";
+import {Instance as _Instance, Camera, Hitbox} from "../../src/index.js";
 import {Vector3} from "../../src/math/index.js";
 import {Mesh} from "../hl2/Mesh.js";
 import {keys} from "./input.js";
-import {CAMERA_LERP_FACTOR, VELOCITY} from "./main.js";
+import {VELOCITY} from "./main.js";
 
 export class Instance extends _Instance {
 	/**
@@ -10,9 +10,15 @@ export class Instance extends _Instance {
 	 */
 	_update(delta) {
 		const scene = this._renderer.getScene();
+		/**
+		 * @type {Mesh}
+		 */
 		const playerHitbox = scene
 			.getMeshes()
 			.find(mesh => mesh.getDebugName() === "playerHitbox");
+		/**
+		 * @type {Mesh}
+		 */
 		const wall = scene
 			.getMeshes()
 			.find(mesh => mesh.getDebugName() === "wall");
@@ -40,22 +46,25 @@ export class Instance extends _Instance {
 			.normalize()
 			.multiplyScalar(VELOCITY);
 
-		const hasMoved = direction.magnitude() !== 0;
-
-		playerHitbox.setPosition(camera.getPosition());
+		// const hasMoved = direction.magnitude() !== 0;
 
 		const relativeVelocity = camera.getRelativeVelocity(direction);
-		const collisionResult = this.#collide(relativeVelocity, playerHitbox, wall);
 
-		if (hasMoved) {
-			camera.target.add(relativeVelocity);
-		}
+		playerHitbox.setPosition(camera.getPosition());
+		playerHitbox.getHitbox().setPosition(camera.getPosition());
+		playerHitbox.getHitbox().setVelocity(relativeVelocity);
 
-		camera.getPosition().lerp(camera.target, CAMERA_LERP_FACTOR);
+		this.#testCollide(playerHitbox, wall, camera);
+
+		// camera.getPosition().lerp(camera.target, CAMERA_LERP_FACTOR);
+		camera.getPosition().set(camera.target);
 
 		camera.update();
 
-		this.getDebugger().update(camera);
+		this.getDebugger().update({
+			positionElement: camera.getPosition(),
+			rotationElement: camera.getRotation(),
+		});
 	}
 
 	_render() {
@@ -63,31 +72,17 @@ export class Instance extends _Instance {
 	}
 
 	/**
-	 * @param {Vector3} velocity
 	 * @param {Mesh} player
 	 * @param {Mesh} wall
+	 * @param {Camera} camera
 	 */
-	#collide(velocity, player, wall) {
-		player.getHitbox().setVelocity(velocity);
-
+	#testCollide(player, wall, camera) {
 		const normal = new Vector3();
 		const collisionTime = Hitbox.sweptAabb(player.getHitbox(), wall.getHitbox(), normal);
+		const scaledVelocity = new Vector3(player.getHitbox().getVelocity()).multiplyScalar(collisionTime);
 
-		if (collisionTime === 0) {
-			return true;
-		}
+		camera.target.add(scaledVelocity);
 
-		player.getPosition()[0] += player.getHitbox().getVelocity()[0] * collisionTime;
-		player.getPosition()[2] += player.getHitbox().getVelocity()[2] * collisionTime;
-
-		const remainingTime = 1 - collisionTime;
-
-		/**
-		 * @todo Collision response
-		 */
-
-		// player.getHitbox().setPosition(player.getPosition());
-
-		return false;
+		// const remainingTime = 1 - collisionTime;
 	}
 }
