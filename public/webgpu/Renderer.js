@@ -260,7 +260,7 @@ export class Renderer extends WebGPURenderer {
 	}
 
 	/**
-	 * The mesh count is needed to fill in the indirect buffer
+	 * The mesh count is needed to fill the indirect buffer
 	 */
 	#createBuffers() {
 		this._buffers.indirect = this._device.createBuffer({

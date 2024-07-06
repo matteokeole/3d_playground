@@ -17,8 +17,7 @@ struct Light {
 	vec3 position;
 };
 
-layout(location = 0)
-in vec4 a_vertex;
+layout(location = 0) in vec4 a_vertex;
 in vec3 a_normal;
 in vec3 a_tangent;
 in vec2 a_uv;

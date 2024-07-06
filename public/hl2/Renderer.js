@@ -45,49 +45,48 @@ export class Renderer extends WebGLRenderer {
 		this._vaos.crosshair = gl.createVertexArray();
 
 		gl.useProgram(this._programs.main);
-		gl.bindVertexArray(this._vaos.scene);
+			gl.bindVertexArray(this._vaos.scene);
+				this._buffers.index = gl.createBuffer();
+				gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._buffers.index);
 
-		this._buffers.index = gl.createBuffer();
-		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._buffers.index);
+				gl.enableVertexAttribArray(0);
+				this._buffers.vertex = gl.createBuffer();
+				gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.vertex);
+				gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
 
-		gl.enableVertexAttribArray(0);
-		this._buffers.vertex = gl.createBuffer();
-		gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.vertex);
-		gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
+				gl.enableVertexAttribArray(1);
+				this._buffers.normal = gl.createBuffer();
+				gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.normal);
+				gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 0, 0);
 
-		gl.enableVertexAttribArray(1);
-		this._buffers.normal = gl.createBuffer();
-		gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.normal);
-		gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 0, 0);
+				gl.enableVertexAttribArray(2);
+				this._buffers.tangent = gl.createBuffer();
+				gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.tangent);
+				gl.vertexAttribPointer(2, 3, gl.FLOAT, false, 0, 0);
 
-		gl.enableVertexAttribArray(2);
-		this._buffers.tangent = gl.createBuffer();
-		gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.tangent);
-		gl.vertexAttribPointer(2, 3, gl.FLOAT, false, 0, 0);
-
-		gl.enableVertexAttribArray(3);
-		this._buffers.uv = gl.createBuffer();
-		gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.uv);
-		gl.vertexAttribPointer(3, 2, gl.FLOAT, true, 0, 0);
-
-		gl.bindVertexArray(null);
-
+				gl.enableVertexAttribArray(3);
+				this._buffers.uv = gl.createBuffer();
+				gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.uv);
+				gl.vertexAttribPointer(3, 2, gl.FLOAT, true, 0, 0);
+			gl.bindVertexArray(null);
 		gl.useProgram(this._programs.main);
-
-		this._uniforms.cameraProjection = gl.getUniformLocation(this._programs.main, "u_camera.projection");
-		this._uniforms.cameraView = gl.getUniformLocation(this._programs.main, "u_camera.view");
-		this._uniforms.cameraPosition = gl.getUniformLocation(this._programs.main, "u_camera.position");
-		this._uniforms.lightPosition = gl.getUniformLocation(this._programs.main, "u_light.position");
-		this._uniforms.textureMatrix = gl.getUniformLocation(this._programs.main, "u_texture_matrix");
-		this._uniforms.texture = gl.getUniformLocation(this._programs.main, "u_texture");
-		gl.uniform1i(this._uniforms.texture, 0);
-		this._uniforms.normalMap = gl.getUniformLocation(this._programs.main, "u_normal_map");
-		gl.uniform1i(this._uniforms.normalMap, 1);
-		this._uniforms.lightColor = gl.getUniformLocation(this._programs.main, "u_light_color");
-		this._uniforms.lightIntensity = gl.getUniformLocation(this._programs.main, "u_light_intensity");
-
+			this._uniforms.cameraProjection = gl.getUniformLocation(this._programs.main, "u_camera.projection");
+			this._uniforms.cameraView = gl.getUniformLocation(this._programs.main, "u_camera.view");
+			this._uniforms.cameraPosition = gl.getUniformLocation(this._programs.main, "u_camera.position");
+			this._uniforms.lightPosition = gl.getUniformLocation(this._programs.main, "u_light.position");
+			this._uniforms.textureMatrix = gl.getUniformLocation(this._programs.main, "u_texture_matrix");
+			this._uniforms.texture = gl.getUniformLocation(this._programs.main, "u_texture");
+			gl.uniform1i(this._uniforms.texture, 0);
+			this._uniforms.normalMap = gl.getUniformLocation(this._programs.main, "u_normal_map");
+			gl.uniform1i(this._uniforms.normalMap, 1);
+			this._uniforms.lightColor = gl.getUniformLocation(this._programs.main, "u_light_color");
+			this._uniforms.lightIntensity = gl.getUniformLocation(this._programs.main, "u_light_intensity");
 		gl.useProgram(this._programs.crosshair);
 			this._uniforms.crosshairViewport = gl.getUniformLocation(this._programs.crosshair, "u_viewport");
+		gl.useProgram(this._programs.debug);
+			this._uniforms.debugCameraProjection = gl.getUniformLocation(this._programs.debug, "u_camera.projection");
+			this._uniforms.debugCameraView = gl.getUniformLocation(this._programs.debug, "u_camera.view");
+			this._uniforms.debugCameraPosition = gl.getUniformLocation(this._programs.debug, "u_camera.position");
 		gl.useProgram(null);
 
 		this.#createGBuffer();
@@ -188,6 +187,8 @@ export class Renderer extends WebGLRenderer {
 
 		gl.bindVertexArray(null);
 
+		this.#renderDebug();
+
 		this.#renderCrosshair();
 	}
 
@@ -198,16 +199,19 @@ export class Renderer extends WebGLRenderer {
 		const mainVertexShaderSource = await shaderLoader.load("public/hl2/shaders/main.vert");
 		// const depthVertexShaderSource = await shaderLoader.load("public/hl2/shaders/depth.vert");
 		const crosshairVertexShaderSource = await shaderLoader.load("public/hl2/shaders/crosshair.vert");
+		const debugVertexShaderSource = await shaderLoader.load("public/hl2/shaders/debug.vert");
 
 		// const depthFragmentShaderSource = await shaderLoader.load("assets/shaders/depth.frag");
 		// const emptyFragmentShaderSource = await shaderLoader.load("assets/shaders/empty.frag");
 		const mainFragmentShaderSource = await shaderLoader.load("public/hl2/shaders/main.frag");
 		const crosshairFragmentShaderSource = await shaderLoader.load("public/hl2/shaders/crosshair.frag");
+		const debugFragmentShaderSource = await shaderLoader.load("public/hl2/shaders/debug.frag");
 
 		this._programs.main = this._createProgram(mainVertexShaderSource, mainFragmentShaderSource);
 		this._programs.crosshair = this._createProgram(crosshairVertexShaderSource, crosshairFragmentShaderSource);
 		// this._programs.depth = this._createProgram(depthVertexShaderSource, emptyFragmentShaderSource);
 		// this._programs.debugDepth = this._createProgram(quadVertexShaderSource, depthFragmentShaderSource);
+		this._programs.debug = this._createProgram(debugVertexShaderSource, debugFragmentShaderSource);
 	}
 
 	#createGBuffer() {
@@ -280,6 +284,41 @@ export class Renderer extends WebGLRenderer {
 		gl.useProgram(this._programs.crosshair);
 			gl.uniform2f(this._uniforms.crosshairViewport, this._viewport[2], this._viewport[3]);
 			gl.drawArrays(gl.POINTS, 0, 5);
+		gl.useProgram(null);
+	}
+
+	#renderDebug() {
+		const gl = this._context;
+
+		gl.useProgram(this._programs.debug);
+			gl.bindVertexArray(this._vaos.scene);
+				const camera = this._camera;
+
+				gl.uniformMatrix4fv(this._uniforms.debugCameraProjection, false, camera.getProjection());
+				gl.uniformMatrix4fv(this._uniforms.debugCameraView, false, camera.getView());
+				gl.uniform3fv(this._uniforms.debugCameraPosition, camera.getPhysicalPosition());
+
+				for (const [, meshes] of this.#meshesPerMaterial) {
+					for (let i = 0, length = meshes.length; i < length; i++) {
+						const mesh = meshes[i];
+						const geometry = mesh.getGeometry();
+
+						gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.vertex);
+						gl.bufferData(gl.ARRAY_BUFFER, geometry.getVertices(), gl.STATIC_DRAW);
+
+						if (geometry instanceof SSDPlaneGeometry) {
+							gl.drawArrays(gl.LINE_LOOP, 0, 4);
+
+							continue;
+						}
+
+						const indices = geometry.getIndices();
+
+						gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
+						gl.drawElements(gl.LINES, indices.length, gl.UNSIGNED_BYTE, 0);
+					}
+				}
+			gl.bindVertexArray(null);
 		gl.useProgram(null);
 	}
 }

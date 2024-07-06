@@ -1,0 +1,21 @@
+{
+	"environment": [
+		{
+			"label": "wall",
+			"anchors": [-256, 0, 0, -256, 128, 0, 256, 128, 0],
+			"texture": "plaster/plasterwall044c.jpg",
+			"normal_map": "plaster/plasterwall044c_normal.jpg",
+			"uv": [0, 0],
+			"uv_rotation": 0,
+			"uv_scale": [0.25, 0.25]
+		}, {
+			"label": "floor",
+			"anchors": [-256, 0, -512, -256, 0, 0, 256, 0, 0],
+			"texture": "wood/woodfloor007a.jpg",
+			"normal_map": "wood/woodfloor007a_normal.jpg",
+			"uv": [0, 0],
+			"uv_rotation": 0.5,
+			"uv_scale": [0.1625, 0.1625]
+		}
+	]
+}
