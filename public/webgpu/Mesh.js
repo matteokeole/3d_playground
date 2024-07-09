@@ -1,5 +1,5 @@
 import {Mesh as _Mesh} from "../../src/index.js";
-import {Material} from "../../src/materials/index.js";
+import {Material} from "../../src/Material/index.js";
 import {Matrix3, PI, Vector2, Vector3} from "../../src/math/index.js";
 import {SSDPlaneGeometry} from "../hl2/SSDPlaneGeometry.js";
 

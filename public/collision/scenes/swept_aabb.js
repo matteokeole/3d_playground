@@ -2,7 +2,7 @@ import {Camera} from "../../../src/index.js";
 import {BoxGeometry} from "../../../src/Geometry/BoxGeometry.js";
 import {PointLight} from "../../../src/Light/index.js";
 import {SSDLoader} from "../../../src/Loader/index.js";
-import {Material} from "../../../src/materials/Material.js";
+import {Material} from "../../../src/Material/Material.js";
 import {Matrix3, PI, Vector2, Vector3} from "../../../src/math/index.js";
 import {Mesh} from "../../hl2/Mesh.js";
 import {Scene} from "../Scene.js";

@@ -1,6 +1,6 @@
 import {Mesh, Scene} from "../../src/index.js";
 import {ShaderLoader} from "../../src/Loader/index.js";
-import {Material} from "../../src/materials/index.js";
+import {Material} from "../../src/Material/index.js";
 import {WebGLRenderer} from "../../src/Renderer/index.js";
 import {SSDPlaneGeometry} from "./SSDPlaneGeometry.js";
 

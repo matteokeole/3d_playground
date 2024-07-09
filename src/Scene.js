@@ -1,5 +1,5 @@
 import {Mesh} from "./index.js";
-import {Material} from "./materials/index.js";
+import {Material} from "./Material/index.js";
 
 export class Scene {
 	/**

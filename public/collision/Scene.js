@@ -1,6 +1,6 @@
 import {Mesh, Scene as _Scene} from "../../src/index.js";
 import {PointLight} from "../../src/Light/index.js";
-import {Material} from "../../src/materials/index.js";
+import {Material} from "../../src/Material/index.js";
 import {Matrix4, Vector3} from "../../src/math/index.js";
 
 export class Scene extends _Scene {

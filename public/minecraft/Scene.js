@@ -1,5 +1,5 @@
 import {Camera, Mesh, Scene as _Scene} from "../../src/index.js";
-import {Material} from "../../src/materials/index.js";
+import {Material} from "../../src/Material/index.js";
 
 export class Scene extends _Scene {
 	/**
