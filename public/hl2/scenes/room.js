@@ -2,7 +2,7 @@ import {Camera} from "../../../src/index.js";
 import {PointLight} from "../../../src/Light/index.js";
 import {SSDLoader} from "../../../src/Loader/index.js";
 import {PI, Vector2, Vector3} from "../../../src/math/index.js";
-import {PLAYER_COLLISION_HULL} from "../../collision/index.js";
+import {PLAYER_COLLISION_HULL} from "../../index.js";
 import {Scene} from "../Scene.js";
 import {FIELD_OF_VIEW, SENSITIVITY} from "../main.js";
 

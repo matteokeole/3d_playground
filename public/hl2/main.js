@@ -8,9 +8,6 @@ import "./debug.js";
 import {createCamera, createScene} from "./scenes/building_entrance.js";
 
 export const FRAMES_PER_SECOND = 60;
-export const FIELD_OF_VIEW = 90;
-export const ENTITY_HEIGHT_STAND = 64;
-export const ENTITY_HEIGHT_CROUCH = 28;
 export const ABSOLUTE_VELOCITY = 150;
 export const VELOCITY = ABSOLUTE_VELOCITY / FRAMES_PER_SECOND;
 export const CAMERA_LERP_FACTOR = .3;

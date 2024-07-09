@@ -2,7 +2,8 @@ import {Camera} from "../../../src/index.js";
 import {PointLight} from "../../../src/Light/index.js";
 import {SSDLoader} from "../../../src/Loader/index.js";
 import {PI, Vector2, Vector3} from "../../../src/math/index.js";
-import {ENTITY_HEIGHT_STAND, FIELD_OF_VIEW, SENSITIVITY} from "../main.js";
+import {ENTITY_HEIGHT_STAND, FIELD_OF_VIEW} from "../../index.js";
+import {SENSITIVITY} from "../main.js";
 import {Scene} from "../Scene.js";
 
 /**

@@ -10,7 +10,7 @@ import {createScene} from "./scenes/perspective_shadow.js";
 
 export const FRAMES_PER_SECOND = 60;
 export const FIELD_OF_VIEW = 90;
-export const ENTITY_HEIGHT_STAND = 1.8;
+export const CAMERA_HEIGHT = 1.8;
 export const VELOCITY = .003;
 export const VELOCITY_SQRT1_2 = VELOCITY * SQRT1_2;
 export const CAMERA_LERP_FACTOR = .9;
@@ -39,8 +39,8 @@ export default async function() {
 	renderer.loadTextures(textures);
 
 	const camera = new Camera();
-	camera.getPosition()[1] = ENTITY_HEIGHT_STAND;
-	camera.target[1] = ENTITY_HEIGHT_STAND;
+	camera.getPosition()[1] = CAMERA_HEIGHT;
+	camera.target[1] = CAMERA_HEIGHT;
 	camera.fieldOfView = FIELD_OF_VIEW;
 	camera.aspectRatio = viewport[0] / viewport[1];
 	camera.near = .01;

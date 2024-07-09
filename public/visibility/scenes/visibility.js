@@ -2,7 +2,7 @@ import {Camera, Mesh, Scene} from "../../../src/index.js";
 import {BoxGeometry} from "../../../src/Geometry/index.js";
 import {PI, Vector2, Vector3} from "../../../src/math/index.js";
 import {SENSITIVITY} from "../../hl2/main.js";
-import {ENTITY_HEIGHT_STAND, FIELD_OF_VIEW} from "../../minecraft/main.js";
+import {CAMERA_HEIGHT, FIELD_OF_VIEW} from "../../minecraft/main.js";
 
 const GEOMETRY = new BoxGeometry(new Vector3(1, 1, 1));
 const SCALE = .85;
@@ -49,7 +49,7 @@ export async function createScene() {
 export function createCamera(aspectRatio) {
 	const camera = new Camera();
 
-	camera.setPosition(new Vector3(0, ENTITY_HEIGHT_STAND, 0));
+	camera.setPosition(new Vector3(0, CAMERA_HEIGHT, 0));
 	camera.target = new Vector3(camera.getPosition());
 	camera.fieldOfView = FIELD_OF_VIEW;
 	camera.aspectRatio = aspectRatio;
