@@ -10,7 +10,7 @@ export class Hitbox {
 	 * @param {Vector3} normal Will be altered
 	 */
 	static sweptAabb(movingHitbox, staticHitbox, normal) {
-		const movingAabb = movingHitbox.getAabb();
+		const movingAabb = movingHitbox.getBroadphaseAabb();
 		const staticAabb = staticHitbox.getAabb();
 		const entryDistance = new Vector3();
 		const exitDistance = new Vector3();
@@ -116,5 +116,20 @@ export class Hitbox {
 	 */
 	setVelocity(velocity) {
 		this.#velocity = velocity;
+	}
+
+	getBroadphaseAabb() {
+		const aabb = this.getAabb();
+		const x = aabb.getPosition()[0] + (this.getVelocity()[0] <= 0 ? this.getVelocity()[0] : 0);
+		const y = aabb.getPosition()[1];
+		const z = aabb.getPosition()[2] + (this.getVelocity()[2] <= 0 ? this.getVelocity()[2] : 0);
+		const width = aabb.getSize()[0] + Math.abs(this.getVelocity()[0]);
+		const height = aabb.getSize()[1];
+		const depth = aabb.getSize()[2] + Math.abs(this.getVelocity()[2]);
+
+		const position = new Vector3(x, y, z);
+		const size = new Vector3(width, height, depth);
+
+		return new AABB(position, size);
 	}
 }
