@@ -1,9 +1,9 @@
 import {Debugger} from "../../src/index.js";
 import {ImageBitmapLoader} from "../../src/Loader/index.js";
 import {Vector2, Vector4} from "../../src/math/index.js";
+import {listen} from "../hl2/input.js";
 import {Renderer} from "../hl2/Renderer.js";
 import {Instance} from "./Instance.js";
-import {listen} from "./input.js";
 
 import {createCamera, createScene} from "./scenes/swept_aabb.js";
 

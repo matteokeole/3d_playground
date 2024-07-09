@@ -5,7 +5,7 @@ import {SSDLoader} from "../../../src/Loader/index.js";
 import {Material} from "../../../src/Material/Material.js";
 import {Matrix3, PI, Vector2, Vector3} from "../../../src/math/index.js";
 import {Mesh} from "../../hl2/Mesh.js";
-import {Scene} from "../Scene.js";
+import {Scene} from "../../hl2/Scene.js";
 import {ENTITY_HEIGHT_STAND, PLAYER_COLLISION_HULL} from "../../index.js";
 import {FIELD_OF_VIEW, SENSITIVITY} from "../main.js";
 

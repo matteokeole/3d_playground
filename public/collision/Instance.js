@@ -1,7 +1,7 @@
 import {Instance as _Instance, Camera, Hitbox} from "../../src/index.js";
 import {Vector3} from "../../src/math/index.js";
+import {keys} from "../hl2/input.js";
 import {Mesh} from "../hl2/Mesh.js";
-import {keys} from "./input.js";
 import {VELOCITY} from "./main.js";
 
 export class Instance extends _Instance {
