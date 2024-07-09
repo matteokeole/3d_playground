@@ -88,7 +88,7 @@ export class Instance extends _Instance {
 		const scaledVelocity = new Vector3(player.getHitbox().getVelocity()).multiplyScalar(collisionTime);
 		const remainingTime = 1 - collisionTime;
 		const dot = (player.getHitbox().getVelocity()[0] * normal[2] + player.getHitbox().getVelocity()[2] * normal[0]) * remainingTime;
-		const velocity = new Vector3(dot * normal[2], 0, 0);
+		const velocity = new Vector3(dot * normal[2], 0, dot * normal[0]);
 
 		if (velocity.isNull()) {
 			return {

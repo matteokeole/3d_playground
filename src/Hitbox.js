@@ -1,4 +1,4 @@
-import {Vector3} from "./math/index.js";
+import {max, min, Vector3} from "./math/index.js";
 
 /**
  * @typedef {Object} HitboxDescriptor
@@ -7,6 +7,87 @@ import {Vector3} from "./math/index.js";
  */
 
 export class Hitbox {
+	/**
+	 * @todo Y velocity
+	 * 
+	 * @param {Hitbox} movingHitbox
+	 * @param {Hitbox} staticHitbox
+	 * @param {Vector3} normal Will be altered
+	 */
+	static sweptAabb(movingHitbox, staticHitbox, normal) {
+		const entryDistance = new Vector3();
+		const exitDistance = new Vector3();
+
+		if (movingHitbox.getVelocity()[0] > 0) {
+			entryDistance[0] = staticHitbox.getOffset()[0] - (movingHitbox.getOffset()[0] + movingHitbox.getSize()[0]);
+			exitDistance[0] = (staticHitbox.getOffset()[0] + (staticHitbox.getSize()[0]) - movingHitbox.getOffset()[0]);
+		} else {
+			entryDistance[0] = (staticHitbox.getOffset()[0] + (staticHitbox.getSize()[0]) - movingHitbox.getOffset()[0]);
+			exitDistance[0] = staticHitbox.getOffset()[0] - (movingHitbox.getOffset()[0] + movingHitbox.getSize()[0]);
+		}
+
+		if (movingHitbox.getVelocity()[2] > 0) {
+			entryDistance[2] = staticHitbox.getOffset()[2] - (movingHitbox.getOffset()[2] + movingHitbox.getSize()[2]);
+			exitDistance[2] = (staticHitbox.getOffset()[2] + (staticHitbox.getSize()[2]) - movingHitbox.getOffset()[2]);
+		} else {
+			entryDistance[2] = (staticHitbox.getOffset()[2] + (staticHitbox.getSize()[2]) - movingHitbox.getOffset()[2]);
+			exitDistance[2] = staticHitbox.getOffset()[2] - (movingHitbox.getOffset()[2] + movingHitbox.getSize()[2]);
+		}
+
+		const entry = new Vector3();
+		const exit = new Vector3();
+
+		if (movingHitbox.getVelocity()[0] < .001) {
+			entry[0] = -Infinity;
+			exit[0] = Infinity;
+		} else {
+			entry[0] = entryDistance[0] / movingHitbox.getVelocity()[0];
+			exit[0] = exitDistance[0] / movingHitbox.getVelocity()[0];
+		}
+
+		if (movingHitbox.getVelocity()[2] < .001) {
+			entry[2] = -Infinity;
+			exit[2] = Infinity;
+		} else {
+			entry[2] = entryDistance[2] / movingHitbox.getVelocity()[2];
+			exit[2] = exitDistance[2] / movingHitbox.getVelocity()[2];
+		}
+
+		const entryTime = max(entry[0], entry[2]);
+		const exitTime = min(exit[0], exit[2]);
+
+		if (
+			entryTime > exitTime ||
+			(entry[0] < 0 && entry[2] < 0) ||
+			entry[0] > 1 ||
+			entry[2] > 1
+		) {
+			// No collision
+			return 1;
+		}
+
+		// Calculate the collided surface normal
+		if (entry[0] > entry[2]) {
+			if (entryDistance[0] < 0) {
+				normal[0] = 1;
+			} else {
+				normal[0] = -1;
+			}
+
+			normal[2] = 0;
+		} else {
+			if (entryDistance[2] < 0) {
+				normal[2] = 1;
+			} else {
+				normal[2] = -1;
+			}
+
+			normal[0] = 0;
+		}
+
+		return entryTime;
+	}
+
 	/**
 	 * @type {Vector3}
 	 */
@@ -81,145 +162,5 @@ export class Hitbox {
 	 */
 	setVelocity(velocity) {
 		this.#velocity = velocity;
-	}
-
-	/**
-	 * @param {Hitbox} that
-	 * @param {Hitbox} hitbox
-	 * @param {Vector3} normal
-	 */
-	static __sweptAABB_old(that, hitbox, normal) {
-		const entryDistance = new Vector3();
-		const exitDistance = new Vector3();
-		const [x1, y1, z1] = that.getPosition();
-		const [x2, y2, z2] = hitbox.getPosition();
-		const [w1, h1, d1] = new Vector3(that.getSize()).multiplyScalar(.5);
-		const [w2, h2, d2] = new Vector3(hitbox.getSize()).multiplyScalar(.5);
-		const [vx1, vy1, vz1] = that.getVelocity();
-
-		if (vz1 > 0) {
-			entryDistance[2] = (z2 - d2) - (z1 + d1);
-			exitDistance[2] = (z2 + d2) - (z1 - d1);
-		} else {
-			entryDistance[2] = (z2 + d2) - (z1 - d1);
-			exitDistance[2] = (z2 - d2) - (z1 + d1);
-		}
-
-		const entry = new Vector3();
-		const exit = new Vector3();
-
-		if (vz1 === 0) {
-			entry[2] = -Infinity;
-			exit[2] = Infinity;
-		} else {
-			entry[2] = entryDistance[2] / vz1;
-			exit[2] = exitDistance[2] / vz1;
-		}
-
-		const entryTime = entry[2];
-		const exitTime = exit[2];
-
-		if (
-			entryTime > exitTime ||
-			(entry[2] < 0) ||
-			(entry[2] > 1)
-		) {
-			// No collision
-			normal.multiplyScalar(0);
-
-			return 1;
-		}
-
-		if (entryDistance[2] < 0) {
-			normal[2] = 1;
-		} else {
-			normal[2] = -1;
-		}
-
-		return entryTime;
-	}
-
-	/**
-	 * @todo Xs velocity
-	 * @todo Y velocity
-	 * 
-	 * @param {Hitbox} movingHitbox
-	 * @param {Hitbox} staticHitbox
-	 * @param {Vector3} normal Will be altered
-	 */
-	static sweptAabb(movingHitbox, staticHitbox, normal) {
-		const entryDistance = new Vector3();
-		const exitDistance = new Vector3();
-
-		/* if (movingHitbox.getVelocity()[0] > 0) {
-			entryDistance[0] = staticHitbox.getOffset()[0] - (movingHitbox.getOffset()[0] + movingHitbox.getSize()[0]);
-			exitDistance[0] = (staticHitbox.getOffset()[0] + (staticHitbox.getSize()[0]) - movingHitbox.getOffset()[0]);
-		} else {
-			entryDistance[0] = (staticHitbox.getOffset()[0] + (staticHitbox.getSize()[0]) - movingHitbox.getOffset()[0]);
-			exitDistance[0] = staticHitbox.getOffset()[0] - (movingHitbox.getOffset()[0] + movingHitbox.getSize()[0]);
-		} */
-
-		if (movingHitbox.getVelocity()[2] > 0) {
-			entryDistance[2] = staticHitbox.getOffset()[2] - (movingHitbox.getOffset()[2] + movingHitbox.getSize()[2]);
-			exitDistance[2] = (staticHitbox.getOffset()[2] + (staticHitbox.getSize()[2]) - movingHitbox.getOffset()[2]);
-		} else {
-			entryDistance[2] = (staticHitbox.getOffset()[2] + (staticHitbox.getSize()[2]) - movingHitbox.getOffset()[2]);
-			exitDistance[2] = staticHitbox.getOffset()[2] - (movingHitbox.getOffset()[2] + movingHitbox.getSize()[2]);
-		}
-
-		const entry = new Vector3();
-		const exit = new Vector3();
-
-		/* if (movingHitbox.getVelocity()[0] === 0) {
-			entry[0] = -Infinity;
-			exit[0] = Infinity;
-		} else {
-			entry[0] = entryDistance[0] / movingHitbox.getVelocity()[0];
-			exit[0] = exitDistance[0] / movingHitbox.getVelocity()[0];
-		} */
-
-		if (movingHitbox.getVelocity()[2] === 0) {
-			entry[2] = -Infinity;
-			exit[2] = Infinity;
-		} else {
-			entry[2] = entryDistance[2] / movingHitbox.getVelocity()[2];
-			exit[2] = exitDistance[2] / movingHitbox.getVelocity()[2];
-		}
-
-		// const entryTime = max(entry[0], entry[2]);
-		const entryTime = entry[2];
-		// const exitTime = min(exit[0], exit[2]);
-		const exitTime = exit[2];
-
-		if (
-			entryTime > exitTime ||
-			entry[2] < 0 || // (/* entry[0] < 0 && */ entry[2] < 1) ||
-			// entry[0] > 1 ||
-			entry[2] > 1
-		) {
-			// No collision
-			return 1;
-		}
-
-		// Calculate the collided surface normal
-		/* if (entry[0] > entry[2]) {
-			if (entryDistance[0] < 0) {
-				normal[0] = 1;
-			} else {
-				normal[0] = -1;
-			}
-
-			normal[2] = 0;
-		} else { */
-			if (entryDistance[2] < 0) {
-				normal[2] = 1;
-			} else {
-				normal[2] = -1;
-			}
-
-			// normal[0] = 0;
-		// }
-
-		return entryTime;
 	}
 }
