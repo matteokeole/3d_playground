@@ -1,4 +1,5 @@
 import {Scene} from "../../src/index.js";
+import {BoxGeometry} from "../../src/geometries/index.js";
 import {ShaderLoader} from "../../src/Loader/index.js";
 import {WebGPURenderer} from "../../src/Renderer/index.js";
 
@@ -112,7 +113,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 	}
 
 	#createVertexBuffer() {
-		const vertexCount = this._scene.getMeshes()[0].getGeometry().getNonIndexedVertices().length;
+		const vertexCount = BoxGeometry.NON_INDEXED_VERTICES.length;
 
 		return this._device.createBuffer({
 			label: "Vertex buffer",
@@ -225,7 +226,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 	#writeIndirectBuffer() {
 		const meshes = this._scene.getMeshes();
 		const meshCount = meshes.length;
-		const vertexCount = meshes[0].getGeometry().getNonIndexedVertices().length;
+		const vertexCount = BoxGeometry.NON_INDEXED_VERTICES.length;
 		const indirectMap = new Uint32Array(this._buffers.indirect.getMappedRange());
 
 		indirectMap.set(Uint32Array.of(
@@ -248,7 +249,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 	}
 
 	#writeVertexBuffer() {
-		const vertices = this._scene.getMeshes()[0].getGeometry().getNonIndexedVertices();
+		const vertices = BoxGeometry.NON_INDEXED_VERTICES;
 		const vertexMap = new Float32Array(this._buffers.vertex.getMappedRange());
 
 		vertexMap.set(vertices);

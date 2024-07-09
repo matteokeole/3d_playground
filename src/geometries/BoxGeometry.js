@@ -5,7 +5,7 @@ export class BoxGeometry extends Geometry {
 	/**
 	 * @type {Float32Array}
 	 */
-	static #nonIndexedVertices = Float32Array.of(
+	static NON_INDEXED_VERTICES = Float32Array.of(
 		// Front
 		-.5, -.5, -.5,
 		-.5, .5, -.5,
@@ -130,10 +130,6 @@ export class BoxGeometry extends Geometry {
 		this._normals = Geometry.getNormals(this._vertices);
 		this._tangents = Geometry.getTangents(this._vertices);
 		this._uvs = Geometry.getUVs(this._vertices.length);
-	}
-
-	getNonIndexedVertices() {
-		return BoxGeometry.#nonIndexedVertices;
 	}
 
 	getSize() {
