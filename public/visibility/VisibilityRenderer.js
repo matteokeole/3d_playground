@@ -30,7 +30,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 
 	render() {
 		this.#writeCameraBuffer();
-		this.#renderPrePass();
+		this.#renderVisibilityPass();
 	}
 
 	/**
@@ -272,7 +272,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 		this._device.queue.writeBuffer(this._buffers.camera, 0, this._camera.getViewProjection());
 	}
 
-	#renderPrePass() {
+	#renderVisibilityPass() {
 		const encoder = this._device.createCommandEncoder();
 
 		const renderPass = encoder.beginRenderPass({
