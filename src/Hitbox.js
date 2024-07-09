@@ -1,10 +1,5 @@
+import {AABB} from "./index.js";
 import {max, min, Vector3} from "./math/index.js";
-
-/**
- * @typedef {Object} HitboxDescriptor
- * @property {Vector3} position
- * @property {Vector3} size
- */
 
 export class Hitbox {
 	/**
@@ -15,23 +10,25 @@ export class Hitbox {
 	 * @param {Vector3} normal Will be altered
 	 */
 	static sweptAabb(movingHitbox, staticHitbox, normal) {
+		const movingAabb = movingHitbox.getAabb();
+		const staticAabb = staticHitbox.getAabb();
 		const entryDistance = new Vector3();
 		const exitDistance = new Vector3();
 
 		if (movingHitbox.getVelocity()[0] > 0) {
-			entryDistance[0] = staticHitbox.getOffset()[0] - (movingHitbox.getOffset()[0] + movingHitbox.getSize()[0]);
-			exitDistance[0] = (staticHitbox.getOffset()[0] + (staticHitbox.getSize()[0]) - movingHitbox.getOffset()[0]);
+			entryDistance[0] = staticAabb.getPosition()[0] - (movingAabb.getPosition()[0] + movingAabb.getHalfSize()[0]);
+			exitDistance[0] = (staticAabb.getPosition()[0] + (staticAabb.getHalfSize()[0]) - movingAabb.getPosition()[0]);
 		} else {
-			entryDistance[0] = (staticHitbox.getOffset()[0] + (staticHitbox.getSize()[0]) - movingHitbox.getOffset()[0]);
-			exitDistance[0] = staticHitbox.getOffset()[0] - (movingHitbox.getOffset()[0] + movingHitbox.getSize()[0]);
+			entryDistance[0] = (staticAabb.getPosition()[0] + (staticAabb.getHalfSize()[0]) - movingAabb.getPosition()[0]);
+			exitDistance[0] = staticAabb.getPosition()[0] - (movingAabb.getPosition()[0] + movingAabb.getHalfSize()[0]);
 		}
 
 		if (movingHitbox.getVelocity()[2] > 0) {
-			entryDistance[2] = staticHitbox.getOffset()[2] - (movingHitbox.getOffset()[2] + movingHitbox.getSize()[2]);
-			exitDistance[2] = (staticHitbox.getOffset()[2] + (staticHitbox.getSize()[2]) - movingHitbox.getOffset()[2]);
+			entryDistance[2] = staticAabb.getPosition()[2] - (movingAabb.getPosition()[2] + movingAabb.getHalfSize()[2]);
+			exitDistance[2] = (staticAabb.getPosition()[2] + (staticAabb.getHalfSize()[2]) - movingAabb.getPosition()[2]);
 		} else {
-			entryDistance[2] = (staticHitbox.getOffset()[2] + (staticHitbox.getSize()[2]) - movingHitbox.getOffset()[2]);
-			exitDistance[2] = staticHitbox.getOffset()[2] - (movingHitbox.getOffset()[2] + movingHitbox.getSize()[2]);
+			entryDistance[2] = (staticAabb.getPosition()[2] + (staticAabb.getHalfSize()[2]) - movingAabb.getPosition()[2]);
+			exitDistance[2] = staticAabb.getPosition()[2] - (movingAabb.getPosition()[2] + movingAabb.getHalfSize()[2]);
 		}
 
 		const entry = new Vector3();
@@ -89,19 +86,9 @@ export class Hitbox {
 	}
 
 	/**
-	 * @type {Vector3}
+	 * @type {AABB}
 	 */
-	#position;
-
-	/**
-	 * @type {Vector3}
-	 */
-	#size;
-
-	/**
-	 * @type {Vector3}
-	 */
-	#offset;
+	#aabb;
 
 	/**
 	 * @type {Vector3}
@@ -109,48 +96,15 @@ export class Hitbox {
 	#velocity;
 
 	/**
-	 * @param {HitboxDescriptor} descriptor
+	 * @param {AABB} aabb
 	 */
-	constructor(descriptor) {
-		this.#position = descriptor.position;
-		this.#size = descriptor.size;
+	constructor(aabb) {
+		this.#aabb = aabb;
 		this.#velocity = new Vector3();
-
-		this.#updateOffset();
 	}
 
-	getPosition() {
-		return this.#position;
-	}
-
-	/**
-	 * @param {Vector3} position
-	 */
-	setPosition(position) {
-		this.#position = position;
-
-		this.#updateOffset();
-	}
-
-	getSize() {
-		return this.#size;
-	}
-
-	/**
-	 * @param {Vector3} size
-	 */
-	setSize(size) {
-		this.#size = size;
-
-		this.#updateOffset();
-	}
-
-	getOffset() {
-		return this.#offset;
-	}
-
-	#updateOffset() {
-		this.#offset = new Vector3(this.#position).subtract(new Vector3(this.#size).divideScalar(2));
+	getAabb() {
+		return this.#aabb;
 	}
 
 	getVelocity() {

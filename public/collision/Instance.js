@@ -108,6 +108,6 @@ export class Instance extends _Instance {
 	 */
 	#updateCameraMesh(camera, mesh) {
 		mesh.setPosition(camera.getPosition());
-		mesh.getHitbox().setPosition(camera.getPosition());
+		mesh.getHitbox().getAabb().setPosition(camera.getPosition());
 	}
 }

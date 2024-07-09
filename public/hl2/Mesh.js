@@ -1,4 +1,4 @@
-import {Hitbox, Mesh as _Mesh} from "../../src/index.js";
+import {AABB, Hitbox, Mesh as _Mesh} from "../../src/index.js";
 import {BoxGeometry, Geometry} from "../../src/Geometry/index.js";
 import {Material} from "../../src/Material/index.js";
 import {Matrix3, max, PI, Vector2, Vector3} from "../../src/math/index.js";
@@ -98,9 +98,8 @@ export class Mesh extends _Mesh {
 			size = this._geometry.getSize();
 		}
 
-		this.#hitbox = new Hitbox({
-			position: this.getPosition(),
-			size,
-		});
+		const aabb = new AABB(this.getPosition(), size);
+
+		this.#hitbox = new Hitbox(aabb);
 	}
 }

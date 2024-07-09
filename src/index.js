@@ -1,3 +1,4 @@
+export {AABB} from "./AABB.js";
 export {Camera} from "./Camera.js";
 export {Debugger} from "./Debugger.js";
 export {Hitbox} from "./Hitbox.js";
