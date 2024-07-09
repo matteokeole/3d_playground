@@ -1,5 +1,5 @@
 import {Camera, Mesh, Scene} from "../../../src/index.js";
-import {BoxGeometry} from "../../../src/geometries/index.js";
+import {BoxGeometry} from "../../../src/Geometry/index.js";
 import {PI, Vector2, Vector3} from "../../../src/math/index.js";
 import {SENSITIVITY} from "../../hl2/main.js";
 import {ENTITY_HEIGHT_STAND, FIELD_OF_VIEW} from "../../minecraft/main.js";

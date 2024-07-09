@@ -1,5 +1,5 @@
 import {Scene} from "../../src/index.js";
-import {BoxGeometry} from "../../src/geometries/index.js";
+import {BoxGeometry} from "../../src/Geometry/index.js";
 import {ShaderLoader} from "../../src/Loader/index.js";
 import {WebGPURenderer} from "../../src/Renderer/index.js";
 

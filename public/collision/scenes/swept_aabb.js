@@ -1,5 +1,5 @@
 import {Camera} from "../../../src/index.js";
-import {BoxGeometry} from "../../../src/geometries/BoxGeometry.js";
+import {BoxGeometry} from "../../../src/Geometry/BoxGeometry.js";
 import {PointLight} from "../../../src/lights/index.js";
 import {SSDLoader} from "../../../src/Loader/index.js";
 import {Material} from "../../../src/materials/Material.js";

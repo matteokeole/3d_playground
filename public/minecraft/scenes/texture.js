@@ -1,5 +1,5 @@
 import {Camera, Mesh} from "../../../src/index.js";
-import {BoxGeometry} from "../../../src/geometries/index.js";
+import {BoxGeometry} from "../../../src/Geometry/index.js";
 import {Material} from "../../../src/materials/index.js";
 import {Matrix3, PI, Vector2, Vector3} from "../../../src/math/index.js";
 import {BLOCK_SCALE, FIELD_OF_VIEW} from "../main.js";

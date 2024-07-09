@@ -1,5 +1,5 @@
 import {Hitbox, Mesh as _Mesh} from "../../src/index.js";
-import {BoxGeometry} from "../../src/geometries/index.js";
+import {BoxGeometry} from "../../src/Geometry/index.js";
 import {Material} from "../../src/materials/index.js";
 import {Matrix3, max, PI, Vector2, Vector3} from "../../src/math/index.js";
 import {SSDPlaneGeometry} from "./SSDPlaneGeometry.js";

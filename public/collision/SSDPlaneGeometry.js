@@ -1,4 +1,4 @@
-import {Geometry} from "../../src/geometries/index.js";
+import {Geometry} from "../../src/Geometry/index.js";
 import {Vector3} from "../../src/math/index.js";
 
 export class SSDPlaneGeometry extends Geometry {
