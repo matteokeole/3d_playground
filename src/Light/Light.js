@@ -1,9 +1,15 @@
 import {Vector3} from "../math/index.js";
 
 /**
+ * @typedef {Object} LightDescriptor
+ * @property {Vector3} color
+ * @property {Number} intensity
+ */
+
+/**
  * @abstract
  */
-export class AbstractLight {
+export class Light {
 	/**
 	 * @type {Vector3}
 	 */
@@ -15,13 +21,11 @@ export class AbstractLight {
 	#intensity;
 
 	/**
-	 * @param {Object} options
-	 * @param {Vector3} options.color
-	 * @param {Number} options.intensity
+	 * @param {LightDescriptor} descriptor
 	 */
-	constructor({color, intensity}) {
-		this.#color = color;
-		this.#intensity = intensity;
+	constructor(descriptor) {
+		this.#color = descriptor.color;
+		this.#intensity = descriptor.intensity;
 	}
 
 	/**

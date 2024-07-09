@@ -1,5 +1,5 @@
 import {Camera} from "../../../src/index.js";
-import {PointLight} from "../../../src/lights/index.js";
+import {PointLight} from "../../../src/Light/index.js";
 import {SSDLoader} from "../../../src/Loader/index.js";
 import {PI, Vector2, Vector3} from "../../../src/math/index.js";
 import {PLAYER_COLLISION_HULL} from "../../collision/index.js";
