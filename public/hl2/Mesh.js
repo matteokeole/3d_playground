@@ -1,5 +1,5 @@
 import {Hitbox, Mesh as _Mesh} from "../../src/index.js";
-import {BoxGeometry} from "../../src/Geometry/index.js";
+import {BoxGeometry, Geometry} from "../../src/Geometry/index.js";
 import {Material} from "../../src/Material/index.js";
 import {Matrix3, max, PI, Vector2, Vector3} from "../../src/math/index.js";
 import {SSDPlaneGeometry} from "./SSDPlaneGeometry.js";
@@ -9,6 +9,11 @@ export class Mesh extends _Mesh {
 	 * @type {?Hitbox}
 	 */
 	#hitbox;
+
+	/**
+	 * @type {Boolean}
+	 */
+	#isTiedToCamera;
 
 	/**
 	 * @param {Object} json
@@ -56,8 +61,30 @@ export class Mesh extends _Mesh {
 		);
 	}
 
+	/**
+	 * @param {Geometry} geometry
+	 * @param {Material} material
+	 * @param {?String} [debugName]
+	 */
+	constructor(geometry, material, debugName) {
+		super(geometry, material, debugName);
+
+		this.#isTiedToCamera = false;
+	}
+
 	getHitbox() {
 		return this.#hitbox;
+	}
+
+	isTiedToCamera() {
+		return this.#isTiedToCamera;
+	}
+
+	/**
+	 * @param {Boolean} isTiedToCamera
+	 */
+	setIsTiedToCamera(isTiedToCamera) {
+		this.#isTiedToCamera = isTiedToCamera;
 	}
 
 	buildHitbox() {

@@ -44,6 +44,7 @@ export async function createScene(imageBitmaps) {
 	);
 	playerHitbox.setPosition(new Vector3(0, ENTITY_HEIGHT_STAND, -128));
 	playerHitbox.buildHitbox();
+	playerHitbox.setIsTiedToCamera(true);
 
 	meshes.push(playerHitbox);
 
