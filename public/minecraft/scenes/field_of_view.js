@@ -1,7 +1,8 @@
-import {Camera, Mesh} from "../../../src/index.js";
+import {Camera} from "../../../src/index.js";
 import {BoxGeometry} from "../../../src/Geometry/index.js";
 import {Material} from "../../../src/Material/index.js";
 import {Matrix3, PI, Vector2, Vector3} from "../../../src/math/index.js";
+import {Mesh} from "../../../src/Mesh/index.js";
 import {BLOCK_SCALE, FIELD_OF_VIEW} from "../main.js";
 import {Scene} from "../Scene.js";
 
@@ -24,37 +25,37 @@ export function createScene() {
 	for (i = 0; i < 26; i++) {
 		mesh = new Mesh(geometry, material);
 		mesh.setPosition(new Vector3(0, 0, i * scale));
-		mesh.scale = scaleVector;
+		mesh.setScale(scaleVector);
 
 		meshes.push(mesh);
 	}
 
 	for (i = 0; i < 7; i++) {
-		mesh = new Mesh(geometry, material.test);
+		mesh = new Mesh(geometry, material);
 		mesh.setPosition(new Vector3(-1, 1, i * 4 + 1).multiplyScalar(scale));
-		mesh.scale = scaleVector;
+		mesh.setScale(scaleVector);
 
 		meshes.push(mesh);
 
-		mesh = new Mesh(geometry, material.test);
+		mesh = new Mesh(geometry, material);
 		mesh.setPosition(new Vector3(-1, 2, i * 4 + 1).multiplyScalar(scale));
-		mesh.scale = scaleVector;
+		mesh.setScale(scaleVector);
 
 		meshes.push(mesh);
 	}
 
 	for (i = 0; i < 2; i++) {
-		mesh = new Mesh(geometry, material.test);
+		mesh = new Mesh(geometry, material);
 		mesh.setPosition(new Vector3(1, i + 1, 1).multiplyScalar(scale));
-		mesh.scale = scaleVector;
+		mesh.setScale(scaleVector);
 
 		meshes.push(mesh);
 	}
 
 	for (i = 0; i < 2; i++) {
-		mesh = new Mesh(geometry, material.test);
+		mesh = new Mesh(geometry, material);
 		mesh.setPosition(new Vector3(1, i + 1, 25).multiplyScalar(scale));
-		mesh.scale = scaleVector;
+		mesh.setScale(scaleVector);
 
 		meshes.push(mesh);
 	}

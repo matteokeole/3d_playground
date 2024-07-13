@@ -1,6 +1,6 @@
-import {Geometry} from "./Geometry/index.js";
-import {Matrix4, Vector3} from "./math/index.js";
-import {Material} from "./Material/index.js";
+import {Geometry} from "../Geometry/index.js";
+import {Matrix4, Vector3} from "../math/index.js";
+import {Material} from "../Material/index.js";
 
 /**
  * @abstract

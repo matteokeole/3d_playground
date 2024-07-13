@@ -1,7 +1,8 @@
-import {Camera, Mesh} from "../../../src/index.js";
+import {Camera} from "../../../src/index.js";
 import {BoxGeometry} from "../../../src/Geometry/index.js";
 import {Material} from "../../../src/Material/index.js";
 import {Matrix3, PI, Vector2, Vector3} from "../../../src/math/index.js";
+import {Mesh} from "../../../src/Mesh/index.js";
 import {BLOCK_SCALE, FIELD_OF_VIEW, NOISE_AMPLITUDE, NOISE_INC} from "../main.js";
 import {Scene} from "../Scene.js";
 
@@ -33,8 +34,8 @@ export function createScene() {
 		z = j % chunkSize + .5;
 		y = Math.round(noise.perlin2(x * NOISE_INC, z * NOISE_INC) * NOISE_AMPLITUDE) + heightOffset;
 
-		mesh.setPosition(new Vector3(x, y, z).subtractScalar(chunkCenter).multiplyScalar(.85));
-		mesh.scale = new Vector3().addScalar(BLOCK_SCALE);
+		mesh.setPosition(new Vector3(x, y, z).subtractScalar(chunkCenter).multiplyScalar(BLOCK_SCALE));
+		mesh.getScale().multiplyScalar(BLOCK_SCALE);
 
 		meshes.push(mesh);
 	}

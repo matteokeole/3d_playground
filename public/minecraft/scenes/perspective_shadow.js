@@ -1,7 +1,8 @@
-import {Camera, Mesh} from "../../../src/index.js";
+import {Camera} from "../../../src/index.js";
 import {BoxGeometry} from "../../../src/Geometry/index.js";
 import {Material} from "../../../src/Material/index.js";
 import {Matrix3, PI, Vector2, Vector3} from "../../../src/math/index.js";
+import {Mesh} from "../../../src/Mesh/index.js";
 import {BLOCK_SCALE, FIELD_OF_VIEW} from "../main.js";
 import {Scene} from "../Scene.js";
 
@@ -22,7 +23,7 @@ export function createScene() {
 	{
 		const mesh = new Mesh(GEOMETRY, MATERIAL);
 		mesh.getPosition()[2] = 3 * BLOCK_SCALE;
-		mesh.scale = new Vector3(9, 1, 5).multiplyScalar(BLOCK_SCALE);
+		mesh.getScale().multiply(new Vector3(9, 1, 5)).multiplyScalar(BLOCK_SCALE);
 
 		meshes.push(mesh);
 	}
@@ -32,7 +33,7 @@ export function createScene() {
 		{
 			const mesh = new Mesh(GEOMETRY, MATERIAL);
 			mesh.setPosition(new Vector3(-1, 1, 3).multiplyScalar(BLOCK_SCALE));
-			mesh.scale = new Vector3().addScalar(BLOCK_SCALE);
+			mesh.getScale().multiplyScalar(BLOCK_SCALE);
 
 			meshes.push(mesh);
 		}
@@ -40,7 +41,7 @@ export function createScene() {
 		{
 			const mesh = new Mesh(GEOMETRY, MATERIAL);
 			mesh.setPosition(new Vector3(1, 1, 3).multiplyScalar(BLOCK_SCALE));
-			mesh.scale = new Vector3().addScalar(BLOCK_SCALE);
+			mesh.getScale().multiplyScalar(BLOCK_SCALE);
 
 			meshes.push(mesh);
 		}

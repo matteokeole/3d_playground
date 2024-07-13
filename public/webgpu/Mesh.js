@@ -1,6 +1,6 @@
-import {Mesh as _Mesh} from "../../src/index.js";
 import {Material} from "../../src/Material/index.js";
 import {Matrix3, PI, Vector2, Vector3} from "../../src/math/index.js";
+import {Mesh as _Mesh} from "../../src/Mesh/index.js";
 import {SSDPlaneGeometry} from "../hl2/SSDPlaneGeometry.js";
 
 export class Mesh extends _Mesh {

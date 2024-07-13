@@ -1,7 +1,8 @@
-import {AABB, Hitbox, Mesh as _Mesh} from "../../src/index.js";
+import {AABB, Hitbox} from "../../src/index.js";
 import {BoxGeometry, Geometry} from "../../src/Geometry/index.js";
 import {Material} from "../../src/Material/index.js";
 import {Matrix3, max, PI, Vector2, Vector3} from "../../src/math/index.js";
+import {Mesh as _Mesh} from "../../src/Mesh/index.js";
 import {SSDPlaneGeometry} from "./SSDPlaneGeometry.js";
 
 export class Mesh extends _Mesh {

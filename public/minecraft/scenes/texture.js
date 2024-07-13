@@ -1,7 +1,8 @@
-import {Camera, Mesh} from "../../../src/index.js";
+import {Camera} from "../../../src/index.js";
 import {BoxGeometry} from "../../../src/Geometry/index.js";
 import {Material} from "../../../src/Material/index.js";
 import {Matrix3, PI, Vector2, Vector3} from "../../../src/math/index.js";
+import {Mesh} from "../../../src/Mesh/index.js";
 import {BLOCK_SCALE, FIELD_OF_VIEW} from "../main.js";
 import {Scene} from "../Scene.js";
 
@@ -19,7 +20,7 @@ export function createScene() {
 	);
 
 	mesh.setPosition(new Vector3(0, 1.3, 2).multiplyScalar(.85));
-	mesh.scale = new Vector3().addScalar(BLOCK_SCALE);
+	mesh.getScale().multiplyScalar(BLOCK_SCALE);
 
 	const pointLight = new Camera();
 	pointLight.setPosition(new Vector3(1.04, 2.90, 0.48));
