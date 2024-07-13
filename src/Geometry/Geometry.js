@@ -15,7 +15,6 @@ import {Vector2, Vector3} from "../math/index.js";
 export class Geometry {
 	/**
 	 * @param {Float32Array} vertices
-	 * @returns {Float32Array}
 	 */
 	static getNormals(vertices) {
 		const normals = new Float32Array(vertices.length);
@@ -38,7 +37,6 @@ export class Geometry {
 
 	/**
 	 * @param {Float32Array} vertices
-	 * @returns {Float32Array}
 	 */
 	static getTangents(vertices) {
 		const tangents = new Float32Array(vertices.length);
@@ -63,7 +61,6 @@ export class Geometry {
 	 * @param {Vector3} anchor1
 	 * @param {Vector3} anchor2
 	 * @param {Vector3} anchor3
-	 * @returns {Vector3}
 	 */
 	static getNormal(anchor1, anchor2, anchor3) {
 		const u = new Vector3(anchor2).subtract(anchor1);
@@ -76,7 +73,6 @@ export class Geometry {
 	 * @param {Vector3} anchor1
 	 * @param {Vector3} anchor2
 	 * @param {Vector3} anchor3
-	 * @returns {Vector3}
 	 */
 	static getTangent(anchor1, anchor2, anchor3) {
 		const edge1 = new Vector3(anchor2).subtract(anchor1);
@@ -94,7 +90,6 @@ export class Geometry {
 
 	/**
 	 * @param {Number} vertexCount
-	 * @returns {Float32Array}
 	 */
 	static getUVs(vertexCount) {
 		const length = vertexCount / 12 * 8;
@@ -111,29 +106,10 @@ export class Geometry {
 		return uv;
 	}
 
-	/**
-	 * @type {Uint8Array}
-	 */
 	_indices;
-
-	/**
-	 * @type {Float32Array}
-	 */
 	_vertices;
-
-	/**
-	 * @type {Float32Array}
-	 */
 	_normals;
-
-	/**
-	 * @type {Float32Array}
-	 */
 	_tangents;
-
-	/**
-	 * @type {Float32Array}
-	 */
 	_uvs;
 
 	/**

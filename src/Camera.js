@@ -5,6 +5,8 @@ import {clamp, Matrix3, Matrix4, PI, Vector2, Vector3} from "./math/index.js";
  * @abstract
  */
 export class Camera {
+	static #UP = new Vector3(0, 1, 0);
+
 	/**
 	 * @param {Number} yaw
 	 * @param {Number} pitch
@@ -355,7 +357,7 @@ export class Camera {
 		const up = new Vector3(0, velocity[1], 0);
 		const forward = this
 			.getRight()
-			.cross(new Vector3(0, 1, 0))
+			.cross(Camera.#UP)
 			.multiplyScalar(velocity[2]);
 
 		return right.add(up).add(forward);

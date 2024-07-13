@@ -1,6 +1,9 @@
 import {Geometry} from "./Geometry.js";
 import {Vector3} from "../math/index.js";
 
+/**
+ * @extends {Geometry}
+ */
 export class BoxGeometry extends Geometry {
 	/**
 	 * @type {Float32Array}
@@ -50,9 +53,6 @@ export class BoxGeometry extends Geometry {
 		.5, -.5, .5,
 	);
 
-	/**
-	 * @type {Vector3}
-	 */
 	#size;
 
 	/**
