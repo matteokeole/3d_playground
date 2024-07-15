@@ -57,7 +57,7 @@ export function createCamera(aspectRatio) {
 	camera.far = 100;
 	camera.bias = PI * .5;
 	camera.turnVelocity = SENSITIVITY;
-	camera.lookAt(new Vector2());
+	camera.lookAt(new Vector2(0, 0));
 
 	return camera;
 }

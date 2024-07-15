@@ -1,5 +1,4 @@
 import {Scene} from "../../src/index.js";
-import {BoxGeometry} from "../../src/Geometry/index.js";
 import {ShaderLoader} from "../../src/Loader/index.js";
 import {WebGPURenderer} from "../../src/Renderer/index.js";
 
@@ -17,10 +16,6 @@ export class VisibilityRenderer extends WebGPURenderer {
 
 		this._renderPipelines.visibility = this.#createVisibilityPipeline();
 		this._textures.depth = this.#createDepthTexture();
-
-		this.#writeVertexBuffer();
-		this.#writeIndexBuffer();
-		this.#writeIndirectBuffer();
 	}
 
 	render() {
@@ -102,12 +97,26 @@ export class VisibilityRenderer extends WebGPURenderer {
 			vertexCount += meshes[i].getGeometry().getVertices().length;
 		}
 
-		return this._device.createBuffer({
+		const vertexBuffer = this._device.createBuffer({
 			label: "Vertex buffer",
 			size: vertexCount * Float32Array.BYTES_PER_ELEMENT,
 			usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
 			mappedAtCreation: true,
 		});
+
+		const vertexBufferMap = new Float32Array(vertexBuffer.getMappedRange());
+
+		for (let i = 0, offset = 0; i < meshes.length; i++) {
+			const vertices = meshes[i].getGeometry().getVertices();
+
+			vertexBufferMap.set(vertices, offset);
+
+			offset += vertices.length;
+		}
+
+		vertexBuffer.unmap();
+
+		return vertexBuffer;
 	}
 
 	#createIndexBuffer() {
@@ -118,12 +127,29 @@ export class VisibilityRenderer extends WebGPURenderer {
 			indexCount += meshes[i].getGeometry().getIndices().length;
 		}
 
-		return this._device.createBuffer({
+		const indexBuffer = this._device.createBuffer({
 			label: "Index buffer",
 			size: indexCount * Uint16Array.BYTES_PER_ELEMENT,
 			usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
 			mappedAtCreation: true,
 		});
+
+		const indexBufferMap = new Uint16Array(indexBuffer.getMappedRange());
+
+		for (let i = 0, previousIndexCount = 0, previousVertexCount = 0; i < meshes.length; i++) {
+			const indices = meshes[i].getGeometry().getIndices();
+
+			for (let j = 0; j < indices.length; j++) {
+				indexBufferMap[previousIndexCount + j] = previousVertexCount + indices[j];
+			}
+
+			previousIndexCount += indices.length;
+			previousVertexCount += meshes[i].getGeometry().getVertices().length / 3;
+		}
+
+		indexBuffer.unmap();
+
+		return indexBuffer;
 	}
 
 	#createIndirectBuffer() {
@@ -132,12 +158,35 @@ export class VisibilityRenderer extends WebGPURenderer {
 		 */
 		const instanceCount = this._scene.getMeshes().length;
 
-		return this._device.createBuffer({
+		const indirectBuffer = this._device.createBuffer({
 			label: "Indirect buffer",
-			size: 5 * instanceCount * Uint32Array.BYTES_PER_ELEMENT,
+			size: instanceCount * WebGPURenderer._INDIRECT_BUFFER_SIZE * Uint32Array.BYTES_PER_ELEMENT,
 			usage: GPUBufferUsage.INDIRECT | GPUBufferUsage.COPY_DST,
 			mappedAtCreation: true,
 		});
+
+		const indirectBufferMap = new Uint32Array(indirectBuffer.getMappedRange());
+		const meshes = this._scene.getMeshes();
+		let indexCount = 0;
+		let firstIndex = 0;
+
+		for (let i = 0; i < meshes.length; i++) {
+			indexCount = meshes[i].getGeometry().getIndices().length;
+
+			indirectBufferMap.set(Uint32Array.of(
+				indexCount, // indexCount — The number of indices to draw.
+				1, // instanceCount — The number of instances to draw.
+				firstIndex, // firstIndex — Offset into the index buffer, in indices, begin drawing from.
+				0, // baseVertex — Added to each index value before indexing into the vertex buffers.
+				0, // firstInstance — First instance to draw.
+			), i * WebGPURenderer._INDIRECT_BUFFER_SIZE);
+
+			firstIndex += indexCount;
+		}
+
+		indirectBuffer.unmap();
+
+		return indirectBuffer;
 	}
 
 	#createCameraUniformBuffer() {
@@ -198,62 +247,6 @@ export class VisibilityRenderer extends WebGPURenderer {
 		});
 	}
 
-	#writeVertexBuffer() {
-		const vertexBufferMap = new Float32Array(this._buffers.vertex.getMappedRange());
-		const meshes = this._scene.getMeshes();
-
-		for (let i = 0, previousCount = 0; i < meshes.length; i++) {
-			const vertices = meshes[i].getGeometry().getVertices();
-
-			vertexBufferMap.set(vertices, previousCount);
-
-			previousCount += vertices.length;
-		}
-
-		this._buffers.vertex.unmap();
-	}
-
-	#writeIndexBuffer() {
-		const indexBufferMap = new Uint16Array(this._buffers.index.getMappedRange());
-		const meshes = this._scene.getMeshes();
-
-		for (let i = 0, previousIndexCount = 0, previousVertexCount = 0; i < meshes.length; i++) {
-			const indices = meshes[i].getGeometry().getIndices();
-
-			for (let j = 0; j < indices.length; j++) {
-				indexBufferMap[previousIndexCount + j] = previousVertexCount + indices[j];
-			}
-
-			previousIndexCount += indices.length;
-			previousVertexCount += meshes[i].getGeometry().getVertices().length / 3;
-		}
-
-		this._buffers.index.unmap();
-	}
-
-	#writeIndirectBuffer() {
-		const indirectBufferMap = new Uint32Array(this._buffers.indirect.getMappedRange());
-		const meshes = this._scene.getMeshes();
-		let indexCount = 0;
-		let firstIndex = 0;
-
-		for (let i = 0; i < meshes.length; i++) {
-			indexCount = meshes[i].getGeometry().getIndices().length;
-
-			indirectBufferMap.set(Uint32Array.of(
-				indexCount, // indexCount — The number of indices to draw.
-				1, // instanceCount — The number of instances to draw.
-				firstIndex, // firstIndex — Offset into the index buffer, in indices, begin drawing from.
-				0, // baseVertex — Added to each index value before indexing into the vertex buffers.
-				0, // firstInstance — First instance to draw.
-			), i * 5);
-
-			firstIndex += indexCount;
-		}
-
-		this._buffers.indirect.unmap();
-	}
-
 	#writeCameraBuffer() {
 		this._device.queue.writeBuffer(this._buffers.camera, 0, this._camera.getViewProjection());
 	}
@@ -281,10 +274,12 @@ export class VisibilityRenderer extends WebGPURenderer {
 		renderPass.setVertexBuffer(0, this._buffers.vertex);
 		renderPass.setIndexBuffer(this._buffers.index, "uint16");
 
-		const meshes = this._scene.getMeshes();
+		const meshCount = this._scene.getMeshes().length;
 
-		for (let i = 0; i < meshes.length; i++) {
-			renderPass.drawIndexedIndirect(this._buffers.indirect, i * 5 * Uint32Array.BYTES_PER_ELEMENT);
+		for (let i = 0; i < meshCount; i++) {
+			const offset = i * WebGPURenderer._INDIRECT_BUFFER_SIZE * Uint32Array.BYTES_PER_ELEMENT;
+
+			renderPass.drawIndexedIndirect(this._buffers.indirect, offset);
 		}
 
 		renderPass.end();
