@@ -23,9 +23,6 @@ export class Renderer extends WebGPURenderer {
 	 */
 	#images;
 
-	/**
-	 * @type {Number}
-	 */
 	#imageCount;
 
 	/**

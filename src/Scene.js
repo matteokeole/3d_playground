@@ -2,14 +2,7 @@ import {Material} from "./Material/index.js";
 import {Mesh} from "./Mesh/index.js";
 
 export class Scene {
-	/**
-	 * @type {Mesh[]}
-	 */
 	#meshes;
-
-	/**
-	 * @type {Material[]}
-	 */
 	#materials;
 
 	/**

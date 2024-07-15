@@ -3,7 +3,7 @@ import {Instance} from "./Instance.js";
 import {VisibilityRenderer} from "./VisibilityRenderer.js";
 import {listen} from "./input.js";
 
-import {createCamera, createScene} from "./scenes/visibility.js";
+import {createCamera, createScene} from "./scenes/tetrahedron.js";
 
 export default async function() {
 	const canvas = document.createElement("canvas");
