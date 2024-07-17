@@ -191,11 +191,6 @@ export class Renderer extends WebGPURenderer {
 	}
 
 	#createIndirectBuffer() {
-		/**
-		 * @todo Sort meshes by type
-		 */
-		const instanceCount = this._scene.getMeshes().length;
-
 		const indirectBuffer = this._device.createBuffer({
 			label: "Indirect buffer",
 			size: instanceCount * WebGPURenderer._INDIRECT_BUFFER_SIZE * Uint32Array.BYTES_PER_ELEMENT,
