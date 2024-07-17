@@ -6,12 +6,6 @@ import {SENSITIVITY} from "../../hl2/main.js";
 import {CAMERA_HEIGHT, FIELD_OF_VIEW} from "../../minecraft/main.js";
 
 const boxGeometry = new BoxGeometry(new Vector3(1, 1, 1));
-const boxGeometryVertices = boxGeometry.getVertices();
-
-for (let i = 0; i < boxGeometryVertices.length; i += 3) {
-	boxGeometryVertices[i + 0] -= 6;
-}
-
 const tetrahedronGeometry = new PolytopeGeometry({
 	vertices: Float32Array.of(
 		0,  1,  0,
@@ -31,13 +25,13 @@ export async function createScene() {
 	const meshes = [];
 
 	const tetrahedron = new Mesh(tetrahedronGeometry, null);
-	// tetrahedron.setPosition(new Vector3(0, 0, 5));
-	// tetrahedron.updateProjection();
+	tetrahedron.setPosition(new Vector3(-2, 0, 0));
+	tetrahedron.updateProjection();
 	meshes.push(tetrahedron);
 
 	const box = new Mesh(boxGeometry, null);
-	// tetrahedron.setPosition(new Vector3(0, 0, 5));
-	// tetrahedron.updateProjection();
+	box.setPosition(new Vector3(2, 0, 0));
+	box.updateProjection();
 	meshes.push(box);
 
 	return new Scene(meshes);

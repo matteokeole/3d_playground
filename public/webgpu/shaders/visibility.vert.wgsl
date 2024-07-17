@@ -1,5 +1,5 @@
-// @group(0) @binding(0) var<storage> meshes: array<Mesh>;
 @group(0) @binding(0) var<uniform> camera: Camera;
+@group(1) @binding(0) var<storage> meshes: array<Mesh>;
 
 struct Mesh {
 	projection: mat4x4f,
@@ -21,10 +21,10 @@ struct Output {
 
 @vertex
 fn main(input: Input) -> Output {
-	// let meshProjection: mat4x4f = meshes[input.instanceIndex].projection;
+	let meshProjection: mat4x4f = meshes[input.instanceIndex].projection;
 
 	var output: Output;
-	output.position = camera.viewProjection * /* meshProjection * */ input.position;
+	output.position = camera.viewProjection * meshProjection * input.position;
 
 	return output;
 }
