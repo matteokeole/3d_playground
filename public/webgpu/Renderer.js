@@ -20,7 +20,14 @@ export class Renderer extends WebGPURenderer {
 
 	render() {
 		this.#writeCameraBuffer();
-		this.#renderVisibilityPass();
+
+		const commandEncoder = this._device.createCommandEncoder();
+
+		this.#renderVisibilityPass(commandEncoder);
+
+		const commandBuffer = commandEncoder.finish();
+
+		this._device.queue.submit([commandBuffer]);
 	}
 
 	async #loadShaderModules() {
@@ -170,6 +177,31 @@ export class Renderer extends WebGPURenderer {
 		let indexCount = 0;
 		let firstIndex = 0;
 
+		/*
+
+		Concepts:
+		- Mesh: A geometry and a material grouped together
+		- MeshInstance: An instance of a mesh in a scene
+
+		const meshes = this._scene.getMeshes();
+		let offset = 0;
+		let firstIndex = 0;
+
+		for (let i = 0; i < meshes.length; i++) {
+			const mesh = meshes[i];
+			const indexCount = mesh.getGeometry().getIndices().length;
+			const instanceCount = this._scene.getInstanceCount(mesh);
+
+			indirectBufferMap[offset + 0] = indexCount;
+			indirectBufferMap[offset + 1] = instanceCount;
+			indirectBufferMap[offset + 2] = firstIndex;
+
+			offset += WebGPURenderer._INDIRECT_BUFFER_SIZE;
+			firstIndex += indexCount;
+		}
+
+		*/
+
 		for (let i = 0; i < meshes.length; i++) {
 			indexCount = meshes[i].getGeometry().getIndices().length;
 
@@ -190,16 +222,18 @@ export class Renderer extends WebGPURenderer {
 	}
 
 	#createCameraUniformBuffer() {
-		return this._device.createBuffer({
-			label: "Camera view projection matrix",
+		const cameraUniformBuffer = this._device.createBuffer({
+			label: "Camera uniform buffer",
 			size: 16 * Float32Array.BYTES_PER_ELEMENT,
 			usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
 		});
+
+		return cameraUniformBuffer;
 	}
 
 	#createCameraBindGroupLayout() {
-		return this._device.createBindGroupLayout({
-			label: "Camera view projection matrix bind group layout",
+		const cameraBindGroupLayout = this._device.createBindGroupLayout({
+			label: "Camera bind group layout",
 			entries: [
 				{
 					binding: 0,
@@ -210,10 +244,12 @@ export class Renderer extends WebGPURenderer {
 				},
 			],
 		});
+
+		return cameraBindGroupLayout;
 	}
 
 	#createCameraBindGroup() {
-		return this._device.createBindGroup({
+		const cameraBindGroup = this._device.createBindGroup({
 			label: "Camera view projection matrix bind group",
 			layout: this._bindGroupLayouts.camera,
 			entries: [
@@ -225,19 +261,23 @@ export class Renderer extends WebGPURenderer {
 				},
 			],
 		});
+
+		return cameraBindGroup;
 	}
 
 	#createVisibilityPipelineLayout() {
-		return this._device.createPipelineLayout({
+		const visibilityPipelineLayout = this._device.createPipelineLayout({
 			label: "Visibility pipeline layout",
 			bindGroupLayouts: [
 				this._bindGroupLayouts.camera,
 			],
 		});
+
+		return visibilityPipelineLayout;
 	}
 
 	#createDepthTexture() {
-		return this._device.createTexture({
+		const depthTexture = this._device.createTexture({
 			size: {
 				width: this._viewport[2],
 				height: this._viewport[3],
@@ -245,20 +285,25 @@ export class Renderer extends WebGPURenderer {
 			format: "depth24plus",
 			usage: GPUTextureUsage.RENDER_ATTACHMENT,
 		});
+
+		return depthTexture;
 	}
 
 	#writeCameraBuffer() {
-		this._device.queue.writeBuffer(this._buffers.camera, 0, this._camera.getViewProjection());
+		const viewProjection = this._camera.getViewProjection();
+
+		this._device.queue.writeBuffer(this._buffers.camera, 0, viewProjection);
 	}
 
-	#renderVisibilityPass() {
-		const encoder = this._device.createCommandEncoder();
-
-		const renderPass = encoder.beginRenderPass({
+	/**
+	 * @param {GPUCommandEncoder} commandEncoder
+	 */
+	#renderVisibilityPass(commandEncoder) {
+		const renderPass = commandEncoder.beginRenderPass({
 			colorAttachments: [
 				{
 					view: this._context.getCurrentTexture().createView(),
-					loadOp: "load",
+					loadOp: "clear",
 					storeOp: "store",
 				},
 			],
@@ -276,6 +321,24 @@ export class Renderer extends WebGPURenderer {
 
 		const meshCount = this._scene.getMeshes().length;
 
+		/*
+
+		const meshes = this._scene.getMeshes();
+
+		for (let i = 0; i < meshes.length; i++) {
+			const mesh = meshes[i];
+			const indirectBufferOffset = this.#getIndirectBufferOffset(mesh);
+			const meshInstanceBindGroup = this.#getMeshInstanceBindGroup(mesh);
+
+			// Bind projection buffer for all meshes of that type
+			renderPass.setBindGroup(1, meshInstanceBindGroup);
+
+			// Draw with the same (offsetted) indirect buffer
+			renderPass.drawIndexedIndirect(this._buffers.indirect, indirectBufferOffset);
+		}
+
+		*/
+
 		for (let i = 0; i < meshCount; i++) {
 			const offset = i * WebGPURenderer._INDIRECT_BUFFER_SIZE * Uint32Array.BYTES_PER_ELEMENT;
 
@@ -283,9 +346,5 @@ export class Renderer extends WebGPURenderer {
 		}
 
 		renderPass.end();
-
-		this._device.queue.submit([
-			encoder.finish(),
-		]);
 	}
 }
