@@ -3,7 +3,7 @@ import {Instance} from "./Instance.js";
 import {Renderer} from "./Renderer.js";
 import {listen} from "./input.js";
 
-import {createCamera, createScene} from "./scenes/multipleGeometries.js";
+import {createCamera, createScene} from "./scenes/gerstnerWave.js";
 
 export default async function() {
 	const canvas = document.createElement("canvas");
