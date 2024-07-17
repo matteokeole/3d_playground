@@ -41,8 +41,8 @@ export class Renderer extends WebGPURenderer {
 		await super.build();
 
 		const shaderLoader = new ShaderLoader();
-		const vertexShaderSource = await shaderLoader.load("public/webgpu/shaders/vertex.wgsl");
-		const fragmentShaderSource = await shaderLoader.load("public/webgpu/shaders/fragment.wgsl");
+		const vertexShaderSource = await shaderLoader.load("public/hl2-webgpu/shaders/vertex.wgsl");
+		const fragmentShaderSource = await shaderLoader.load("public/hl2-webgpu/shaders/fragment.wgsl");
 
 		this.#createBuffers();
 

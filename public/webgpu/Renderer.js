@@ -2,7 +2,7 @@ import {Scene} from "../../src/index.js";
 import {ShaderLoader} from "../../src/Loader/index.js";
 import {WebGPURenderer} from "../../src/Renderer/index.js";
 
-export class VisibilityRenderer extends WebGPURenderer {
+export class Renderer extends WebGPURenderer {
 	async build() {
 		await super.build();
 		await this.#loadShaderModules();
@@ -26,8 +26,8 @@ export class VisibilityRenderer extends WebGPURenderer {
 	async #loadShaderModules() {
 		const shaderLoader = new ShaderLoader();
 
-		const visibilityVertexShaderSource = await shaderLoader.load("public/visibility/shaders/visibility.vert.wgsl");
-		const visibilityFragmentShaderSource = await shaderLoader.load("public/visibility/shaders/visibility.frag.wgsl");
+		const visibilityVertexShaderSource = await shaderLoader.load("public/webgpu/shaders/visibility.vert.wgsl");
+		const visibilityFragmentShaderSource = await shaderLoader.load("public/webgpu/shaders/visibility.frag.wgsl");
 
 		this._shaderModules.visibilityVertex = this.#createShaderModule(visibilityVertexShaderSource);
 		this._shaderModules.visibilityFragment = this.#createShaderModule(visibilityFragmentShaderSource);
