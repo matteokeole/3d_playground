@@ -191,9 +191,11 @@ export class Renderer extends WebGPURenderer {
 	}
 
 	#createIndirectBuffer() {
+		const meshCount = this._scene.getMeshes().length;
+
 		const indirectBuffer = this._device.createBuffer({
 			label: "Indirect buffer",
-			size: instanceCount * WebGPURenderer._INDIRECT_BUFFER_SIZE * Uint32Array.BYTES_PER_ELEMENT,
+			size: meshCount * WebGPURenderer._INDIRECT_BUFFER_SIZE * Uint32Array.BYTES_PER_ELEMENT,
 			usage: GPUBufferUsage.INDIRECT | GPUBufferUsage.COPY_DST,
 			mappedAtCreation: true,
 		});
