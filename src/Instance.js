@@ -1,9 +1,11 @@
+import {Debugger} from "./index.js";
 import {Renderer} from "./Renderer/index.js";
 
 /**
  * @typedef {Object} InstanceDescriptor
  * @property {Renderer} renderer
  * @property {Number} framesPerSecond
+ * @property {Debugger} [debugger]
  */
 
 export class Instance {
@@ -25,11 +27,6 @@ export class Instance {
 	/**
 	 * @type {Number}
 	 */
-	_frameIndex;
-
-	/**
-	 * @type {Number}
-	 */
 	#frameInterval;
 
 	/**
@@ -43,16 +40,25 @@ export class Instance {
 	#animationFrameRequestId;
 
 	/**
+	 * @type {Debugger}
+	 */
+	#debugger;
+
+	/**
 	 * @param {InstanceDescriptor} descriptor
 	 */
 	constructor(descriptor) {
 		this._renderer = descriptor.renderer;
 		this._frameIndex = 0;
 		this.#framesPerSecond = descriptor.framesPerSecond;
-		this._frameIndex = 0;
 		this.#frameInterval = 1000 / this.#framesPerSecond;
 		this.#timeSinceLastFrame = -this.#frameInterval;
 		this.#animationFrameRequestId = null;
+		this.#debugger = descriptor.debugger ?? null;
+	}
+
+	getDebugger() {
+		return this.#debugger;
 	}
 
 	async build() {

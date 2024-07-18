@@ -1,178 +1,112 @@
 import {Scene} from "../../src/index.js";
 import {ShaderLoader} from "../../src/Loader/index.js";
+import {Mesh} from "../../src/Mesh/index.js";
 import {WebGPURenderer} from "../../src/Renderer/index.js";
-import {Camera} from "../hl2/Camera.js";
 
 export class Renderer extends WebGPURenderer {
 	/**
-	 * @type {?GPUBindGroup}
+	 * @type {Record.<String, GPUBindGroup>}
 	 */
-	#bindGroup;
+	#meshBindGroups;
 
-	/**
-	 * @type {?GPURenderPipeline}
-	 */
-	#renderPipeline;
-
-	/**
-	 * @type {?GPUSampler}
-	 */
-	#sampler;
-
-	/**
-	 * @type {import("../../src/Loader/ImageBitmapLoader.js").Image[]}
-	 */
-	#images;
-
-	/**
-	 * @type {Number}
-	 */
-	#imageCount;
-
-	/**
-	 * @param {HTMLCanvasElement} canvas
-	 * @param {Scene} scene
-	 * @param {Number} imageCount
-	 */
-	constructor(canvas, scene, imageCount) {
+	constructor(canvas) {
 		super(canvas);
 
-		this._scene = scene;
-		this.#imageCount = imageCount;
+		this.#meshBindGroups = {};
 	}
 
 	async build() {
 		await super.build();
+		await this.#loadShaderModules();
+	}
 
+	/**
+	 * @param {Scene} scene
+	 */
+	setScene(scene) {
+		super.setScene(scene);
+
+		this._renderPipelines.visibility = this.#createVisibilityPipeline();
+		this._textures.depth = this.#createDepthTexture();
+	}
+
+	render() {
+		this.#writeCameraBuffer();
+
+		const commandEncoder = this._device.createCommandEncoder();
+
+		this.#renderVisibilityPass(commandEncoder);
+
+		const commandBuffer = commandEncoder.finish();
+
+		this._device.queue.submit([commandBuffer]);
+	}
+
+	async #loadShaderModules() {
 		const shaderLoader = new ShaderLoader();
-		const vertexShaderSource = await shaderLoader.load("public/webgpu/shaders/vertex.wgsl");
-		const fragmentShaderSource = await shaderLoader.load("public/webgpu/shaders/fragment.wgsl");
 
-		this.#createBuffers();
+		const visibilityVertexShaderSource = await shaderLoader.load("public/webgpu/shaders/visibility.vert.wgsl");
+		const visibilityFragmentShaderSource = await shaderLoader.load("public/webgpu/shaders/visibility.frag.wgsl");
 
-		this._textures.depth = this._device.createTexture({
-			size: {
-				width: innerWidth,
-				height: innerHeight,
-			},
-			format: "depth24plus",
-			usage: GPUTextureUsage.RENDER_ATTACHMENT,
+		this._shaderModules.visibilityVertex = this.#createShaderModule(visibilityVertexShaderSource);
+		this._shaderModules.visibilityFragment = this.#createShaderModule(visibilityFragmentShaderSource);
+	}
+
+	/**
+	 * @param {String} source
+	 */
+	#createShaderModule(source) {
+		const shaderModule = this._device.createShaderModule({
+			code: source,
 		});
 
-		this.#buildScene();
-		this.#testTexture();
-		this.#createSampler();
+		return shaderModule;
+	}
 
-		const bindGroupLayout = this._device.createBindGroupLayout({
-			entries: [
-				// Camera uniform buffer
-				{
-					binding: 0,
-					visibility: GPUShaderStage.VERTEX,
-					buffer: {
-						type: "uniform",
-					},
-				},
-				// Material texture array
-				{
-					binding: 1,
-					visibility: GPUShaderStage.FRAGMENT,
-					texture: {
-						sampleType: "float",
-						viewDimension: "2d-array",
-						multisampled: false,
-					},
-				},
-				// Material sampler
-				{
-					binding: 2,
-					visibility: GPUShaderStage.FRAGMENT,
-					sampler: {},
-				},
-			],
-		});
+	#createVisibilityPipeline() {
+		this._buffers.vertex = this.#createVertexBuffer();
+		this._buffers.index = this.#createIndexBuffer();
+		this._buffers.indirect = this.#createIndirectBuffer();
+		this._buffers.camera = this.#createCameraUniformBuffer();
 
-		this.#bindGroup = this._device.createBindGroup({
-			layout: bindGroupLayout,
-			entries: [
-				{
-					binding: 0,
-					resource: {
-						buffer: this._buffers.camera,
-					},
-				}, {
-					binding: 1,
-					resource: this._textures.array.createView(),
-				}, {
-					binding: 2,
-					resource: this.#sampler,
-				},
-			],
-		});
+		this._bindGroupLayouts.mesh = this.#createMeshBindGroupLayout();
 
-		const pipelineLayout = this._device.createPipelineLayout({
-			bindGroupLayouts: [
-				bindGroupLayout,
-			],
-		});
+		const geometries = this._scene.getGeometries();
 
-		this.#renderPipeline = this._device.createRenderPipeline({
-			layout: pipelineLayout,
+		for (let i = 0; i < geometries.length; i++) {
+			const geometry = geometries[i];
+			const geometryName = geometry.constructor.name;
+			const meshes = this._scene.getMeshesByGeometry(geometry);
+
+			const meshStorageBuffer = this.#createMeshStorageBuffer(meshes);
+			const meshBindGroup = this.#createMeshBindGroup(meshStorageBuffer);
+
+			this.#meshBindGroups[geometryName] = meshBindGroup;
+		}
+
+		this._bindGroupLayouts.camera = this.#createCameraBindGroupLayout();
+
+		this._bindGroups.camera = this.#createCameraBindGroup();
+
+		const visibilityPipelineLayout = this.#createVisibilityPipelineLayout();
+
+		const visibilityPipeline = this._device.createRenderPipeline({
+			layout: visibilityPipelineLayout,
 			vertex: {
-				module: this._device.createShaderModule({
-					code: vertexShaderSource,
-				}),
+				module: this._shaderModules.visibilityVertex,
 				entryPoint: "main",
 				buffers: [
 					{
-						arrayStride: 12 * Float32Array.BYTES_PER_ELEMENT,
-						stepMode: "instance",
+						arrayStride: 3 * Float32Array.BYTES_PER_ELEMENT,
 						attributes: [
 							{
 								format: "float32x3",
 								offset: 0,
 								shaderLocation: 0,
-							}, {
-								format: "float32x3",
-								offset: 3 * Float32Array.BYTES_PER_ELEMENT,
-								shaderLocation: 1,
-							}, {
-								format: "float32x3",
-								offset: 2 * 3 * Float32Array.BYTES_PER_ELEMENT,
-								shaderLocation: 2,
-							}, {
-								format: "float32x3",
-								offset: 3 * 3 * Float32Array.BYTES_PER_ELEMENT,
-								shaderLocation: 3,
-							},
-						],
-					}, {
-						arrayStride: 9 * Float32Array.BYTES_PER_ELEMENT + Uint32Array.BYTES_PER_ELEMENT,
-						stepMode: "instance",
-						attributes: [
-							{
-								format: "float32x3",
-								offset: 0,
-								shaderLocation: 4,
-							}, {
-								format: "float32x3",
-								offset: 3 * Float32Array.BYTES_PER_ELEMENT,
-								shaderLocation: 5,
-							}, {
-								format: "float32x3",
-								offset: 2 * 3 * Float32Array.BYTES_PER_ELEMENT,
-								shaderLocation: 6,
-							}, {
-								format: "float32",
-								offset: 3 * 3 * Float32Array.BYTES_PER_ELEMENT,
-								shaderLocation: 7,
 							},
 						],
 					},
 				],
-			},
-			primitive: {
-				cullMode: "front",
 			},
 			depthStencil: {
 				format: "depth24plus",
@@ -180,63 +114,258 @@ export class Renderer extends WebGPURenderer {
 				depthCompare: "less",
 			},
 			fragment: {
-				module: this._device.createShaderModule({
-					code: fragmentShaderSource,
-				}),
+				module: this._shaderModules.visibilityFragment,
 				entryPoint: "main",
 				targets: [
 					{
-						format: navigator.gpu.getPreferredCanvasFormat(),
+						format: this._preferredCanvasFormat,
 					},
 				],
 			},
 		});
+
+		return visibilityPipeline;
 	}
 
-	/**
-	 * @param {Camera} camera
-	 */
-	setCamera(camera) {
-		this._camera = camera;
+	#createVertexBuffer() {
+		const meshes = this._scene.getMeshes();
+		let vertexCount = 0;
+
+		for (let i = 0; i < meshes.length; i++) {
+			vertexCount += meshes[i].getGeometry().getVertices().length;
+		}
+
+		const vertexBuffer = this._device.createBuffer({
+			label: "Vertex buffer",
+			size: vertexCount * Float32Array.BYTES_PER_ELEMENT,
+			usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+			mappedAtCreation: true,
+		});
+
+		const vertexBufferMap = new Float32Array(vertexBuffer.getMappedRange());
+
+		for (let i = 0, offset = 0; i < meshes.length; i++) {
+			const vertices = meshes[i].getGeometry().getVertices();
+
+			vertexBufferMap.set(vertices, offset);
+
+			offset += vertices.length;
+		}
+
+		vertexBuffer.unmap();
+
+		return vertexBuffer;
 	}
 
-	/**
-	 * @param {import("../../src/Loader/ImageBitmapLoader.js").Image[]} images
-	 */
-	loadImages(images) {
-		this.#images = images;
+	#createIndexBuffer() {
+		const meshes = this._scene.getMeshes();
+		let indexCount = 0;
 
-		for (let i = 0, length = images.length; i < length; i++) {
-			if (images[i].bitmap.width > 512 || images[i].bitmap.height > 512) {
-				this._textures.array.destroy();
+		for (let i = 0; i < meshes.length; i++) {
+			indexCount += meshes[i].getGeometry().getIndices().length;
+		}
 
-				throw new Error("The image dimensions must not overflow 512x512.");
+		const indexBuffer = this._device.createBuffer({
+			label: "Index buffer",
+			size: indexCount * Uint16Array.BYTES_PER_ELEMENT,
+			usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
+			mappedAtCreation: true,
+		});
+
+		const indexBufferMap = new Uint16Array(indexBuffer.getMappedRange());
+
+		for (let i = 0, previousIndexCount = 0, previousVertexCount = 0; i < meshes.length; i++) {
+			const indices = meshes[i].getGeometry().getIndices();
+
+			for (let j = 0; j < indices.length; j++) {
+				indexBufferMap[previousIndexCount + j] = previousVertexCount + indices[j];
 			}
 
-			this._device.queue.copyExternalImageToTexture(
-				{
-					source: images[i].bitmap,
-				}, {
-					texture: this._textures.array,
-					origin: [0, 0, i],
-				}, [
-					images[i].bitmap.width,
-					images[i].bitmap.height,
-				],
-			);
+			previousIndexCount += indices.length;
+			previousVertexCount += meshes[i].getGeometry().getVertices().length / 3;
 		}
+
+		indexBuffer.unmap();
+
+		return indexBuffer;
 	}
 
-	render() {
-		this._device.queue.writeBuffer(this._buffers.camera, 0, this._camera.getViewProjection());
+	#createIndirectBuffer() {
+		const indirectBuffer = this._device.createBuffer({
+			label: "Indirect buffer",
+			size: instanceCount * WebGPURenderer._INDIRECT_BUFFER_SIZE * Uint32Array.BYTES_PER_ELEMENT,
+			usage: GPUBufferUsage.INDIRECT | GPUBufferUsage.COPY_DST,
+			mappedAtCreation: true,
+		});
+		const indirectBufferMap = new Uint32Array(indirectBuffer.getMappedRange());
 
-		const encoder = this._device.createCommandEncoder();
+		const geometries = this._scene.getGeometries();
+		let offset = 0;
+		let firstIndex = 0;
 
-		const renderPass = encoder.beginRenderPass({
+		// Create a indirect sub-buffer for each unique geometry
+		for (let i = 0; i < geometries.length; i++) {
+			const geometry = geometries[i];
+			const indexCount = geometry.getIndices().length;
+			const instanceCount = this._scene.getInstanceCount(geometry);
+
+			indirectBufferMap[offset + 0] = indexCount; // The number of indices to draw
+			indirectBufferMap[offset + 1] = instanceCount; // The number of instances to draw
+			indirectBufferMap[offset + 2] = firstIndex; // Offset into the index buffer, in indices, begin drawing from
+
+			offset += WebGPURenderer._INDIRECT_BUFFER_SIZE;
+			firstIndex += indexCount;
+		}
+
+		indirectBuffer.unmap();
+
+		return indirectBuffer;
+	}
+
+	#createCameraUniformBuffer() {
+		const cameraUniformBuffer = this._device.createBuffer({
+			label: "Camera uniform buffer",
+			size: 16 * Float32Array.BYTES_PER_ELEMENT,
+			usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+		});
+
+		return cameraUniformBuffer;
+	}
+
+	/**
+	 * @param {Mesh[]} meshes
+	 */
+	#createMeshStorageBuffer(meshes) {
+		const meshStorageBuffer = this._device.createBuffer({
+			label: "Mesh storage buffer",
+			size: meshes.length * 16 * Float32Array.BYTES_PER_ELEMENT,
+			usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+		});
+
+		const meshStorageArray = new Float32Array(meshes.length * 16);
+
+		for (let i = 0; i < meshes.length; i++) {
+			const mesh = meshes[i];
+
+			meshStorageArray.set(mesh.getProjection(), i * 16);
+		}
+
+		this._device.queue.writeBuffer(meshStorageBuffer, 0, meshStorageArray);
+
+		return meshStorageBuffer;
+	}
+
+	#createCameraBindGroupLayout() {
+		const cameraBindGroupLayout = this._device.createBindGroupLayout({
+			label: "Camera bind group layout",
+			entries: [
+				{
+					binding: 0,
+					visibility: GPUShaderStage.VERTEX,
+					buffer: {
+						type: "uniform",
+					},
+				},
+			],
+		});
+
+		return cameraBindGroupLayout;
+	}
+
+	#createMeshBindGroupLayout() {
+		const meshBindGroupLayout = this._device.createBindGroupLayout({
+			label: "Mesh bind group layout",
+			entries: [
+				{
+					binding: 0,
+					visibility: GPUShaderStage.VERTEX,
+					buffer: {
+						type: "read-only-storage",
+					},
+				},
+			],
+		});
+
+		return meshBindGroupLayout;
+	}
+
+	#createCameraBindGroup() {
+		const cameraBindGroup = this._device.createBindGroup({
+			label: "Camera bind group",
+			layout: this._bindGroupLayouts.camera,
+			entries: [
+				{
+					binding: 0,
+					resource: {
+						buffer: this._buffers.camera,
+					},
+				},
+			],
+		});
+
+		return cameraBindGroup;
+	}
+
+	/**
+	 * @param {GPUBuffer} buffer
+	 */
+	#createMeshBindGroup(buffer) {
+		const meshBindGroup = this._device.createBindGroup({
+			label: "Mesh bind group",
+			layout: this._bindGroupLayouts.mesh,
+			entries: [
+				{
+					binding: 0,
+					resource: {
+						buffer,
+					},
+				},
+			],
+		});
+
+		return meshBindGroup;
+	}
+
+	#createVisibilityPipelineLayout() {
+		const visibilityPipelineLayout = this._device.createPipelineLayout({
+			label: "Visibility pipeline layout",
+			bindGroupLayouts: [
+				this._bindGroupLayouts.camera,
+				this._bindGroupLayouts.mesh,
+			],
+		});
+
+		return visibilityPipelineLayout;
+	}
+
+	#createDepthTexture() {
+		const depthTexture = this._device.createTexture({
+			size: {
+				width: this._viewport[2],
+				height: this._viewport[3],
+			},
+			format: "depth24plus",
+			usage: GPUTextureUsage.RENDER_ATTACHMENT,
+		});
+
+		return depthTexture;
+	}
+
+	#writeCameraBuffer() {
+		const viewProjection = this._camera.getViewProjection();
+
+		this._device.queue.writeBuffer(this._buffers.camera, 0, viewProjection);
+	}
+
+	/**
+	 * @param {GPUCommandEncoder} commandEncoder
+	 */
+	#renderVisibilityPass(commandEncoder) {
+		const renderPass = commandEncoder.beginRenderPass({
 			colorAttachments: [
 				{
 					view: this._context.getCurrentTexture().createView(),
-					loadOp: "load",
+					loadOp: "clear",
 					storeOp: "store",
 				},
 			],
@@ -247,111 +376,27 @@ export class Renderer extends WebGPURenderer {
 				depthStoreOp: "store",
 			},
 		});
-		renderPass.setPipeline(this.#renderPipeline);
-		renderPass.setBindGroup(0, this.#bindGroup);
-		renderPass.setIndexBuffer(this._buffers.index, "uint16");
+		renderPass.setPipeline(this._renderPipelines.visibility);
+		renderPass.setBindGroup(0, this._bindGroups.camera);
 		renderPass.setVertexBuffer(0, this._buffers.vertex);
-		renderPass.setVertexBuffer(1, this._buffers.material);
-		renderPass.drawIndexedIndirect(this._buffers.indirect, 0);
-		renderPass.end();
+		renderPass.setIndexBuffer(this._buffers.index, "uint16");
 
-		this._device.queue.submit([
-			encoder.finish(),
-		]);
-	}
+		const geometries = this._scene.getGeometries();
 
-	/**
-	 * The mesh count is needed to fill in the indirect buffer
-	 */
-	#createBuffers() {
-		this._buffers.indirect = this._device.createBuffer({
-			size: 5 * Uint32Array.BYTES_PER_ELEMENT,
-			usage: GPUBufferUsage.INDIRECT | GPUBufferUsage.COPY_DST,
-		});
+		// One instanced indirect draw call per unique geometry
+		for (let i = 0; i < geometries.length; i++) {
+			const geometry = geometries[i];
+			const geometryName = geometry.constructor.name;
+			const indirectBufferOffset = i * WebGPURenderer._INDIRECT_BUFFER_SIZE * Uint32Array.BYTES_PER_ELEMENT;
+			const meshBindGroup = this.#meshBindGroups[geometryName];
 
-		this._buffers.camera = this._device.createBuffer({
-			size: 16 * Float32Array.BYTES_PER_ELEMENT,
-			usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-		});
-	}
+			// Bind the projection buffer for all meshes having that geometry
+			renderPass.setBindGroup(1, meshBindGroup);
 
-	#buildScene() {
-		const meshes = this._scene.getMeshes();
-
-		this._device.queue.writeBuffer(this._buffers.indirect, 0, Uint32Array.of(meshes.length * 6, meshes.length, 0, 0, 0));
-
-		this._buffers.index = this._device.createBuffer({
-			size: meshes.length * 6 * Uint16Array.BYTES_PER_ELEMENT,
-			usage: GPUBufferUsage.INDEX,
-			mappedAtCreation: true,
-		});
-
-		this._buffers.vertex = this._device.createBuffer({
-			size: meshes.length * 4 * 3 * Float32Array.BYTES_PER_ELEMENT,
-			usage: GPUBufferUsage.VERTEX,
-			mappedAtCreation: true,
-		});
-
-		this._buffers.uv = this._device.createBuffer({
-			size: meshes.length * 4 * 2 * Float32Array.BYTES_PER_ELEMENT,
-			usage: GPUBufferUsage.VERTEX,
-			mappedAtCreation: true,
-		});
-
-		this._buffers.material = this._device.createBuffer({
-			size: meshes.length * (9 * Float32Array.BYTES_PER_ELEMENT + Uint32Array.BYTES_PER_ELEMENT),
-			usage: GPUBufferUsage.VERTEX,
-			mappedAtCreation: true,
-		});
-
-		const indexMap = new Uint16Array(this._buffers.index.getMappedRange());
-		const vertexMap = new Float32Array(this._buffers.vertex.getMappedRange());
-		const uvMap = new Float32Array(this._buffers.uv.getMappedRange());
-		const materialMap = new Float32Array(this._buffers.material.getMappedRange());
-
-		for (let i = 0, length = meshes.length; i < length; i++) {
-			const firstIndex = i * 4;
-
-			indexMap.set(Uint16Array.of(
-				firstIndex, firstIndex + 1, firstIndex + 2,
-				firstIndex, firstIndex + 2, firstIndex + 3,
-			), i * 6);
-			vertexMap.set(meshes[i].getGeometry().getVertices(), i * 4 * 3);
-			uvMap.set(Uint8Array.of(
-				0, 1,
-				0, 0,
-				1, 0,
-				1, 1,
-			), i * 4 * 2);
-
-			materialMap.set(Float32Array.of(
-				...meshes[i].getMaterial().getTextureMatrix(),
-				meshes[i].getMaterial().getTextureIndex(),
-			), i * 10);
+			// Draw with the same (offsetted) indirect buffer
+			renderPass.drawIndexedIndirect(this._buffers.indirect, indirectBufferOffset);
 		}
 
-		this._buffers.index.unmap();
-		this._buffers.vertex.unmap();
-		this._buffers.uv.unmap();
-		this._buffers.material.unmap();
-	}
-
-	#testTexture() {
-		this._textures.array = this._device.createTexture({
-			size: [512, 512, this.#imageCount],
-			format: "rgba8unorm",
-			usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_DST,
-		});
-	}
-
-	#createSampler() {
-		this.#sampler = this._device.createSampler({
-			addressModeU: "repeat",
-			addressModeV: "repeat",
-			magFilter: "linear",
-			minFilter: "nearest",
-			mipmapFilter: "nearest",
-			maxAnisotropy: 1,
-		});
+		renderPass.end();
 	}
 }

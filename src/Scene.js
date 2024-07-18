@@ -1,31 +1,71 @@
-import {Mesh} from "./index.js";
-import {Material} from "./materials/index.js";
+import {Geometry} from "./Geometry/index.js";
+import {Mesh} from "./Mesh/index.js";
 
 export class Scene {
-	/**
-	 * @type {Mesh[]}
-	 */
+	#geometries;
 	#meshes;
 
 	/**
-	 * @type {Material[]}
-	 */
-	#materials;
-
-	/**
 	 * @param {Mesh[]} meshes
-	 * @param {Material[]} [materials]
 	 */
-	constructor(meshes, materials = []) {
+	constructor(meshes) {
+		/**
+		 * @type {Geometry[]}
+		 */
+		this.#geometries = [];
 		this.#meshes = meshes;
-		this.#materials = materials;
+
+		for (let i = 0; i < this.#meshes.length; i++) {
+			const mesh = this.#meshes[i];
+			const geometry = mesh.getGeometry();
+
+			this.#geometries.push(geometry);
+		}
+	}
+
+	getGeometries() {
+		return this.#geometries;
 	}
 
 	getMeshes() {
 		return this.#meshes;
 	}
 
-	getMaterials() {
-		return this.#materials;
+	/**
+	 * Returns an array of meshes using thez provided geometry.
+	 * 
+	 * @param {Geometry} geometry
+	 */
+	getMeshesByGeometry(geometry) {
+		const meshes = [];
+
+		for (let i = 0; i < this.#meshes.length; i++) {
+			const mesh = this.#meshes[i];
+
+			if (mesh.getGeometry() instanceof geometry.constructor) {
+				meshes.push(mesh);
+			}
+		}
+
+		return meshes;
+	}
+
+	/**
+	 * Returns the number of meshes using the provided geometry.
+	 * 
+	 * @param {Geometry} geometry
+	 */
+	getInstanceCount(geometry) {
+		let instanceCount = 0;
+
+		for (let i = 0; i < this.#meshes.length; i++) {
+			const mesh = this.#meshes[i];
+
+			if (mesh.getGeometry() instanceof geometry.constructor) {
+				instanceCount++;
+			}
+		}
+
+		return instanceCount;
 	}
 }

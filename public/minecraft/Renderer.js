@@ -154,7 +154,7 @@ export class Renderer extends WebGLRenderer {
 
 			const world = Matrix4
 				.translation(mesh.getPosition())
-				.multiply(Matrix4.scale(mesh.scale));
+				.multiply(Matrix4.scale(mesh.getScale()));
 
 			worlds.set(world, i * 16);
 		}

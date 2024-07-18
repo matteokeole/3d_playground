@@ -1,8 +1,8 @@
-import {Mesh as _Mesh} from "../../src/index.js";
-import {BoxGeometry} from "../../src/geometries/index.js";
-import {Material} from "../../src/materials/index.js";
-import {Matrix3, PI, Vector2, Vector3} from "../../src/math/index.js";
-import {Hitbox} from "./Hitbox.js";
+import {AABB, Hitbox} from "../../src/index.js";
+import {BoxGeometry, Geometry} from "../../src/Geometry/index.js";
+import {Material} from "../../src/Material/index.js";
+import {Matrix3, max, PI, Vector2, Vector3} from "../../src/math/index.js";
+import {Mesh as _Mesh} from "../../src/Mesh/index.js";
 import {SSDPlaneGeometry} from "./SSDPlaneGeometry.js";
 
 export class Mesh extends _Mesh {
@@ -10,6 +10,11 @@ export class Mesh extends _Mesh {
 	 * @type {?Hitbox}
 	 */
 	#hitbox;
+
+	/**
+	 * @type {Boolean}
+	 */
+	#isTiedToCamera;
 
 	/**
 	 * @param {Object} json
@@ -28,8 +33,8 @@ export class Mesh extends _Mesh {
 		const textureIndex = imagePaths.indexOf(json.texture);
 		const bitmap = images[textureIndex].bitmap;
 
-		const textureWidth = Math.max(anchor1.to(anchor4), anchor2.to(anchor3));
-		const textureHeight = Math.max(anchor1.to(anchor2), anchor4.to(anchor3));
+		const textureWidth = max(anchor1.to(anchor4), anchor2.to(anchor3));
+		const textureHeight = max(anchor1.to(anchor2), anchor4.to(anchor3));
 
 		const uvScale = new Vector2();
 		uvScale.set(json.uv_scale);
@@ -57,18 +62,45 @@ export class Mesh extends _Mesh {
 		);
 	}
 
+	/**
+	 * @param {Geometry} geometry
+	 * @param {Material} material
+	 * @param {?String} [debugName]
+	 */
+	constructor(geometry, material, debugName) {
+		super(geometry, material, debugName);
+
+		this.#isTiedToCamera = false;
+	}
+
 	getHitbox() {
 		return this.#hitbox;
 	}
 
+	isTiedToCamera() {
+		return this.#isTiedToCamera;
+	}
+
+	/**
+	 * @param {Boolean} isTiedToCamera
+	 */
+	setIsTiedToCamera(isTiedToCamera) {
+		this.#isTiedToCamera = isTiedToCamera;
+	}
+
 	buildHitbox() {
+		let size;
+
 		if (!(this._geometry instanceof BoxGeometry)) {
-			throw Error("Can't initialize the hitbox of a non-3D mesh.");
+			size = new Vector3(1, 1, 1);
+
+			console.warn("Non-3D mesh hitbox generation is experimental.");
+		} else {
+			size = this._geometry.getSize();
 		}
 
-		this.#hitbox = new Hitbox({
-			position: this._position,
-			size: this._geometry.getSize(),
-		});
+		const aabb = new AABB(this.getPosition(), size);
+
+		this.#hitbox = new Hitbox(aabb);
 	}
 }

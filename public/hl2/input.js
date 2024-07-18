@@ -44,25 +44,29 @@ export function listen(renderer) {
 		renderer.getCamera().lookAt(movement);
 	}
 
-	addEventListener("click", function(event) {
-		if (event.target !== renderer.getCanvas()) return;
+	document.addEventListener("click", function(event) {
+		if (event.target !== renderer.getCanvas()) {
+			return;
+		}
 
 		renderer.getCanvas().requestPointerLock();
 	});
 
 	// `window.addEventListener("pointerlockchange")` doesn't fire in some browsers
 	document.addEventListener("pointerlockchange", function() {
-		const listener = renderer.getCanvas() === document.pointerLockElement ? addEventListener : removeEventListener;
+		const listener = renderer.getCanvas() === document.pointerLockElement ?
+			document.addEventListener :
+			document.removeEventListener;
 
 		listener("keydown", keydown);
 		listener("keyup", keyup);
 		listener("mousemove", mousemove);
 	});
 
-	addEventListener("resize", function() {
+	document.addEventListener("resize", function() {
 		const viewport = new Vector2(innerWidth, innerHeight);
 
-		renderer.getCamera().aspect = viewport[0] / viewport[1];
+		renderer.getCamera().aspectRatio = viewport[0] / viewport[1];
 		renderer.getCamera().update();
 
 		renderer.getViewport().set(viewport, 2);
