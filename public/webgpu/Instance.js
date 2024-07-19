@@ -8,6 +8,7 @@ export class Instance extends _Instance {
 	_update() {
 		this.#testCollisions();
 
+		const camera = this._renderer.getCamera();
 		const direction = new Vector3(
 			keys.KeyA + keys.KeyD,
 			keys.ControlLeft + keys.Space,
@@ -16,10 +17,10 @@ export class Instance extends _Instance {
 			.normalize()
 			.multiplyScalar(SPEED);
 
-		const camera = this._renderer.getCamera();
-
 		camera.getPosition().add(camera.getRelativeVelocity(direction));
+
 		this.#updateDynamicMesh();
+
 		camera.update();
 
 		this.getDebugger().update({
