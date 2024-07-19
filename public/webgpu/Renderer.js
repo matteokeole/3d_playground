@@ -5,6 +5,11 @@ import {WebGPURenderer} from "../../src/Renderer/index.js";
 
 export class Renderer extends WebGPURenderer {
 	/**
+	 * @type {Record.<String, GPUBuffer>}
+	 */
+	#meshStorageBuffers;
+
+	/**
 	 * @type {Record.<String, GPUBindGroup>}
 	 */
 	#meshBindGroups;
@@ -12,6 +17,7 @@ export class Renderer extends WebGPURenderer {
 	constructor(canvas) {
 		super(canvas);
 
+		this.#meshStorageBuffers = {};
 		this.#meshBindGroups = {};
 	}
 
@@ -40,6 +46,30 @@ export class Renderer extends WebGPURenderer {
 		const commandBuffer = commandEncoder.finish();
 
 		this._device.queue.submit([commandBuffer]);
+	}
+
+	/**
+	 * @param {Mesh} mesh
+	 * @returns {?GPUBuffer}
+	 */
+	getMeshBuffer(mesh) {
+		const geometryName = mesh.getGeometry().constructor.name;
+		const buffer = this.#meshStorageBuffers[geometryName];
+
+		if (!buffer) {
+			return null;
+		}
+
+		return buffer;
+	}
+
+	/**
+	 * @param {GPUBuffer} buffer
+	 * @param {GPUSize64} bufferOffset
+	 * @param {BufferSource|SharedArrayBuffer} data
+	 */
+	writeMeshBuffer(buffer, bufferOffset, data) {
+		this._device.queue.writeBuffer(buffer, bufferOffset, data);
 	}
 
 	async #loadShaderModules() {
@@ -81,6 +111,7 @@ export class Renderer extends WebGPURenderer {
 			const meshStorageBuffer = this.#createMeshStorageBuffer(meshes);
 			const meshBindGroup = this.#createMeshBindGroup(meshStorageBuffer);
 
+			this.#meshStorageBuffers[geometryName] = meshStorageBuffer;
 			this.#meshBindGroups[geometryName] = meshBindGroup;
 		}
 
