@@ -30,8 +30,8 @@ export class PolytopeGeometry extends Geometry {
 	 */
 	support(D) {
 		const vertices = this.getVertices();
+		const support = new Vector3(...vertices.subarray(0, 3));
 		let maxDot = 0;
-		let maxVertex;
 
 		for (let i = 0; i < vertices.length; i += 3) {
 			const vertex = new Vector3(...vertices.subarray(i, i + 3));
@@ -39,10 +39,10 @@ export class PolytopeGeometry extends Geometry {
 
 			if (dot > maxDot) {
 				maxDot = dot;
-				maxVertex = vertex;
+				support.set(vertex);
 			}
 		}
 
-		return maxVertex;
+		return support;
 	}
 }

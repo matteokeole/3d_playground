@@ -1,4 +1,5 @@
 import {Instance as _Instance} from "../../src/index.js";
+import {GJK} from "../../src/Algorithm/index.js";
 import {Vector3} from "../../src/math/index.js";
 import {keys} from "./input.js";
 
@@ -41,6 +42,11 @@ export class Instance extends _Instance {
 		/**
 		 * @todo Test GJK between the static and dynamic meshes
 		 */
+		const simplex = GJK.test3d(dynamicMesh, staticMesh);
+
+		this.getDebugger().update({
+			debugElement: !!simplex,
+		});
 	}
 
 	#updateDynamicMesh() {

@@ -62,4 +62,29 @@ export class BoxGeometry extends Geometry {
 	getSize() {
 		return this.#size;
 	}
+
+	/**
+	 * Returns the point on the geometry
+	 * that is the farthest in the direction of D.
+	 * 
+	 * @param {Vector3} D Direction vector (not copied, not normalized)
+	 * @returns {Vector3}
+	 */
+	support(D) {
+		const vertices = this.getVertices();
+		const support = new Vector3(...vertices.subarray(0, 3));
+		let maxDot = 0;
+
+		for (let i = 0; i < vertices.length; i += 3) {
+			const vertex = new Vector3(...vertices.subarray(i, i + 3));
+			const dot = vertex.dot(D);
+
+			if (dot > maxDot) {
+				maxDot = dot;
+				support.set(vertex);
+			}
+		}
+
+		return support;
+	}
 }
