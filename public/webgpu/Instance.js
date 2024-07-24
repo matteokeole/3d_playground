@@ -22,8 +22,6 @@ export class Instance extends _Instance {
 
 		camera.update();
 
-		this.#testCollisions();
-
 		this.getDebugger().update({
 			positionElement: camera.getPosition(),
 			rotationElement: camera.getRotation(),
@@ -44,6 +42,8 @@ export class Instance extends _Instance {
 		dynamicMesh.setPosition(camera.getPosition());
 		dynamicMesh.updateProjection();
 
+		this.#testCollisions();
+
 		this._renderer.writeMeshBuffer(dynamicMeshBuffer, offset, dynamicMesh.getProjection());
 	}
 
@@ -59,14 +59,15 @@ export class Instance extends _Instance {
 			return;
 		}
 
-		const collision = EPA.test(dynamicMesh, staticMesh, simplex);
+		const collision = EPA.test3d(dynamicMesh, staticMesh, simplex);
 
 		if (!collision) {
 			return;
 		}
 
-		const force = new Vector3(collision.normal).multiplyScalar(collision.depth);
+		const force = collision.normal.multiplyScalar(collision.depth);
 
 		dynamicMesh.getPosition().subtract(force);
+		dynamicMesh.updateProjection();
 	}
 }
