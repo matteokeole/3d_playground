@@ -2,7 +2,10 @@ import {Vector3} from "../math/index.js";
 import {Mesh} from "../Mesh/index.js";
 
 export class GJK {
-	static #MAX_ITERATIONS = 8;
+	/**
+	 * @todo Find balanced number of iterations
+	 */
+	static #MAX_ITERATIONS = 32;
 
 	/**
 	 * @param {Mesh} mesh1
@@ -10,13 +13,30 @@ export class GJK {
 	 * @param {Vector3} D Direction
 	 */
 	static #support(mesh1, mesh2, D) {
-		const s0 = new Vector3(mesh1.getGeometry().support(D));
-		s0.add(mesh1.getPosition());
+		const s1 = new Vector3(mesh1.getGeometry().support(D, mesh1.getProjection()));
+		const s2 = mesh2.getGeometry().support(new Vector3(D).negate(), mesh2.getProjection());
 
-		const s1 = new Vector3(mesh2.getGeometry().support(new Vector3(D).negate()));
-		s1.add(mesh2.getPosition());
+		return s1.subtract(s2);
+	}
 
-		return s0.subtract(s1);
+	/**
+	 * @param {import("../math/index.js").Simplex} simplex
+	 * @param {Vector3} D Direction
+	 */
+	static #checkSimplex(simplex, D) {
+		if (simplex.length === 2) {
+			return GJK.#check1dSimplex(simplex, D);
+		}
+
+		if (simplex.length === 3) {
+			return GJK.#check2dSimplex(simplex, D);
+		}
+
+		if (simplex.length === 4) {
+			return GJK.#check3dSimplex(simplex, D);
+		}
+
+		return false;
 	}
 
 	/**
@@ -24,7 +44,7 @@ export class GJK {
 	 * @param {Vector3} D Direction
 	 */
 	static #check1dSimplex(simplex, D) {
-		const [b, a] = simplex;
+		const [a, b] = simplex;
 		const ab = new Vector3(b).subtract(a);
 		const ao = new Vector3(a).negate();
 
@@ -46,7 +66,7 @@ export class GJK {
 	 * @param {Vector3} D Direction
 	 */
 	static #check2dSimplex(simplex, D) {
-		const [c, b, a] = simplex;
+		const [a, b, c] = simplex;
 		const ab = new Vector3(b).subtract(a);
 		const ac = new Vector3(c).subtract(a);
 		const ao = new Vector3(a).negate();
@@ -85,7 +105,8 @@ export class GJK {
 
 		simplex.length = 0;
 		simplex.push(a, c, b);
-		D.set(abc.negate());
+		D.set(abc);
+		D.negate();
 
 		return false;
 	}
@@ -95,7 +116,7 @@ export class GJK {
 	 * @param {Vector3} D Direction
 	 */
 	static #check3dSimplex(simplex, D) {
-		const [d, c, b, a] = simplex;
+		const [a, b, c, d] = simplex;
 		const ab = new Vector3(b).subtract(a);
 		const ac = new Vector3(c).subtract(a);
 		const ad = new Vector3(d).subtract(a);
@@ -136,7 +157,7 @@ export class GJK {
 	 * @param {Mesh} mesh2
 	 */
 	static test3d(mesh1, mesh2) {
-		const D = new Vector3(0, 1, 0);
+		const D = new Vector3(1, 0, 0);
 		const a = GJK.#support(mesh1, mesh2, D);
 
 		if (a.dot(D) < 0) {
@@ -158,24 +179,10 @@ export class GJK {
 				return null;
 			}
 
-			simplex.push(a);
+			simplex.unshift(a);
 
-			if (simplex.length === 2) {
-				GJK.#check1dSimplex(simplex, D);
-
-				continue;
-			}
-
-			if (simplex.length === 3) {
-				GJK.#check2dSimplex(simplex, D);
-
-				continue;
-			}
-
-			if (simplex.length === 4) {
-				if (GJK.#check3dSimplex(simplex, D)) {
-					return simplex;
-				}
+			if (GJK.#checkSimplex(simplex, D)) {
+				return simplex;
 			}
 		}
 

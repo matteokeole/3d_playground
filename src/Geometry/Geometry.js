@@ -1,4 +1,4 @@
-import {Vector2, Vector3} from "../math/index.js";
+import {Matrix4, Vector2, Vector3} from "../math/index.js";
 
 /**
  * @typedef {Object} GeometryDescriptor
@@ -149,9 +149,10 @@ export class Geometry {
 	 * 
 	 * @abstract
 	 * @param {Vector3} D Direction vector
+	 * @param {Matrix4} p Mesh projection matrix
 	 * @returns {Vector3}
 	 */
-	support(D) {
+	support(D, p) {
 		throw new Error("Not implemented");
 	}
 }

@@ -7,8 +7,6 @@ const SPEED = .1;
 
 export class Instance extends _Instance {
 	_update() {
-		this.#testCollisions();
-
 		const camera = this._renderer.getCamera();
 		const direction = new Vector3(
 			keys.KeyA + keys.KeyD,
@@ -24,6 +22,8 @@ export class Instance extends _Instance {
 
 		camera.update();
 
+		this.#testCollisions();
+
 		this.getDebugger().update({
 			positionElement: camera.getPosition(),
 			rotationElement: camera.getRotation(),
@@ -32,6 +32,19 @@ export class Instance extends _Instance {
 
 	_render() {
 		this._renderer.render();
+	}
+
+	#updateDynamicMesh() {
+		const camera = this._renderer.getCamera();
+		const dynamicMeshIndex = 0;
+		const dynamicMesh = this._renderer.getScene().getMeshes()[dynamicMeshIndex];
+		const dynamicMeshBuffer = this._renderer.getMeshBuffer(dynamicMesh);
+		const offset = 16 * dynamicMeshIndex * Float32Array.BYTES_PER_ELEMENT;
+
+		dynamicMesh.setPosition(camera.getPosition());
+		dynamicMesh.updateProjection();
+
+		this._renderer.writeMeshBuffer(dynamicMeshBuffer, offset, dynamicMesh.getProjection());
 	}
 
 	#testCollisions() {
@@ -47,18 +60,5 @@ export class Instance extends _Instance {
 		this.getDebugger().update({
 			debugElement: !!simplex,
 		});
-	}
-
-	#updateDynamicMesh() {
-		const camera = this._renderer.getCamera();
-		const dynamicMeshIndex = 0;
-		const dynamicMesh = this._renderer.getScene().getMeshes()[dynamicMeshIndex];
-		const dynamicMeshBuffer = this._renderer.getMeshBuffer(dynamicMesh);
-		const offset = 16 * dynamicMeshIndex * Float32Array.BYTES_PER_ELEMENT;
-
-		dynamicMesh.setPosition(camera.getPosition());
-		dynamicMesh.updateProjection();
-
-		this._renderer.writeMeshBuffer(dynamicMeshBuffer, offset, dynamicMesh.getProjection());
 	}
 }
