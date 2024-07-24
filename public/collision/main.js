@@ -5,7 +5,7 @@ import {listen} from "../hl2/input.js";
 import {Renderer} from "../hl2/Renderer.js";
 import {Instance} from "./Instance.js";
 
-import {createCamera, createScene} from "./scenes/swept_aabb.js";
+import {createCamera, createScene} from "./scenes/multipleGeometries.js";
 
 export const FRAMES_PER_SECOND = 60;
 export const FIELD_OF_VIEW = 90;
