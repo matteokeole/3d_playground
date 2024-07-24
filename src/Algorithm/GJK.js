@@ -12,7 +12,7 @@ export class GJK {
 	 * @param {Mesh} mesh2
 	 * @param {Vector3} D Direction
 	 */
-	static #support(mesh1, mesh2, D) {
+	static support(mesh1, mesh2, D) {
 		const s1 = new Vector3(mesh1.getGeometry().support(D, mesh1.getProjection()));
 		const s2 = mesh2.getGeometry().support(new Vector3(D).negate(), mesh2.getProjection());
 
@@ -158,7 +158,7 @@ export class GJK {
 	 */
 	static test3d(mesh1, mesh2) {
 		const D = new Vector3(1, 0, 0);
-		const a = GJK.#support(mesh1, mesh2, D);
+		const a = GJK.support(mesh1, mesh2, D);
 
 		if (a.dot(D) < 0) {
 			return null;
@@ -173,7 +173,7 @@ export class GJK {
 		D.negate();
 
 		for (let i = 0; i < GJK.#MAX_ITERATIONS; i++) {
-			const a = GJK.#support(mesh1, mesh2, D);
+			const a = GJK.support(mesh1, mesh2, D);
 
 			if (a.dot(D) < 0) {
 				return null;

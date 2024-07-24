@@ -1,5 +1,5 @@
 import {Instance as _Instance} from "../../src/index.js";
-import {GJK} from "../../src/Algorithm/index.js";
+import {EPA, GJK} from "../../src/Algorithm/index.js";
 import {Vector3} from "../../src/math/index.js";
 import {keys} from "./input.js";
 
@@ -52,13 +52,21 @@ export class Instance extends _Instance {
 		const dynamicMesh = meshes[0];
 		const staticMesh = meshes[1];
 
-		/**
-		 * @todo Test GJK between the static and dynamic meshes
-		 */
 		const simplex = GJK.test3d(dynamicMesh, staticMesh);
+		const intersecting = simplex !== null;
 
-		this.getDebugger().update({
-			debugElement: !!simplex,
-		});
+		if (!intersecting) {
+			return;
+		}
+
+		const collision = EPA.test(dynamicMesh, staticMesh, simplex);
+
+		if (!collision) {
+			return;
+		}
+
+		const force = new Vector3(collision.normal).multiplyScalar(collision.depth);
+
+		dynamicMesh.getPosition().subtract(force);
 	}
 }
