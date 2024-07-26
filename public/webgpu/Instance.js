@@ -1,24 +1,37 @@
-import {Instance as _Instance} from "../../src/index.js";
+import {Instance as _Instance, Camera} from "../../src/index.js";
 import {EPA, GJK} from "../../src/Algorithm/index.js";
 import {Vector3} from "../../src/math/index.js";
+import {Mesh} from "../../src/Mesh/Mesh.js";
 import {keys} from "./input.js";
-
-const SPEED = .1;
 
 export class Instance extends _Instance {
 	_update() {
+		const scene = this._renderer.getScene();
 		const camera = this._renderer.getCamera();
+
+		if (!scene || !camera) {
+			return;
+		}
+
 		const direction = new Vector3(
 			keys.KeyA + keys.KeyD,
 			keys.ControlLeft + keys.Space,
 			keys.KeyW + keys.KeyS,
-		)
-			.normalize()
-			.multiplyScalar(SPEED);
+		);
+		direction.normalize();
+		direction.multiplyScalar(1.8);
 
-		camera.getPosition().add(camera.getRelativeVelocity(direction));
+		const relativeVelocity = camera.getRelativeVelocity(direction);
 
-		this.#updateDynamicMesh();
+		camera.getPosition().add(relativeVelocity);
+
+		const cameraHull = camera.getHull();
+
+		if (cameraHull) {
+			const staticMeshes = scene.getMeshes();
+
+			this.#updateCameraHull(camera, cameraHull, staticMeshes);
+		}
 
 		camera.update();
 
@@ -32,42 +45,44 @@ export class Instance extends _Instance {
 		this._renderer.render();
 	}
 
-	#updateDynamicMesh() {
-		const camera = this._renderer.getCamera();
-		const dynamicMeshIndex = 0;
-		const dynamicMesh = this._renderer.getScene().getMeshes()[dynamicMeshIndex];
-		const dynamicMeshBuffer = this._renderer.getMeshBuffer(dynamicMesh);
-		const offset = 16 * dynamicMeshIndex * Float32Array.BYTES_PER_ELEMENT;
+	/**
+	 * @param {Camera} camera
+	 * @param {Mesh} hull
+	 * @param {Mesh[]} staticMeshes
+	 */
+	#updateCameraHull(camera, hull, staticMeshes) {
+		hull.setPosition(camera.getPosition());
+		hull.updateProjection();
 
-		dynamicMesh.setPosition(camera.getPosition());
-		dynamicMesh.updateProjection();
+		for (let i = 0; i < staticMeshes.length; i++) {
+			const staticMesh = staticMeshes[i];
+			const hitResponse = this.#hitTest(hull, staticMesh);
 
-		this.#testCollisions();
+			if (!hitResponse) {
+				continue;
+			}
 
-		this._renderer.writeMeshBuffer(dynamicMeshBuffer, offset, dynamicMesh.getProjection());
+			const force = hitResponse.normal.multiplyScalar(hitResponse.depth);
+
+			hull.getPosition().subtract(force);
+			hull.updateProjection();
+		}
+
+		camera.setPosition(hull.getPosition());
 	}
 
-	#testCollisions() {
-		const meshes = this._renderer.getScene().getMeshes();
-		const dynamicMesh = meshes[0];
-		const staticMesh = meshes[1];
-
+	/**
+	 * @param {Mesh} dynamicMesh
+	 * @param {Mesh} staticMesh
+	 */
+	#hitTest(dynamicMesh, staticMesh) {
 		const simplex = GJK.test3d(dynamicMesh, staticMesh);
 		const intersecting = simplex !== null;
 
 		if (!intersecting) {
-			return;
+			return null;
 		}
 
-		const collision = EPA.test3d(dynamicMesh, staticMesh, simplex);
-
-		if (!collision) {
-			return;
-		}
-
-		const force = collision.normal.multiplyScalar(collision.depth);
-
-		dynamicMesh.getPosition().subtract(force);
-		dynamicMesh.updateProjection();
+		return EPA.test3d(dynamicMesh, staticMesh, simplex);
 	}
 }

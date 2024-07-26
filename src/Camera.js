@@ -1,5 +1,6 @@
 import {Session} from "./Capture/index.js";
 import {clamp, Matrix3, Matrix4, PI, Vector2, Vector3} from "./math/index.js";
+import {Mesh} from "./Mesh/index.js";
 
 /**
  * @abstract
@@ -101,6 +102,11 @@ export class Camera {
 	turnVelocity;
 
 	/**
+	 * @type {?Mesh}
+	 */
+	#hull;
+
+	/**
 	 * @type {?Session}
 	 */
 	#captureSession;
@@ -122,6 +128,7 @@ export class Camera {
 		this.far = 0;
 		this.bias = 0;
 		this.turnVelocity = 0;
+		this.#hull = null;
 		this.#captureSession = null;
 	}
 
@@ -180,6 +187,17 @@ export class Camera {
 
 	getUp() {
 		return this.#up;
+	}
+
+	getHull() {
+		return this.#hull;
+	}
+
+	/**
+	 * @param {Mesh} hull
+	 */
+	setHull(hull) {
+		this.#hull = hull;
 	}
 
 	getCaptureSession() {
