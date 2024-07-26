@@ -1,9 +1,9 @@
-import {Vector2, Vector3} from "../math/index.js";
+import {Matrix4, Vector2, Vector3} from "../math/index.js";
 
 /**
  * @typedef {Object} GeometryDescriptor
- * @property {Uint8Array} indices
  * @property {Float32Array} vertices
+ * @property {Uint8Array} indices
  * @property {Float32Array} normals
  * @property {Float32Array} tangents
  * @property {Float32Array} uvs
@@ -106,8 +106,8 @@ export class Geometry {
 		return uv;
 	}
 
-	_indices;
 	_vertices;
+	_indices;
 	_normals;
 	_tangents;
 	_uvs;
@@ -116,19 +116,19 @@ export class Geometry {
 	 * @param {GeometryDescriptor} descriptor
 	 */
 	constructor(descriptor) {
-		this._indices = descriptor.indices;
 		this._vertices = descriptor.vertices;
+		this._indices = descriptor.indices;
 		this._normals = descriptor.normals;
 		this._tangents = descriptor.tangents;
 		this._uvs = descriptor.uvs;
 	}
 
-	getIndices() {
-		return this._indices;
-	}
-
 	getVertices() {
 		return this._vertices;
+	}
+
+	getIndices() {
+		return this._indices;
 	}
 
 	getNormals() {
@@ -141,5 +141,18 @@ export class Geometry {
 
 	getUVs() {
 		return this._uvs;
+	}
+
+	/**
+	 * Returns the point on the geometry
+	 * that is the farthest in the direction of D.
+	 * 
+	 * @abstract
+	 * @param {Vector3} D Direction vector
+	 * @param {Matrix4} p Mesh projection matrix
+	 * @returns {Vector3}
+	 */
+	support(D, p) {
+		throw new Error("Not implemented");
 	}
 }

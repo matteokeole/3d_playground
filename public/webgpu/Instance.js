@@ -1,29 +1,88 @@
-import {Instance as _Instance} from "../../src/index.js";
+import {Instance as _Instance, Camera} from "../../src/index.js";
+import {EPA, GJK} from "../../src/Algorithm/index.js";
 import {Vector3} from "../../src/math/index.js";
-import {CAMERA_LERP_FACTOR} from "../hl2/main.js";
+import {Mesh} from "../../src/Mesh/Mesh.js";
 import {keys} from "./input.js";
 
 export class Instance extends _Instance {
 	_update() {
+		const scene = this._renderer.getScene();
+		const camera = this._renderer.getCamera();
+
+		if (!scene || !camera) {
+			return;
+		}
+
 		const direction = new Vector3(
 			keys.KeyA + keys.KeyD,
 			keys.ControlLeft + keys.Space,
 			keys.KeyW + keys.KeyS,
-		)
-			.normalize()
-			.multiplyScalar(.05);
+		);
+		direction.normalize();
+		direction.multiplyScalar(1.8);
 
-		const camera = this._renderer.getCamera();
+		const relativeVelocity = camera.getRelativeVelocity(direction);
 
-		camera.target.add(camera.getRelativeVelocity(direction));
-		camera.getPosition().lerp(camera.target, CAMERA_LERP_FACTOR);
+		camera.getPosition().add(relativeVelocity);
+
+		const cameraHull = camera.getHull();
+
+		if (cameraHull) {
+			const staticMeshes = scene.getMeshes();
+
+			this.#updateCameraHull(camera, cameraHull, staticMeshes);
+		}
+
 		camera.update();
 
-		document.getElementById("DebugPosition").textContent = `${camera.getPosition()}`;
-		document.getElementById("DebugRotation").textContent = `${camera.getRotation()}`;
+		this.getDebugger().update({
+			positionElement: camera.getPosition(),
+			rotationElement: camera.getRotation(),
+		});
 	}
 
 	_render() {
 		this._renderer.render();
+	}
+
+	/**
+	 * @param {Camera} camera
+	 * @param {Mesh} hull
+	 * @param {Mesh[]} staticMeshes
+	 */
+	#updateCameraHull(camera, hull, staticMeshes) {
+		hull.setPosition(camera.getPosition());
+		hull.updateProjection();
+
+		for (let i = 0; i < staticMeshes.length; i++) {
+			const staticMesh = staticMeshes[i];
+			const hitResponse = this.#hitTest(hull, staticMesh);
+
+			if (!hitResponse) {
+				continue;
+			}
+
+			const force = hitResponse.normal.multiplyScalar(hitResponse.depth);
+
+			hull.getPosition().subtract(force);
+			hull.updateProjection();
+		}
+
+		camera.setPosition(hull.getPosition());
+	}
+
+	/**
+	 * @param {Mesh} dynamicMesh
+	 * @param {Mesh} staticMesh
+	 */
+	#hitTest(dynamicMesh, staticMesh) {
+		const simplex = GJK.test3d(dynamicMesh, staticMesh);
+		const intersecting = simplex !== null;
+
+		if (!intersecting) {
+			return null;
+		}
+
+		return EPA.test3d(dynamicMesh, staticMesh, simplex);
 	}
 }

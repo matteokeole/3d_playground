@@ -1,9 +1,10 @@
-import {Instance as _Instance, Camera, Hitbox} from "../../src/index.js";
-import {BoxGeometry} from "../../src/Geometry/index.js";
+import {Instance as _Instance} from "../../src/index.js";
 import {Vector3} from "../../src/math/index.js";
 import {keys} from "../hl2/input.js";
 import {Mesh} from "../hl2/Mesh.js";
 import {VELOCITY} from "./main.js";
+import {GJK} from "../../src/Algorithm/GJK.js";
+import {EPA} from "../../src/Algorithm/EPA.js";
 
 export class Instance extends _Instance {
 	/**
@@ -13,15 +14,7 @@ export class Instance extends _Instance {
 		const camera = this._renderer.getCamera();
 
 		if (camera.getCaptureSession() !== null) {
-			// Read session
-			camera.readCaptureSession(this._frameIndex);
-			camera.captureLookAt();
-
-			camera.update();
-
-			this.getDebugger().update(camera);
-
-			return;
+			return this.#useCaptureSession();
 		}
 
 		const cameraDirection = new Vector3(
@@ -31,40 +24,11 @@ export class Instance extends _Instance {
 		)
 			.normalize()
 			.multiplyScalar(VELOCITY);
-		const cameraRelativeVelocity = camera.getRelativeVelocity(cameraDirection);
 
-		const scene = this._renderer.getScene();
-		/**
-		 * @type {Mesh[]}
-		 */
-		const meshes = scene.getMeshes();
-		const cameraMeshes = meshes.filter(mesh => mesh.isTiedToCamera());
-		const staticBoxMeshes = meshes.filter(mesh => (
-			mesh.getGeometry() instanceof BoxGeometry &&
-			!mesh.isTiedToCamera() &&
-			mesh.getHitbox().getVelocity().isNull()
-		));
+		camera.target.add(camera.getRelativeVelocity(cameraDirection));
+		camera.setPosition(camera.target);
 
-		let cameraTargetHasChanged = false;
-
-		for (const cameraMesh of cameraMeshes) {
-			// Update the position of meshes tied to the camera
-			this.#updateCameraMesh(camera, cameraMesh);
-
-			for (const staticBoxMesh of staticBoxMeshes) {
-				const props = this.#testCollide(cameraMesh, staticBoxMesh);
-
-				if (!cameraTargetHasChanged) {
-					camera.target.add(props.scaledVelocity);
-
-					cameraTargetHasChanged = true;
-				}
-
-				cameraMesh.getHitbox().setVelocity(props.velocity ?? cameraRelativeVelocity);
-			}
-		}
-
-		camera.getPosition().set(camera.target);
+		this.#updateCameraMeshes();
 
 		camera.update();
 
@@ -82,7 +46,7 @@ export class Instance extends _Instance {
 	 * @param {Mesh} player
 	 * @param {Mesh} wall
 	 */
-	#testCollide(player, wall) {
+	/* #testCollideAabb(player, wall) {
 		const normal = new Vector3();
 		const collisionTime = Hitbox.sweptAabb(player.getHitbox(), wall.getHitbox(), normal);
 		const scaledVelocity = new Vector3(player.getHitbox().getVelocity()).multiplyScalar(collisionTime);
@@ -100,14 +64,67 @@ export class Instance extends _Instance {
 			velocity,
 			scaledVelocity,
 		};
-	}
+	} */
 
 	/**
-	 * @param {Camera} camera
-	 * @param {Mesh} mesh
+	 * @param {Mesh} dynamicMesh
+	 * @param {Mesh} staticMesh
 	 */
-	#updateCameraMesh(camera, mesh) {
-		mesh.setPosition(camera.getPosition());
-		mesh.getHitbox().getAabb().setPosition(camera.getPosition());
+	#testCollideGjkEpa(dynamicMesh, staticMesh) {
+		const simplex = GJK.test3d(dynamicMesh, staticMesh);
+		const intersecting = simplex !== null;
+
+		if (!intersecting) {
+			return null;
+		}
+
+		const collision = EPA.test3d(dynamicMesh, staticMesh, simplex);
+
+		if (!collision) {
+			return null;
+		}
+
+		const force = collision.normal.multiplyScalar(collision.depth);
+
+		dynamicMesh.getPosition().subtract(force);
+		dynamicMesh.updateProjection();
+
+		return force;
+	}
+
+	#updateCameraMeshes() {
+		const camera = this._renderer.getCamera();
+		const scene = this._renderer.getScene();
+		/**
+		 * @type {Mesh[]}
+		 */
+		const meshes = scene.getMeshes();
+		const cameraMeshes = meshes.filter(mesh => mesh.isTiedToCamera());
+		const staticBoxMeshes = meshes.filter(mesh => !mesh.isTiedToCamera());
+
+		for (const cameraMesh of cameraMeshes) {
+			// Update the position of meshes tied to the camera
+			cameraMesh.setPosition(camera.getPosition());
+			// cameraMesh.getHitbox().getAabb().setPosition(camera.getPosition());
+			cameraMesh.updateProjection();
+
+			for (const staticBoxMesh of staticBoxMeshes) {
+				const force = this.#testCollideGjkEpa(cameraMesh, staticBoxMesh);
+
+				if (force !== null) {
+					camera.target.subtract(force);
+				}
+			}
+		}
+	}
+
+	#useCaptureSession() {
+		const camera = this._renderer.getCamera();
+
+		camera.readCaptureSession(this._frameIndex);
+		camera.captureLookAt();
+		camera.update();
+
+		this.getDebugger().update(camera);
 	}
 }

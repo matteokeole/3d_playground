@@ -188,7 +188,7 @@ export class Renderer extends WebGLRenderer {
 
 		gl.bindVertexArray(null);
 
-		this.#renderDebug();
+		// this.#renderDebug();
 
 		this.#renderCrosshair();
 	}
