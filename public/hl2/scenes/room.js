@@ -2,9 +2,9 @@ import {Camera} from "../../../src/index.js";
 import {PointLight} from "../../../src/Light/index.js";
 import {SSDLoader} from "../../../src/Loader/index.js";
 import {PI, Vector2, Vector3} from "../../../src/math/index.js";
-import {PLAYER_COLLISION_HULL} from "../../index.js";
+import {FIELD_OF_VIEW, PLAYER_COLLISION_HULL} from "../../index.js";
 import {Scene} from "../Scene.js";
-import {FIELD_OF_VIEW, SENSITIVITY} from "../main.js";
+import {SENSITIVITY} from "../main.js";
 
 /**
  * @param {import("../../../src/Loader/ImageBitmapLoader.js").Image[]} imageBitmaps

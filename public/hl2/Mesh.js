@@ -31,6 +31,11 @@ export class Mesh extends _Mesh {
 			new Vector3(anchor3).add(anchor1).subtract(anchor2);
 
 		const textureIndex = imagePaths.indexOf(json.texture);
+
+		if (textureIndex === -1) {
+			throw new Error("Texture not found");
+		}
+
 		const bitmap = images[textureIndex].bitmap;
 
 		const textureWidth = max(anchor1.to(anchor4), anchor2.to(anchor3));
