@@ -2,7 +2,7 @@ import {Camera} from "../../../src/index.js";
 import {BoxGeometry} from "../../../src/Geometry/BoxGeometry.js";
 import {PointLight} from "../../../src/Light/index.js";
 import {SSDLoader} from "../../../src/Loader/index.js";
-import {Material} from "../../../src/Material/Material.js";
+import {TextureMaterial} from "../../../src/Material/TextureMaterial.js";
 import {Matrix3, PI, Vector2, Vector3} from "../../../src/math/index.js";
 import {Mesh} from "../../hl2/Mesh.js";
 import {Scene} from "../../hl2/Scene.js";
@@ -21,7 +21,7 @@ export async function createScene(imageBitmaps) {
 
 	const wall = new Mesh(
 		new BoxGeometry(new Vector3(512, 128, 16)),
-		new Material({
+		new TextureMaterial({
 			textureMatrix: Matrix3.identity(),
 			textureIndex: imageBitmaps.findIndex(texture => texture.path === "plaster/plasterwall044c.jpg"),
 			normalMapIndex: imageBitmaps.findIndex(texture => texture.path === "plaster/plasterwall044c_normal.jpg"),
@@ -35,7 +35,7 @@ export async function createScene(imageBitmaps) {
 
 	const playerHitbox = new Mesh(
 		new BoxGeometry(PLAYER_COLLISION_HULL),
-		new Material({
+		new TextureMaterial({
 			textureMatrix: Matrix3.identity(),
 			textureIndex: imageBitmaps.findIndex(texture => texture.path === "debug.jpg"),
 			normalMapIndex: imageBitmaps.findIndex(texture => texture.path === "normal.jpg"),

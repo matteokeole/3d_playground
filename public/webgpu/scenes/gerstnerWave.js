@@ -8,10 +8,13 @@ import {CAMERA_HEIGHT, FIELD_OF_VIEW} from "../../minecraft/main.js";
 export async function createScene() {
 	const meshes = [];
 
-	const wavePlane = new Mesh(new GridGeometry({
-		size: new Vector2(10, 10),
-		step: 1,
-	}), null);
+	const wavePlane = new Mesh(
+		new GridGeometry({
+			size: new Vector2(10, 10),
+			step: 1,
+		}),
+		null,
+	);
 	meshes.push(wavePlane);
 
 	return new Scene(meshes);

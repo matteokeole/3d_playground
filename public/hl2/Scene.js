@@ -1,6 +1,5 @@
 import {Scene as _Scene} from "../../src/index.js";
 import {PointLight} from "../../src/Light/index.js";
-import {Material} from "../../src/Material/index.js";
 import {Matrix4, Vector3} from "../../src/math/index.js";
 import {Mesh} from "../../src/Mesh/index.js";
 
@@ -17,10 +16,9 @@ export class Scene extends _Scene {
 
 	/**
 	 * @param {Mesh[]} meshes
-	 * @param {Material[]} [materials]
 	 */
-	constructor(meshes, materials) {
-		super(meshes, materials);
+	constructor(meshes) {
+		super(meshes);
 
 		this.#pointLight = null;
 		this.#pointLightSpace = null;

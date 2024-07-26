@@ -1,6 +1,6 @@
 import {Camera} from "../../../src/index.js";
 import {BoxGeometry} from "../../../src/Geometry/index.js";
-import {Material} from "../../../src/Material/index.js";
+import {TextureMaterial} from "../../../src/Material/index.js";
 import {Matrix3, PI, Vector2, Vector3} from "../../../src/math/index.js";
 import {Mesh} from "../../../src/Mesh/index.js";
 import {BLOCK_SCALE, FIELD_OF_VIEW} from "../main.js";
@@ -20,7 +20,7 @@ export function createScene() {
 	for (let i = 0, j = 0, k = 0; i < n; i++) {
 		const mesh = new Mesh(
 			new BoxGeometry(new Vector3(1, 1, 1)),
-			new Material({
+			new TextureMaterial({
 				textureMatrix: Matrix3.identity(),
 				textureIndex: 1,
 				normalMapIndex: null,
