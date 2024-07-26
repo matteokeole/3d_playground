@@ -49,7 +49,7 @@ export class Mesh {
 	constructor(geometry, material, debugName) {
 		this._geometry = geometry;
 		this._material = material;
-		this.#projection = new Matrix4();
+		this.#projection = Matrix4.identity();
 		this.#position = new Vector3();
 		this.#rotation = new Vector3();
 		this.#scale = new Vector3(1, 1, 1);
