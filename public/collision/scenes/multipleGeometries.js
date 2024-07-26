@@ -11,7 +11,6 @@ import {Scene} from "../../hl2/Scene.js";
 
 /**
  * @param {import("../../../src/Loader/ImageBitmapLoader.js").Image[]} imageBitmaps
- * @returns {Promise.<Scene>}
  */
 export async function createScene(imageBitmaps) {
 	const ssdLoader = new SSDLoader();
@@ -75,7 +74,7 @@ export function createCamera(aspectRatio) {
 	camera.far = 1000;
 	camera.bias = PI * .545; // ~1.712
 	camera.turnVelocity = SENSITIVITY;
-	camera.lookAt(new Vector2());
+	camera.lookAt(new Vector2(0, 0));
 
 	return camera;
 }
