@@ -32,8 +32,9 @@ export class Renderer extends WebGPURenderer {
 	setScene(scene) {
 		super.setScene(scene);
 
-		this._renderPipelines.visibility = this.#createVisibilityPipeline();
-		this._textures.depth = this.#createDepthTexture();
+		this._textures.visibility = this.#createVisibilityTexture();
+		this._renderPipelines.visibility = this.#createVisibilityRenderPipeline();
+		this._renderPipelines.base = this.#createBaseRenderPipeline();
 	}
 
 	render() {
@@ -42,6 +43,7 @@ export class Renderer extends WebGPURenderer {
 		const commandEncoder = this._device.createCommandEncoder();
 
 		this.#renderVisibilityPass(commandEncoder);
+		this.#renderBasePass(commandEncoder);
 
 		const commandBuffer = commandEncoder.finish();
 
@@ -79,22 +81,30 @@ export class Renderer extends WebGPURenderer {
 		const visibilityVertexShaderSource = await shaderLoader.load("public/webgpu/shaders/visibility.vert.wgsl");
 		const visibilityFragmentShaderSource = await shaderLoader.load("public/webgpu/shaders/visibility.frag.wgsl");
 
-		this._shaderModules.visibilityVertex = this.#createShaderModule(visibilityVertexShaderSource);
-		this._shaderModules.visibilityFragment = this.#createShaderModule(visibilityFragmentShaderSource);
+		// Base
+		const baseVertexShaderSource = await shaderLoader.load("public/webgpu/shaders/base.vert.wgsl");
+		const baseFragmentShaderSource = await shaderLoader.load("public/webgpu/shaders/base.frag.wgsl");
+
+		this._shaderModules.visibilityVertex = this.#createShaderModule("Visibility vertex shader", visibilityVertexShaderSource);
+		this._shaderModules.visibilityFragment = this.#createShaderModule("Visibility fragment shader", visibilityFragmentShaderSource);
+		this._shaderModules.baseVertex = this.#createShaderModule("Base vertex shader", baseVertexShaderSource);
+		this._shaderModules.baseFragment = this.#createShaderModule("Base fragment shader", baseFragmentShaderSource);
 	}
 
 	/**
-	 * @param {String} source
+	 * @param {String} label
+	 * @param {String} code
 	 */
-	#createShaderModule(source) {
+	#createShaderModule(label, code) {
 		const shaderModule = this._device.createShaderModule({
-			code: source,
+			label,
+			code,
 		});
 
 		return shaderModule;
 	}
 
-	#createVisibilityPipeline() {
+	#createVisibilityRenderPipeline() {
 		this._buffers.vertex = this.#createVertexBuffer();
 		this._buffers.index = this.#createIndexBuffer();
 		this._buffers.indirect = this.#createIndirectBuffer();
@@ -122,7 +132,7 @@ export class Renderer extends WebGPURenderer {
 
 		const visibilityPipelineLayout = this.#createVisibilityPipelineLayout();
 
-		const visibilityPipeline = this._device.createRenderPipeline({
+		const visibilityRenderPipeline = this._device.createRenderPipeline({
 			layout: visibilityPipelineLayout,
 			vertex: {
 				module: this._shaderModules.visibilityVertex,
@@ -145,13 +155,40 @@ export class Renderer extends WebGPURenderer {
 				frontFace: "cw",
 				cullMode: "back",
 			},
-			depthStencil: {
-				format: "depth24plus",
-				depthWriteEnabled: true,
-				depthCompare: "less",
-			},
 			fragment: {
 				module: this._shaderModules.visibilityFragment,
+				entryPoint: "main",
+				targets: [
+					{
+						format: "rg32uint",
+					},
+				],
+			},
+		});
+
+		return visibilityRenderPipeline;
+	}
+
+	#createBaseRenderPipeline() {
+		this._bindGroupLayouts.visibility = this.#createVisibilityBindGroupLayout();
+
+		this._bindGroups.visibility = this.#createVisibilityBindGroup();
+
+		const basePipelineLayout = this.#createBasePipelineLayout();
+
+		const baseRenderPipeline = this._device.createRenderPipeline({
+			layout: basePipelineLayout,
+			vertex: {
+				module: this._shaderModules.baseVertex,
+				entryPoint: "main",
+			},
+			primitive: {
+				topology: "triangle-list",
+				frontFace: "cw",
+				cullMode: "back",
+			},
+			fragment: {
+				module: this._shaderModules.baseFragment,
 				entryPoint: "main",
 				targets: [
 					{
@@ -161,7 +198,7 @@ export class Renderer extends WebGPURenderer {
 			},
 		});
 
-		return visibilityPipeline;
+		return baseRenderPipeline;
 	}
 
 	#createVertexBuffer() {
@@ -311,6 +348,27 @@ export class Renderer extends WebGPURenderer {
 		return cameraBindGroupLayout;
 	}
 
+	#createVisibilityBindGroupLayout() {
+		const visibilityBindGroupLayout = this._device.createBindGroupLayout({
+			label: "Visibility bind group layout",
+			entries: [
+				{
+					binding: 0,
+					visibility: GPUShaderStage.FRAGMENT,
+					texture: {
+						sampleType: "uint",
+					},
+				}, {
+					binding: 1,
+					visibility: GPUShaderStage.FRAGMENT,
+					sampler: {},
+				},
+			],
+		});
+
+		return visibilityBindGroupLayout;
+	}
+
 	#createMeshBindGroupLayout() {
 		const meshBindGroupLayout = this._device.createBindGroupLayout({
 			label: "Mesh bind group layout",
@@ -345,6 +403,26 @@ export class Renderer extends WebGPURenderer {
 		return cameraBindGroup;
 	}
 
+	#createVisibilityBindGroup() {
+		const visibilitySampler = this._device.createSampler();
+
+		const visibilityBindGroup = this._device.createBindGroup({
+			label: "Visibility bind group",
+			layout: this._bindGroupLayouts.visibility,
+			entries: [
+				{
+					binding: 0,
+					resource: this._textures.visibility.createView(),
+				}, {
+					binding: 1,
+					resource: visibilitySampler,
+				},
+			],
+		});
+
+		return visibilityBindGroup;
+	}
+
 	/**
 	 * @param {GPUBuffer} buffer
 	 */
@@ -377,17 +455,28 @@ export class Renderer extends WebGPURenderer {
 		return visibilityPipelineLayout;
 	}
 
-	#createDepthTexture() {
-		const depthTexture = this._device.createTexture({
+	#createBasePipelineLayout() {
+		const basePipelineLayout = this._device.createPipelineLayout({
+			label: "Base pipeline layout",
+			bindGroupLayouts: [
+				this._bindGroupLayouts.visibility,
+			],
+		});
+
+		return basePipelineLayout;
+	}
+
+	#createVisibilityTexture() {
+		const visibilityTexture = this._device.createTexture({
 			size: {
 				width: this._viewport[2],
 				height: this._viewport[3],
 			},
-			format: "depth24plus",
-			usage: GPUTextureUsage.RENDER_ATTACHMENT,
+			format: "rg32uint",
+			usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
 		});
 
-		return depthTexture;
+		return visibilityTexture;
 	}
 
 	#writeCameraBuffer() {
@@ -403,17 +492,11 @@ export class Renderer extends WebGPURenderer {
 		const renderPass = commandEncoder.beginRenderPass({
 			colorAttachments: [
 				{
-					view: this._context.getCurrentTexture().createView(),
+					view: this._textures.visibility.createView(),
 					loadOp: "clear",
 					storeOp: "store",
 				},
 			],
-			depthStencilAttachment: {
-				view: this._textures.depth.createView(),
-				depthClearValue: 1,
-				depthLoadOp: "clear",
-				depthStoreOp: "store",
-			},
 		});
 		renderPass.setPipeline(this._renderPipelines.visibility);
 		renderPass.setBindGroup(0, this._bindGroups.camera);
@@ -436,6 +519,25 @@ export class Renderer extends WebGPURenderer {
 			renderPass.drawIndexedIndirect(this._buffers.indirect, indirectBufferOffset);
 		}
 
+		renderPass.end();
+	}
+
+	/**
+	 * @param {GPUCommandEncoder} commandEncoder
+	 */
+	#renderBasePass(commandEncoder) {
+		const renderPass = commandEncoder.beginRenderPass({
+			colorAttachments: [
+				{
+					view: this._context.getCurrentTexture().createView(),
+					loadOp: "clear",
+					storeOp: "store",
+				}
+			],
+		});
+		renderPass.setPipeline(this._renderPipelines.base);
+		renderPass.setBindGroup(0, this._bindGroups.visibility);
+		renderPass.draw(6);
 		renderPass.end();
 	}
 }

@@ -4,25 +4,12 @@ struct Input {
 	@location(1) @interpolate(flat) triangleIndex: u32,
 }
 
+const far: f32 = 100;
+
 @fragment
-fn main(input: Input) -> @location(0) vec4f {
-	let index: u32 = input.triangleIndex;
-	var color: vec4f = vec4f(1);
+fn main(input: Input) -> @location(0) vec2u {
+	let visibility: u32 = 1;
+	let depth: u32 = u32(input.position.w * far);
 
-	if (index == 0) {
-		color.g = 0;
-		color.b = 0;
-	}
-
-	if (index == 1) {
-		color.r = 0;
-		color.b = 0;
-	}
-
-	if (index == 2) {
-		color.r = 0;
-		color.g = 0;
-	}
-
-	return color;
+	return vec2u(visibility, depth);
 }

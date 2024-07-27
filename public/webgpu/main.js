@@ -22,8 +22,8 @@ export default async function() {
 	renderer.setViewport(new Vector4(0, 0, viewport[0], viewport[1]));
 	renderer.resize();
 
-	renderer.setScene(await createScene());
 	renderer.setCamera(createCamera(viewport[0] / viewport[1]));
+	renderer.setScene(await createScene());
 
 	document.body.appendChild(canvas);
 	listen(renderer);
