@@ -4,7 +4,7 @@ struct Input {
 	@location(1) @interpolate(flat) triangleIndex: u32,
 }
 
-const far: f32 = 100;
+const far: f32 = 1000;
 
 @fragment
 fn main(input: Input) -> @location(0) vec2u {

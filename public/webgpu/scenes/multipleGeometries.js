@@ -6,8 +6,6 @@ import {FIELD_OF_VIEW} from "../../index.js";
 import {SENSITIVITY} from "../../hl2/main.js";
 
 export async function createScene() {
-	const meshes = [];
-
 	const tetrahedron = new Mesh(new PolytopeGeometry({
 		vertices: Float32Array.of(
 			0,  1,  0,
@@ -22,16 +20,12 @@ export async function createScene() {
 			1, 2, 3,
 		),
 	}), null);
-	tetrahedron.setPosition(new Vector3(0, 0, 0));
+	tetrahedron.setPosition(new Vector3(0, 0, 5));
 	tetrahedron.updateProjection();
-	meshes.push(tetrahedron);
 
-	const box = new Mesh(new BoxGeometry(new Vector3(1, 1, 1)), null);
-	box.setPosition(new Vector3(0, 0, 5));
-	box.updateProjection();
-	meshes.push(box);
+	const scene = new Scene([tetrahedron]);
 
-	return new Scene(meshes);
+	return scene;
 }
 
 /**
@@ -40,10 +34,8 @@ export async function createScene() {
 export function createCamera(aspectRatio) {
 	const camera = new Camera();
 
-	camera.setPosition(new Vector3(0, 0, 0));
-	camera.target = new Vector3(camera.getPosition());
-	camera.setRotation(new Vector3(-.7, 0, 0));
-	camera.setDistance(new Vector3(0, 0, -5));
+	camera.setPosition(new Vector3(0, 1, 0));
+	camera.target.set(camera.getPosition());
 	camera.fieldOfView = FIELD_OF_VIEW;
 	camera.aspectRatio = aspectRatio;
 	camera.near = .01;
@@ -51,6 +43,12 @@ export function createCamera(aspectRatio) {
 	camera.bias = PI * .5;
 	camera.turnVelocity = SENSITIVITY;
 	camera.lookAt(new Vector2(0, 0));
+
+	const hull = new Mesh(new BoxGeometry(new Vector3(1, 1, 1)), null);
+	hull.setPosition(new Vector3(0, 0, 5));
+	hull.updateProjection();
+
+	camera.setHull(hull);
 
 	return camera;
 }

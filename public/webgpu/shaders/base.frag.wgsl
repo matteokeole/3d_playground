@@ -5,7 +5,7 @@ struct Input {
 	@builtin(position) position: vec4f,
 }
 
-const far: f32 = 100;
+const far: f32 = 1000;
 
 @fragment
 fn main(input: Input) -> @location(0) vec4f {
@@ -13,6 +13,10 @@ fn main(input: Input) -> @location(0) vec4f {
 
 	let visibility: vec2u = textureLoad(visibilityTexture, uv, 0).xy;
 	let depth: f32 = f32(visibility.g) / far;
+
+	if (depth == 0) {
+		discard;
+	}
 
 	return vec4f(depth);
 }
