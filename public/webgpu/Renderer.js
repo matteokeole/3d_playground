@@ -75,6 +75,7 @@ export class Renderer extends WebGPURenderer {
 	async #loadShaderModules() {
 		const shaderLoader = new ShaderLoader();
 
+		// Visibility
 		const visibilityVertexShaderSource = await shaderLoader.load("public/webgpu/shaders/visibility.vert.wgsl");
 		const visibilityFragmentShaderSource = await shaderLoader.load("public/webgpu/shaders/visibility.frag.wgsl");
 
@@ -138,6 +139,11 @@ export class Renderer extends WebGPURenderer {
 						],
 					},
 				],
+			},
+			primitive: {
+				topology: "triangle-list",
+				frontFace: "cw",
+				cullMode: "back",
 			},
 			depthStencil: {
 				format: "depth24plus",

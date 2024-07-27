@@ -17,6 +17,8 @@ struct Input {
 
 struct Output {
 	@builtin(position) position: vec4f,
+	@location(0) @interpolate(flat) instanceIndex: u32,
+	@location(1) @interpolate(flat) triangleIndex: u32,
 }
 
 @vertex
@@ -25,6 +27,8 @@ fn main(input: Input) -> Output {
 
 	var output: Output;
 	output.position = camera.viewProjection * meshProjection * input.position;
+	output.instanceIndex = input.instanceIndex;
+	output.triangleIndex = input.vertexIndex / 3;
 
 	return output;
 }

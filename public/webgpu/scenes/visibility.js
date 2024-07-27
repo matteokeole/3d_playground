@@ -1,47 +1,51 @@
 import {Camera, Scene} from "../../../src/index.js";
-import {BoxGeometry} from "../../../src/Geometry/index.js";
+import {PolytopeGeometry} from "../../../src/Geometry/index.js";
 import {PI, Vector2, Vector3} from "../../../src/math/index.js";
 import {Mesh} from "../../../src/Mesh/index.js";
 import {SENSITIVITY} from "../../hl2/main.js";
-import {CAMERA_HEIGHT, FIELD_OF_VIEW} from "../../minecraft/main.js";
+import {FIELD_OF_VIEW} from "../../index.js";
 
-const GEOMETRY = new BoxGeometry(new Vector3(1, 1, 1));
-const SCALE = .85;
+const polytopeGeometry = new PolytopeGeometry({
+	vertices: Float32Array.of(
+		/* 0, 0, 0,
+		1, 0, 0,
+		0, -1, 0,
+		2, -1, 0,
+		3, 0, 0, */
+		0, 0, 0,
+		1, 0, 0,
+		0, -1, 0,
+
+		1, 0, 0,
+		2, -1, 0,
+		0, -1, 0,
+
+		1, 0, 0,
+		3, 0, 0,
+		2, -1, 0,
+	),
+	indices: Uint8Array.of(
+		/* 0, 1, 2,
+		1, 3, 2,
+		1, 4, 3, */
+		0, 1, 2,
+		3, 4, 5,
+		6, 7, 8,
+	),
+});
 
 export async function createScene() {
-	const meshes = [];
+	const cluster = new Mesh(polytopeGeometry, null);
+	cluster.setPosition(new Vector3(-1, .5, 2));
+	cluster.updateProjection();
 
-	// Create 9x5 platform
-	{
-		const mesh = new Mesh(GEOMETRY, null);
-		mesh.setPosition(new Vector3(0, 0, 3).multiplyScalar(SCALE));
-		mesh.setScale(new Vector3(9, 1, 5).multiplyScalar(SCALE));
-		mesh.updateProjection();
+	const cluster2 = new Mesh(polytopeGeometry, null);
+	cluster2.setPosition(new Vector3(1, 3, 5));
+	cluster2.updateProjection();
 
-		meshes.push(mesh);
-	}
+	const scene = new Scene([cluster, cluster2]);
 
-	// Test block 1
-	{
-		const mesh = new Mesh(GEOMETRY, null);
-		mesh.setPosition(new Vector3(-1, 1, 3).multiplyScalar(SCALE));
-		mesh.setScale(new Vector3().addScalar(SCALE));
-		mesh.updateProjection();
-
-		meshes.push(mesh);
-	}
-
-	// Test block 2
-	{
-		const mesh = new Mesh(GEOMETRY, null);
-		mesh.setPosition(new Vector3(1, 1, 3).multiplyScalar(SCALE));
-		mesh.setScale(new Vector3().addScalar(SCALE));
-		mesh.updateProjection();
-
-		meshes.push(mesh);
-	}
-
-	return new Scene(meshes);
+	return scene;
 }
 
 /**
@@ -50,15 +54,15 @@ export async function createScene() {
 export function createCamera(aspectRatio) {
 	const camera = new Camera();
 
-	camera.setPosition(new Vector3(0, CAMERA_HEIGHT, 0));
-	camera.target = new Vector3(camera.getPosition());
+	camera.setPosition(new Vector3(0, 0, 0));
+	camera.target.set(camera.getPosition());
 	camera.fieldOfView = FIELD_OF_VIEW;
 	camera.aspectRatio = aspectRatio;
 	camera.near = .01;
 	camera.far = 100;
 	camera.bias = PI * .5;
 	camera.turnVelocity = SENSITIVITY;
-	camera.lookAt(new Vector2());
+	camera.lookAt(new Vector2(0, 0));
 
 	return camera;
 }
