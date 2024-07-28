@@ -19,7 +19,7 @@ export class Instance extends _Instance {
 			keys.KeyW + keys.KeyS,
 		);
 		direction.normalize();
-		direction.multiplyScalar(1.8);
+		direction.multiplyScalar(.1);
 
 		const relativeVelocity = camera.getRelativeVelocity(direction);
 

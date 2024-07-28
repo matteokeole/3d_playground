@@ -51,14 +51,14 @@ export function createCamera(aspectRatio) {
 	const camera = new Camera();
 
 	camera.setPosition(new Vector3(0, CAMERA_HEIGHT, 0));
-	camera.target = new Vector3(camera.getPosition());
+	camera.target.set(camera.getPosition());
 	camera.fieldOfView = FIELD_OF_VIEW;
 	camera.aspectRatio = aspectRatio;
 	camera.near = .01;
 	camera.far = 100;
 	camera.bias = PI * .5;
 	camera.turnVelocity = SENSITIVITY;
-	camera.lookAt(new Vector2());
+	camera.lookAt(new Vector2(0, 0));
 
 	return camera;
 }
