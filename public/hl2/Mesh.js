@@ -1,6 +1,6 @@
 import {AABB, Hitbox} from "../../src/index.js";
 import {BoxGeometry, Geometry} from "../../src/Geometry/index.js";
-import {Material} from "../../src/Material/index.js";
+import {TextureMaterial} from "../../src/Material/index.js";
 import {Matrix3, max, PI, Vector2, Vector3} from "../../src/math/index.js";
 import {Mesh as _Mesh} from "../../src/Mesh/index.js";
 import {SSDPlaneGeometry} from "./SSDPlaneGeometry.js";
@@ -59,7 +59,7 @@ export class Mesh extends _Mesh {
 
 		return new Mesh(
 			SSDPlaneGeometry.fromAnchors([anchor1, anchor2, anchor3, anchor4]),
-			new Material({
+			new TextureMaterial({
 				textureMatrix: textureTransform,
 				textureIndex,
 				normalMapIndex: imagePaths.indexOf(json.normal_map),
@@ -69,7 +69,7 @@ export class Mesh extends _Mesh {
 
 	/**
 	 * @param {Geometry} geometry
-	 * @param {Material} material
+	 * @param {TextureMaterial} material
 	 * @param {?String} [debugName]
 	 */
 	constructor(geometry, material, debugName) {

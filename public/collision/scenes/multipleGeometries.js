@@ -1,10 +1,10 @@
 import {Camera} from "../../../src/index.js";
-import {BoxGeometry, PolytopeGeometry} from "../../../src/Geometry/index.js";
+import {BoxGeometry} from "../../../src/Geometry/index.js";
 import {PointLight} from "../../../src/Light/index.js";
 import {SSDLoader} from "../../../src/Loader/index.js";
-import {Material} from "../../../src/Material/index.js";
+import {TextureMaterial} from "../../../src/Material/index.js";
 import {Matrix3, PI, Vector2, Vector3} from "../../../src/math/index.js";
-import {ENTITY_HEIGHT_STAND, FIELD_OF_VIEW} from "../../index.js";
+import {ENTITY_HEIGHT_STAND} from "../../index.js";
 import {SENSITIVITY} from "../../hl2/main.js";
 import {Mesh} from "../../hl2/Mesh.js";
 import {Scene} from "../../hl2/Scene.js";
@@ -20,7 +20,7 @@ export async function createScene(imageBitmaps) {
 
 	const player = new Mesh(
 		new BoxGeometry(new Vector3(16, 128, 16)),
-		new Material({
+		new TextureMaterial({
 			textureMatrix: Matrix3.identity(),
 			textureIndex: imageBitmaps.findIndex(texture => texture.path === "plaster/plasterwall044c.jpg"),
 			normalMapIndex: imageBitmaps.findIndex(texture => texture.path === "plaster/plasterwall044c_normal.jpg"),
@@ -34,7 +34,7 @@ export async function createScene(imageBitmaps) {
 
 	const box = new Mesh(
 		new BoxGeometry(new Vector3(512, 128, 16)),
-		new Material({
+		new TextureMaterial({
 			textureMatrix: Matrix3.identity(),
 			textureIndex: imageBitmaps.findIndex(texture => texture.path === "plaster/plasterwall044c.jpg"),
 			normalMapIndex: imageBitmaps.findIndex(texture => texture.path === "plaster/plasterwall044c_normal.jpg"),

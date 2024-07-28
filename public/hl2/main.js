@@ -1,9 +1,9 @@
+import {Debugger} from "../../src/index.js";
 import {ImageBitmapLoader} from "../../src/Loader/index.js";
 import {Vector2, Vector4} from "../../src/math/index.js";
 import {Renderer} from "./Renderer.js";
 import {listen} from "./input.js";
 import {Instance} from "./Instance.js";
-import "./debug.js";
 
 import {createCamera, createScene} from "./scenes/building_entrance.js";
 
@@ -19,6 +19,7 @@ export default async function() {
 	const instance = new Instance({
 		renderer,
 		framesPerSecond: FRAMES_PER_SECOND,
+		debugger: new Debugger(),
 	});
 
 	await instance.build();

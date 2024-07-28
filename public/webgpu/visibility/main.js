@@ -1,10 +1,10 @@
-import {Debugger} from "../../src/index.js";
-import {Vector2, Vector4} from "../../src/math/index.js";
+import {Debugger} from "../../../src/index.js";
+import {Vector2, Vector4} from "../../../src/math/index.js";
 import {listen} from "./input.js";
 import {Instance} from "./Instance.js";
 import {Renderer} from "./Renderer.js";
 
-import {createCamera, createScene} from "./scenes/slope.js";
+import {createCamera, createScene} from "./scenes/visibility.js";
 
 export default async function() {
 	const canvas = document.createElement("canvas");
@@ -22,8 +22,8 @@ export default async function() {
 	renderer.setViewport(new Vector4(0, 0, viewport[0], viewport[1]));
 	renderer.resize();
 
-	renderer.setScene(await createScene());
 	renderer.setCamera(createCamera(viewport[0] / viewport[1]));
+	renderer.setScene(await createScene());
 
 	document.body.appendChild(canvas);
 	listen(renderer);

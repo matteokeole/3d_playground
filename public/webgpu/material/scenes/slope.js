@@ -1,9 +1,9 @@
-import {Camera, Scene} from "../../../src/index.js";
-import {BoxGeometry, PolytopeGeometry} from "../../../src/Geometry/index.js";
-import {PI, Vector2, Vector3} from "../../../src/math/index.js";
-import {Mesh} from "../../../src/Mesh/index.js";
-import {FIELD_OF_VIEW, PLAYER_COLLISION_HULL} from "../../index.js";
-import {SENSITIVITY} from "../../hl2/main.js";
+import {Camera, Scene} from "../../../../src/index.js";
+import {BoxGeometry, PolytopeGeometry} from "../../../../src/Geometry/index.js";
+import {PI, Vector2, Vector3} from "../../../../src/math/index.js";
+import {Mesh} from "../../../../src/Mesh/index.js";
+import {FIELD_OF_VIEW, PLAYER_COLLISION_HULL} from "../../../index.js";
+import {SENSITIVITY} from "../../../hl2/main.js";
 
 export async function createScene() {
 	const meshes = [];

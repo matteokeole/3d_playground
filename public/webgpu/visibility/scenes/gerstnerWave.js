@@ -1,17 +1,20 @@
-import {Camera, Scene} from "../../../src/index.js";
-import {GridGeometry} from "../../../src/Geometry/index.js";
-import {PI, Vector2, Vector3} from "../../../src/math/index.js";
-import {Mesh} from "../../../src/Mesh/index.js";
-import {SENSITIVITY} from "../../hl2/main.js";
-import {CAMERA_HEIGHT, FIELD_OF_VIEW} from "../../minecraft/main.js";
+import {Camera, Scene} from "../../../../src/index.js";
+import {GridGeometry} from "../../../../src/Geometry/index.js";
+import {PI, Vector2, Vector3} from "../../../../src/math/index.js";
+import {Mesh} from "../../../../src/Mesh/index.js";
+import {SENSITIVITY} from "../../../hl2/main.js";
+import {CAMERA_HEIGHT, FIELD_OF_VIEW} from "../../../minecraft/main.js";
 
 export async function createScene() {
 	const meshes = [];
 
-	const wavePlane = new Mesh(new GridGeometry({
-		size: new Vector2(10, 10),
-		step: 1,
-	}), null);
+	const wavePlane = new Mesh(
+		new GridGeometry({
+			size: new Vector2(10, 10),
+			step: 1,
+		}),
+		null,
+	);
 	meshes.push(wavePlane);
 
 	return new Scene(meshes);
