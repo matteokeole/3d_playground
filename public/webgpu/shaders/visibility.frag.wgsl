@@ -7,17 +7,26 @@ struct Input {
 	@location(1) @interpolate(flat) triangleIndex: u32,
 }
 
+struct VisibilityTexel {
+	uv: vec2u,
+	value: u32,
+	depth: f32,
+	debugValues: vec2u,
+}
+
 const far: f32 = 1000;
 
 @fragment
 fn main(input: Input) {
 	let uv: vec2u = vec2u(input.position.xy);
-	let visibility: u32 = ((input.instanceIndex + 1) << 7) | input.triangleIndex;
+	let value: u32 = ((input.instanceIndex + 1) << 7) | input.triangleIndex;
 	let sampledDepth: f32 = f32(textureLoad(depthTexture, uv).r) / far;
 	let depth: f32 = input.position.w * far;
 
+	let texel: VisibilityTexel = createVisibilityTexel(uv, value, depth);
+
 	if (depth > sampledDepth) {
-		textureStore(visibilityTexture, uv, vec4u(visibility, u32(depth), 0, 1));
+		textureStore(visibilityTexture, uv, vec4u(value, u32(depth), 0, 1));
 		textureStore(depthTexture, uv, vec4u(u32(depth), 0, 0, 1));
 
 		return;
@@ -59,4 +68,23 @@ fn main(input: Input) {
 	*/
 
 	// return vec2u(visibility, depth);
+}
+
+fn writePixel(texture: texture_storage_2d<rg32uint, write>, uv: vec2u, value: u32, depth: u32) {}
+
+fn createVisibilityTexel(uv: vec2u, value: u32, depth: f32) -> VisibilityTexel {
+	var texel: VisibilityTexel;
+	texel.uv = uv;
+	texel.value = value;
+	texel.depth = depth;
+
+	return texel;
+}
+
+fn writeVisibilityTexel(texel: ptr<storage, VisibilityTexel, read_write>) {
+	texel.depth = saturate(texel.depth);
+
+	let depthInt: u32 = u32(texel.depth);
+
+	writePixel(visibilityTexture, texel.uv, texel.value, depthInt);
 }
