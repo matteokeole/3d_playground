@@ -14,6 +14,9 @@ export class Renderer extends WebGPURenderer {
 	 */
 	#meshBindGroups;
 
+	/**
+	 * @param {HTMLCanvasElement} canvas
+	 */
 	constructor(canvas) {
 		super(canvas);
 
@@ -32,7 +35,9 @@ export class Renderer extends WebGPURenderer {
 	setScene(scene) {
 		super.setScene(scene);
 
+		this._textures.depth = this.#createDepthTexture();
 		this._textures.visibility = this.#createVisibilityTexture();
+
 		this._renderPipelines.visibility = this.#createVisibilityRenderPipeline();
 		this._renderPipelines.base = this.#createBaseRenderPipeline();
 	}
@@ -110,6 +115,8 @@ export class Renderer extends WebGPURenderer {
 		this._buffers.indirect = this.#createIndirectBuffer();
 		this._buffers.camera = this.#createCameraUniformBuffer();
 
+		this._bindGroupLayouts.visibility = this.#createVisibilityBindGroupLayout();
+
 		this._bindGroupLayouts.mesh = this.#createMeshBindGroupLayout();
 
 		const geometries = this._scene.getGeometries();
@@ -127,6 +134,8 @@ export class Renderer extends WebGPURenderer {
 		}
 
 		this._bindGroupLayouts.camera = this.#createCameraBindGroupLayout();
+
+		this._bindGroups.visibility = this.#createVisibilityBindGroup();
 
 		this._bindGroups.camera = this.#createCameraBindGroup();
 
@@ -160,7 +169,8 @@ export class Renderer extends WebGPURenderer {
 				entryPoint: "main",
 				targets: [
 					{
-						format: "rg32uint",
+						format: this._preferredCanvasFormat,
+						writeMask: 0,
 					},
 				],
 			},
@@ -170,9 +180,9 @@ export class Renderer extends WebGPURenderer {
 	}
 
 	#createBaseRenderPipeline() {
-		this._bindGroupLayouts.visibility = this.#createVisibilityBindGroupLayout();
+		this._bindGroupLayouts.baseVisibility = this.#createBaseVisibilityBindGroupLayout();
 
-		this._bindGroups.visibility = this.#createVisibilityBindGroup();
+		this._bindGroups.baseVisibility = this.#createBaseVisibilityBindGroup();
 
 		const basePipelineLayout = this.#createBasePipelineLayout();
 
@@ -331,6 +341,53 @@ export class Renderer extends WebGPURenderer {
 		return meshStorageBuffer;
 	}
 
+	#createVisibilityBindGroupLayout() {
+		const visibilityBindGroupLayout = this._device.createBindGroupLayout({
+			label: "Visibility bind group layout",
+			entries: [
+				{
+					binding: 0,
+					visibility: GPUShaderStage.FRAGMENT,
+					storageTexture: {
+						access: "read-write",
+						format: "r32uint",
+					},
+				}, {
+					binding: 1,
+					visibility: GPUShaderStage.FRAGMENT,
+					storageTexture: {
+						access: "write-only",
+						format: "rg32uint",
+					},
+				}, /* {
+					binding: 2,
+					visibility: GPUShaderStage.FRAGMENT,
+					sampler: {},
+				}, */
+			],
+		});
+
+		return visibilityBindGroupLayout;
+	}
+
+	#createBaseVisibilityBindGroupLayout() {
+		const baseVisibilityBindGroupLayout = this._device.createBindGroupLayout({
+			label: "Base visibility bind group layout",
+			entries: [
+				{
+					binding: 0,
+					visibility: GPUShaderStage.FRAGMENT,
+					storageTexture: {
+						access: "read-only",
+						format: "rg32uint",
+					},
+				},
+			],
+		});
+
+		return baseVisibilityBindGroupLayout;
+	}
+
 	#createCameraBindGroupLayout() {
 		const cameraBindGroupLayout = this._device.createBindGroupLayout({
 			label: "Camera bind group layout",
@@ -346,27 +403,6 @@ export class Renderer extends WebGPURenderer {
 		});
 
 		return cameraBindGroupLayout;
-	}
-
-	#createVisibilityBindGroupLayout() {
-		const visibilityBindGroupLayout = this._device.createBindGroupLayout({
-			label: "Visibility bind group layout",
-			entries: [
-				{
-					binding: 0,
-					visibility: GPUShaderStage.FRAGMENT,
-					texture: {
-						sampleType: "uint",
-					},
-				}, {
-					binding: 1,
-					visibility: GPUShaderStage.FRAGMENT,
-					sampler: {},
-				},
-			],
-		});
-
-		return visibilityBindGroupLayout;
 	}
 
 	#createMeshBindGroupLayout() {
@@ -386,6 +422,44 @@ export class Renderer extends WebGPURenderer {
 		return meshBindGroupLayout;
 	}
 
+	#createVisibilityBindGroup() {
+		// const visibilitySampler = this._device.createSampler();
+
+		const visibilityBindGroup = this._device.createBindGroup({
+			label: "Visibility bind group",
+			layout: this._bindGroupLayouts.visibility,
+			entries: [
+				{
+					binding: 0,
+					resource: this._textures.depth.createView(),
+				}, {
+					binding: 1,
+					resource: this._textures.visibility.createView(),
+				}, /* {
+					binding: 2,
+					resource: visibilitySampler,
+				}, */
+			],
+		});
+
+		return visibilityBindGroup;
+	}
+
+	#createBaseVisibilityBindGroup() {
+		const baseVisibilityBindGroup = this._device.createBindGroup({
+			label: "Base visibility bind group",
+			layout: this._bindGroupLayouts.baseVisibility,
+			entries: [
+				{
+					binding: 0,
+					resource: this._textures.visibility.createView(),
+				},
+			],
+		});
+
+		return baseVisibilityBindGroup;
+	}
+
 	#createCameraBindGroup() {
 		const cameraBindGroup = this._device.createBindGroup({
 			label: "Camera bind group",
@@ -401,26 +475,6 @@ export class Renderer extends WebGPURenderer {
 		});
 
 		return cameraBindGroup;
-	}
-
-	#createVisibilityBindGroup() {
-		const visibilitySampler = this._device.createSampler();
-
-		const visibilityBindGroup = this._device.createBindGroup({
-			label: "Visibility bind group",
-			layout: this._bindGroupLayouts.visibility,
-			entries: [
-				{
-					binding: 0,
-					resource: this._textures.visibility.createView(),
-				}, {
-					binding: 1,
-					resource: visibilitySampler,
-				},
-			],
-		});
-
-		return visibilityBindGroup;
 	}
 
 	/**
@@ -449,6 +503,7 @@ export class Renderer extends WebGPURenderer {
 			bindGroupLayouts: [
 				this._bindGroupLayouts.camera,
 				this._bindGroupLayouts.mesh,
+				this._bindGroupLayouts.visibility,
 			],
 		});
 
@@ -459,21 +514,36 @@ export class Renderer extends WebGPURenderer {
 		const basePipelineLayout = this._device.createPipelineLayout({
 			label: "Base pipeline layout",
 			bindGroupLayouts: [
-				this._bindGroupLayouts.visibility,
+				this._bindGroupLayouts.baseVisibility,
 			],
 		});
 
 		return basePipelineLayout;
 	}
 
+	#createDepthTexture() {
+		const depthTexture = this._device.createTexture({
+			label: "Depth texture",
+			size: {
+				width: this._viewport[2],
+				height: this._viewport[3],
+			},
+			format: "r32uint",
+			usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.STORAGE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
+		});
+
+		return depthTexture;
+	}
+
 	#createVisibilityTexture() {
 		const visibilityTexture = this._device.createTexture({
+			label: "Visibility texture",
 			size: {
 				width: this._viewport[2],
 				height: this._viewport[3],
 			},
 			format: "rg32uint",
-			usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
+			usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.STORAGE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
 		});
 
 		return visibilityTexture;
@@ -492,7 +562,7 @@ export class Renderer extends WebGPURenderer {
 		const renderPass = commandEncoder.beginRenderPass({
 			colorAttachments: [
 				{
-					view: this._textures.visibility.createView(),
+					view: this._context.getCurrentTexture().createView(),
 					loadOp: "clear",
 					storeOp: "store",
 				},
@@ -500,6 +570,7 @@ export class Renderer extends WebGPURenderer {
 		});
 		renderPass.setPipeline(this._renderPipelines.visibility);
 		renderPass.setBindGroup(0, this._bindGroups.camera);
+		renderPass.setBindGroup(2, this._bindGroups.visibility);
 		renderPass.setVertexBuffer(0, this._buffers.vertex);
 		renderPass.setIndexBuffer(this._buffers.index, "uint16");
 
@@ -536,7 +607,7 @@ export class Renderer extends WebGPURenderer {
 			],
 		});
 		renderPass.setPipeline(this._renderPipelines.base);
-		renderPass.setBindGroup(0, this._bindGroups.visibility);
+		renderPass.setBindGroup(0, this._bindGroups.baseVisibility);
 		renderPass.draw(6);
 		renderPass.end();
 	}
