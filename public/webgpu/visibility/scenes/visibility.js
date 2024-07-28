@@ -1,9 +1,9 @@
-import {Camera, Scene} from "../../../src/index.js";
-import {PolytopeGeometry} from "../../../src/Geometry/index.js";
-import {PI, Vector2, Vector3} from "../../../src/math/index.js";
-import {Mesh} from "../../../src/Mesh/index.js";
-import {SENSITIVITY} from "../../hl2/main.js";
-import {FIELD_OF_VIEW} from "../../index.js";
+import {Camera, Scene} from "../../../../src/index.js";
+import {PolytopeGeometry} from "../../../../src/Geometry/index.js";
+import {PI, Vector2, Vector3} from "../../../../src/math/index.js";
+import {Mesh} from "../../../../src/Mesh/index.js";
+import {SENSITIVITY} from "../../../hl2/main.js";
+import {FIELD_OF_VIEW} from "../../../index.js";
 
 const polytopeGeometry = new PolytopeGeometry({
 	vertices: Float32Array.of(

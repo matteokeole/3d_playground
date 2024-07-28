@@ -1,5 +1,5 @@
-import {Vector2} from "../../src/math/index.js";
-import {Renderer} from "../../src/Renderer/index.js";
+import {Vector2} from "../../../src/math/index.js";
+import {Renderer} from "../../../src/Renderer/index.js";
 
 const movement = new Vector2();
 

@@ -1,5 +1,5 @@
-import {Debugger} from "../../src/index.js";
-import {Vector2, Vector4} from "../../src/math/index.js";
+import {Debugger} from "../../../src/index.js";
+import {Vector2, Vector4} from "../../../src/math/index.js";
 import {listen} from "./input.js";
 import {Instance} from "./Instance.js";
 import {Renderer} from "./Renderer.js";

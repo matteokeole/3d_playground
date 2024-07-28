@@ -1,7 +1,7 @@
-import {Scene} from "../../src/index.js";
-import {ShaderLoader} from "../../src/Loader/index.js";
-import {Mesh} from "../../src/Mesh/index.js";
-import {WebGPURenderer} from "../../src/Renderer/index.js";
+import {Scene} from "../../../src/index.js";
+import {ShaderLoader} from "../../../src/Loader/index.js";
+import {Mesh} from "../../../src/Mesh/index.js";
+import {WebGPURenderer} from "../../../src/Renderer/index.js";
 
 export class Renderer extends WebGPURenderer {
 	/**
@@ -83,12 +83,12 @@ export class Renderer extends WebGPURenderer {
 		const shaderLoader = new ShaderLoader();
 
 		// Visibility
-		const visibilityVertexShaderSource = await shaderLoader.load("public/webgpu/shaders/visibility.vert.wgsl");
-		const visibilityFragmentShaderSource = await shaderLoader.load("public/webgpu/shaders/visibility.frag.wgsl");
+		const visibilityVertexShaderSource = await shaderLoader.load("public/webgpu/visibility/shaders/visibility.vert.wgsl");
+		const visibilityFragmentShaderSource = await shaderLoader.load("public/webgpu/visibility/shaders/visibility.frag.wgsl");
 
 		// Base
-		const baseVertexShaderSource = await shaderLoader.load("public/webgpu/shaders/base.vert.wgsl");
-		const baseFragmentShaderSource = await shaderLoader.load("public/webgpu/shaders/base.frag.wgsl");
+		const baseVertexShaderSource = await shaderLoader.load("public/webgpu/visibility/shaders/base.vert.wgsl");
+		const baseFragmentShaderSource = await shaderLoader.load("public/webgpu/visibility/shaders/base.frag.wgsl");
 
 		this._shaderModules.visibilityVertex = this.#createShaderModule("Visibility vertex shader", visibilityVertexShaderSource);
 		this._shaderModules.visibilityFragment = this.#createShaderModule("Visibility fragment shader", visibilityFragmentShaderSource);

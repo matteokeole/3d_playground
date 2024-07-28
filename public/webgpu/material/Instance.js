@@ -1,10 +1,8 @@
-import {Instance as _Instance, Camera} from "../../src/index.js";
-import {EPA, GJK} from "../../src/Algorithm/index.js";
-import {Vector3} from "../../src/math/index.js";
-import {Mesh} from "../../src/Mesh/Mesh.js";
+import {Instance as _Instance, Camera} from "../../../src/index.js";
+import {EPA, GJK} from "../../../src/Algorithm/index.js";
+import {Vector3} from "../../../src/math/index.js";
+import {Mesh} from "../../../src/Mesh/Mesh.js";
 import {keys} from "./input.js";
-
-const VELOCITY = .2;
 
 export class Instance extends _Instance {
 	_update() {
@@ -21,7 +19,7 @@ export class Instance extends _Instance {
 			keys.KeyW + keys.KeyS,
 		);
 		direction.normalize();
-		direction.multiplyScalar(VELOCITY);
+		direction.multiplyScalar(1.8);
 
 		const relativeVelocity = camera.getRelativeVelocity(direction);
 
