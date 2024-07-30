@@ -191,6 +191,18 @@ export class Renderer extends WebGPURenderer {
 				targets: [
 					{
 						format: this._preferredCanvasFormat,
+						blend: {
+							color: {
+								operation: "add",
+								srcFactor: "src-alpha",
+								dstFactor: "one-minus-src-alpha",
+							},
+							alpha: {
+								operation: "add",
+								srcFactor: "src-alpha",
+								dstFactor: "one-minus-src-alpha",
+							},
+						},
 					},
 				],
 			},
@@ -418,6 +430,14 @@ export class Renderer extends WebGPURenderer {
 					visibility: GPUShaderStage.FRAGMENT,
 					storageTexture: {
 						access: "read-only",
+						format: "r32uint",
+					},
+				},
+				{
+					binding: 1,
+					visibility: GPUShaderStage.FRAGMENT,
+					storageTexture: {
+						access: "read-only",
 						format: "rg32uint",
 					},
 				},
@@ -513,6 +533,10 @@ export class Renderer extends WebGPURenderer {
 			entries: [
 				{
 					binding: 0,
+					resource: this._textures.depth.createView(),
+				},
+				{
+					binding: 1,
 					resource: this._textures.visibility.createView(),
 				},
 			],

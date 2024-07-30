@@ -20,11 +20,9 @@ const far: f32 = 1000;
 fn main(input: Input) {
 	let uv: vec2u = vec2u(input.position.xy);
 
-	let visibility: u32 = ((input.instanceIndex + 1) << 7) | input.triangleIndex;
+	let value: u32 = ((input.instanceIndex + 1) << 7) | input.triangleIndex;
 
-	textureStore(visibilityTexture, uv, vec4u(visibility, 0, 0, 1));
-
-	/* let sampledDepth: f32 = f32(textureLoad(depthTexture, uv).r) / far;
+	let sampledDepth: f32 = f32(textureLoad(depthTexture, uv).r) / far;
 	let depth: f32 = input.position.w * far;
 
 	let texel: VisibilityTexel = createVisibilityTexel(uv, value, depth);
@@ -34,7 +32,7 @@ fn main(input: Input) {
 		textureStore(depthTexture, uv, vec4u(u32(depth), 0, 0, 1));
 
 		return;
-	} */
+	}
 
 	// float4 SvPosition = float4(In.Position.xy, In.ClipZW.x / In.ClipZW.y, In.ClipZW.y);
 	// InterlockedMax = atomicMax
