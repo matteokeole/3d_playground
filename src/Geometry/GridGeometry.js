@@ -1,4 +1,5 @@
-import {Vector2, Vector3} from "../math/index.js";
+import {Matrix4, Vector2, Vector3} from "../math/index.js";
+import {Geometry} from "./Geometry.js";
 
 /**
  * @typedef {Object} GridGeometryDescriptor
@@ -6,24 +7,18 @@ import {Vector2, Vector3} from "../math/index.js";
  * @property {Number} step
  */
 
-export class GridGeometry {
-	#vertices;
-	#indices;
-
+export class GridGeometry extends Geometry {
 	/**
 	 * @param {GridGeometryDescriptor} descriptor
 	 */
-	constructor(descriptor) {
+	static #calculateVerticesAndIndices(descriptor) {
 		const size = descriptor.size;
 		const step = descriptor.step;
 
 		const halfSize = new Vector2(size).divideScalar(2);
 		const negatedHalfSize = new Vector2(halfSize).multiplyScalar(-1);
 		const vertexCount = new Vector2(size).divideScalar(step).addScalar(1);
-		const triangleCount = new Vector2(vertexCount[0] - 1, vertexCount[1] - 1).multiplyScalar(2);
-
 		const vertices = new Float32Array(vertexCount[0] * vertexCount[1] * 3);
-		const indices = new Uint8Array(triangleCount[0] * triangleCount[1] * 2);
 
 		for (let z = halfSize[1], i = 0; z >= negatedHalfSize[0]; z -= step, i++) {
 			for (let x = negatedHalfSize[0], j = 0; x <= halfSize[0]; x += step, j++) {
@@ -48,17 +43,50 @@ export class GridGeometry {
 			}
 		}
 
-		indices.set(indexArray);
+		const indices = new Uint8Array(indexArray);
 
-		this.#vertices = vertices;
-		this.#indices = indices;
+		return {
+			vertices,
+			indices,
+		};
 	}
 
-	getVertices() {
-		return this.#vertices;
+	/**
+	 * @param {GridGeometryDescriptor} descriptor
+	 */
+	constructor(descriptor) {
+		super({
+			...GridGeometry.#calculateVerticesAndIndices(descriptor),
+			normals: Float32Array.of(),
+			tangents: Float32Array.of(),
+			uvs: Float32Array.of(),
+		});
 	}
 
-	getIndices() {
-		return this.#indices;
+	/**
+	 * Returns the point on the geometry
+	 * that is the farthest in the direction of D.
+	 * 
+	 * @abstract
+	 * @param {Vector3} D Direction vector
+	 * @param {Matrix4} p Mesh projection matrix
+	 * @returns {Vector3}
+	 */
+	support(D, p) {
+		const vertices = this.getVertices();
+		const support = new Vector3(0, 0, 0);
+		let maxDot = Number.NEGATIVE_INFINITY;
+
+		for (let i = 0; i < vertices.length; i += 3) {
+			const vertex = new Vector3(...vertices.subarray(i, i + 3)).multiplyMatrix(p);
+			const dot = vertex.dot(D);
+
+			if (dot > maxDot) {
+				maxDot = dot;
+				support.set(vertex);
+			}
+		}
+
+		return support;
 	}
 }

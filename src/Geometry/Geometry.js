@@ -143,6 +143,10 @@ export class Geometry {
 		return this._uvs;
 	}
 
+	getTriangleCount() {
+		return this._indices.length / 3;
+	}
+
 	/**
 	 * Returns the point on the geometry
 	 * that is the farthest in the direction of D.

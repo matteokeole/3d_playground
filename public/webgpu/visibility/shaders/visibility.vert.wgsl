@@ -1,8 +1,13 @@
 @group(0) @binding(0) var<storage> vertexBuffer: array<f32>;
 @group(0) @binding(1) var<storage> indexBuffer: array<u32>;
+@group(0) @binding(2) var<storage> geometry: Geometry;
 @group(1) @binding(0) var<storage> instances: array<Mesh>;
 @group(2) @binding(0) var<uniform> camera: Camera;
 // @group() @binding() var<storage> rasterBinData: array<vec2u>;
+
+struct Geometry {
+	triangleCount: u32,
+}
 
 struct Mesh {
 	projection: mat4x4f,
@@ -38,7 +43,7 @@ fn main(input: Input) -> Output {
 	let vertex: vec4f = fetchVertex(index);
 
 	let instanceTriangleIndex: u32 = input.vertexIndex / 3;
-	let triangleOffset: u32 = input.instanceIndex * geometryTriangleCount;
+	let triangleOffset: u32 = input.instanceIndex * geometry.triangleCount;
 	let triangleIndex: u32 = triangleOffset + instanceTriangleIndex;
 
 	let instanceProjection: mat4x4f = instances[input.instanceIndex].projection;
