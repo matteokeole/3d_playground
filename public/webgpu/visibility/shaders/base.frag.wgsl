@@ -28,6 +28,10 @@ fn main(input: Input) -> @location(0) vec4f {
 	unpackVisibilityTexel(visibilityTexel, &instanceIndex, &triangleIndex, &depth);
 
 	if (DEBUG_MODE == VISUALIZE_MASK) {
+		return visualizeTriangles(triangleIndex);
+	}
+
+	if (DEBUG_MODE == VISUALIZE_MASK) {
 		return visualizeMask(uv);
 	}
 
@@ -104,6 +108,27 @@ fn applyWireframeFilter(PixelPosXY: vec2i, DepthInt: u32, WireColor: vec3f) -> v
 	return saturate(WireColor * Wireframe);
 }
 
+fn visualizeTriangles(triangleIndex: u32) -> vec4f {
+	// UlongType DbgPixel = DbgBuffer64[PixelPos];
+	// uint DebugDepthInt;
+	// uint DebugValueMax;
+	// UnpackDbgPixel(DbgPixel, DebugDepthInt, DebugValueMax);
+
+	var triIndex: u32 = triangleIndex;
+
+	let subPatch: u32 = BitFieldExtractU32(DebugValueMax, 8, 8);
+	let microTri: u32 = BitFieldExtractU32(DebugValueMax, 8, 16);
+
+	if (MicroTri != 0) {
+		TriIndex = murmurHash(triIndex, subPatch);
+		TriIndex = murmurHash(triIndex, microTri);
+	}
+
+	let color: vec3f = intToColor(triangleIndex) * 0.8 + 0.2;
+
+	return vec4f(color, 1);
+}
+
 fn visualizeMask(uv: vec2u) -> vec4f {
 	let depth: u32 = textureLoad(depthTexture, uv).r;
 
@@ -111,5 +136,31 @@ fn visualizeMask(uv: vec2u) -> vec4f {
 		return vec4f(0, 0, 0, 0);
 	}
 
-	return vec4f(1, 0, 0, .5);
+	return vec4f(0, 1, 0, .5);
+}
+
+fn intToColor(int: u32) -> vec3f {
+	return vec3f(
+		f32((int >> 16) & 0xff),
+		f32((int >> 8) & 0xff),
+		f32(int & 0xff),
+	);
+}
+
+fn murmurHash(seed: u32) -> u32 {
+	const M: u32 = 0x5bd1e995u;
+	var h: u32 = 1190494759u;
+	var src: u32 = seed;
+
+	src *= M;
+	src ^= src >> 24u;
+	src *= M;
+
+	h *= M;
+	h ^= src;
+	h ^= h >> 13u;
+	h *= M;
+	h ^= h >> 15u;
+
+	return h;
 }
