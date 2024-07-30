@@ -16,11 +16,7 @@ fn main(input: Input) -> @location(0) vec4f {
 	let triangleIndex: u32 = visibility.r & 0x7f;
 	let depth: f32 = f32(visibility.g) / far;
 
-	if (depth == 0) {
-		discard;
-	}
-
-	return vec4f(depth);
+	return vec4f(f32(triangleIndex) / 6);
 }
 
 /* void UnpackVisPixel(
