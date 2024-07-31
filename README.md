@@ -38,6 +38,7 @@ Add the following to `jsconfig.json`:
 {
 	"compilerOptions": {
 		"checkJs": true,
+		"module": "ESNext",
 		"target": "ESNext",
 		"typeRoots": [
 			"<home directory>/node_modules/@webgpu/types"

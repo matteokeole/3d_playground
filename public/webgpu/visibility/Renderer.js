@@ -37,6 +37,7 @@ export class Renderer extends WebGPURenderer {
 
 		this._textures.depth = this.#createDepthTexture();
 		this._textures.visibility = this.#createVisibilityTexture();
+		this._textures.debug = this.#createDebugTexture();
 
 		this._renderPipelines.visibility = this.#createVisibilityRenderPipeline();
 		this._renderPipelines.base = this.#createBaseRenderPipeline();
@@ -415,6 +416,14 @@ export class Renderer extends WebGPURenderer {
 						format: "rg32uint",
 					},
 				},
+				{
+					binding: 2,
+					visibility: GPUShaderStage.FRAGMENT,
+					storageTexture: {
+						access: "write-only",
+						format: "r32uint",
+					},
+				},
 			],
 		});
 
@@ -439,6 +448,14 @@ export class Renderer extends WebGPURenderer {
 					storageTexture: {
 						access: "read-only",
 						format: "rg32uint",
+					},
+				},
+				{
+					binding: 2,
+					visibility: GPUShaderStage.FRAGMENT,
+					storageTexture: {
+						access: "read-only",
+						format: "r32uint",
 					},
 				},
 			],
@@ -510,15 +527,20 @@ export class Renderer extends WebGPURenderer {
 
 	#createVisibilityBindGroup() {
 		const visibilityBindGroup = this._device.createBindGroup({
-			label: "Visibility bind group",
+			label: "Visibility",
 			layout: this._bindGroupLayouts.visibility,
 			entries: [
 				{
 					binding: 0,
 					resource: this._textures.depth.createView(),
-				}, {
+				},
+				{
 					binding: 1,
 					resource: this._textures.visibility.createView(),
+				},
+				{
+					binding: 2,
+					resource: this._textures.debug.createView(),
 				},
 			],
 		});
@@ -528,7 +550,7 @@ export class Renderer extends WebGPURenderer {
 
 	#createBaseVisibilityBindGroup() {
 		const baseVisibilityBindGroup = this._device.createBindGroup({
-			label: "Base visibility bind group",
+			label: "Base visibility",
 			layout: this._bindGroupLayouts.baseVisibility,
 			entries: [
 				{
@@ -538,6 +560,10 @@ export class Renderer extends WebGPURenderer {
 				{
 					binding: 1,
 					resource: this._textures.visibility.createView(),
+				},
+				{
+					binding: 2,
+					resource: this._textures.debug.createView(),
 				},
 			],
 		});
@@ -609,7 +635,7 @@ export class Renderer extends WebGPURenderer {
 
 	#createDepthTexture() {
 		const depthTexture = this._device.createTexture({
-			label: "Depth texture",
+			label: "Depth",
 			size: {
 				width: this._viewport[2],
 				height: this._viewport[3],
@@ -623,7 +649,7 @@ export class Renderer extends WebGPURenderer {
 
 	#createVisibilityTexture() {
 		const visibilityTexture = this._device.createTexture({
-			label: "Visibility texture",
+			label: "Visibility",
 			size: {
 				width: this._viewport[2],
 				height: this._viewport[3],
@@ -633,6 +659,20 @@ export class Renderer extends WebGPURenderer {
 		});
 
 		return visibilityTexture;
+	}
+
+	#createDebugTexture() {
+		const debugTexture = this._device.createTexture({
+			label: "Debug",
+			size: {
+				width: this._viewport[2],
+				height: this._viewport[3],
+			},
+			format: "r32uint",
+			usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.STORAGE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
+		});
+
+		return debugTexture;
 	}
 
 	#writeCameraBuffer() {

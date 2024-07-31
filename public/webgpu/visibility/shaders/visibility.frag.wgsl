@@ -1,5 +1,6 @@
 @group(3) @binding(0) var depthTexture: texture_storage_2d<r32uint, read_write>;
 @group(3) @binding(1) var visibilityTexture: texture_storage_2d<rg32uint, write>;
+@group(3) @binding(2) var debugTexture: texture_storage_2d<r32uint, write>;
 
 struct Input {
 	@builtin(position) position: vec4f,
@@ -26,54 +27,28 @@ fn main(input: Input) {
 	let sampledDepth: f32 = f32(textureLoad(depthTexture, uv).r) / far;
 	let depth: f32 = input.position.w * far;
 
-	let texel: VisibilityTexel = createVisibilityTexel(uv, value, depth);
+	var texel: VisibilityTexel = createVisibilityTexel(uv, value, depth);
+
+	texel.visualizationValues = getVisualizationValues(1, 0, 0);
 
 	if (depth > sampledDepth) {
-		textureStore(visibilityTexture, uv, vec4u(value, u32(depth), 0, 1));
-		textureStore(depthTexture, uv, vec4u(u32(depth), 0, 0, 1));
+		writeTexel(&texel);
 
 		return;
 	}
-
-	// float4 SvPosition = float4(In.Position.xy, In.ClipZW.x / In.ClipZW.y, In.ClipZW.y);
-	// InterlockedMax = atomicMax
-	// atomicMax(visibilityTexture[0]);
-
-	// let uv: vec2u = vec2u(input.position.xy);
-	// let visibility: vec2u = textureLoad(visibilityTexture, uv, 0).xy;
-	// let previousDepth: u32 = visibility.y;
-	// let visibility
-	// visibilityTexture[uv] = 2;
-
-	// let depth: u32 = u32(input.position.w * far);
-
-	// Write
-	// - WritePixel( OutVisBuffer64, Value, Position, DepthInt );
-	// - WritePixel( OutDbgBuffer64, VisualizeValues.x, Position, DepthInt );
-
-	// WriteOverdraw
-	// - InterlockedAdd(OutDbgBuffer32[Position], VisualizeValues.y);
-
-	/*
-	void WritePixel(
-		RWTexture2D<UlongType> OutBuffer,
-		uint PixelValue,
-		uint2 PixelPos,
-		uint DepthInt
-	) {
-		#if DEPTH_ONLY
-			InterlockedMax( OutDepthBuffer[ PixelPos ], DepthInt );
-		#elif COMPILER_SUPPORTS_UINT64_IMAGE_ATOMICS
-			const UlongType Pixel = PackUlongType(uint2(PixelValue, DepthInt));
-			ImageInterlockedMaxUInt64(OutBuffer, PixelPos, Pixel);
-		#endif
-	}
-	*/
-
-	// return vec2u(visibility, depth);
 }
 
-fn writePixel(texture: texture_storage_2d<rg32uint, write>, uv: vec2u, value: u32, depth: u32) {}
+fn writeVisibilityTexel(uv: vec2u, visibility: u32, depth: u32) {
+	textureStore(visibilityTexture, uv, vec4u(visibility, depth, 0, 1));
+}
+
+fn writeDepthTexel(uv: vec2u, depth: u32) {
+	textureStore(depthTexture, uv, vec4u(depth, 0, 0, 1));
+}
+
+fn writeDebugTexel(uv: vec2u, debug: u32) {
+	textureStore(debugTexture, uv, vec4u(debug, 0, 0, 1));
+}
 
 fn createVisibilityTexel(uv: vec2u, value: u32, depth: f32) -> VisibilityTexel {
 	var texel: VisibilityTexel;
@@ -84,25 +59,24 @@ fn createVisibilityTexel(uv: vec2u, value: u32, depth: f32) -> VisibilityTexel {
 	return texel;
 }
 
-fn writeVisibilityTexel(texel: ptr<storage, VisibilityTexel, read_write>) {
+fn writeTexel(texel: ptr<function, VisibilityTexel>) {
 	texel.depth = saturate(texel.depth);
 
 	let depthInt: u32 = u32(texel.depth);
 
-	writePixel(visibilityTexture, texel.uv, texel.value, depthInt);
-	writePixel(debugTexture, texel.uv, texel.visualizationValues.x, depthInt);
-}
-
-fn getVisualizationValues() -> vec2u {
-	return getVisualizationValues(1, 0, 0);
+	writeVisibilityTexel(texel.uv, texel.value, depthInt);
+	writeDepthTexel(texel.uv, depthInt);
+	writeDebugTexel(texel.uv, texel.visualizationValues.x);
 }
 
 fn getVisualizationValues(addValue: u32, subPatch: u32, microTri: u32) -> vec2u {
 	var visualizationValueMax: u32 = 1;
 	let visualizationValueAdd: u32 = addValue;
 
-	visualizationValueMax |= (subPatch & Oxff) << 8;
-	visualizationValueMax |= (microTri & Oxff) << 16;
+	visualizationValueMax |= pack2x16unorm(vec2f(
+		f32(subPatch & 0xff),
+		f32(microTri & 0xff),
+	));
 
-	return vec2u(visualizeValueMax, visualizeValueAdd);
+	return vec2u(visualizationValueMax, visualizationValueAdd);
 }

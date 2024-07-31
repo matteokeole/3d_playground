@@ -1,5 +1,6 @@
 @group(0) @binding(0) var depthTexture: texture_storage_2d<r32uint, read>;
 @group(0) @binding(1) var visibilityTexture: texture_storage_2d<rg32uint, read>;
+@group(0) @binding(2) var debugTexture: texture_storage_2d<r32uint, read>;
 
 struct Input {
 	@builtin(position) position: vec4f,
@@ -14,7 +15,10 @@ struct VisibilityTexel {
 
 const WIRE_COLOR: vec3f = vec3f(1, .2, 0);
 const VISUALIZE_MASK: u32 = 0;
-const DEBUG_MODE: u32 = VISUALIZE_MASK;
+const VISUALIZE_TRIANGLES: u32 = 1;
+const VISUALIZE_PATCHES: u32 = 2;
+const VISUALIZE_INSTANCES: u32 = 3;
+const DEBUG_MODE: u32 = VISUALIZE_PATCHES;
 
 @fragment
 fn main(input: Input) -> @location(0) vec4f {
@@ -27,15 +31,29 @@ fn main(input: Input) -> @location(0) vec4f {
 
 	unpackVisibilityTexel(visibilityTexel, &instanceIndex, &triangleIndex, &depth);
 
-	if (DEBUG_MODE == VISUALIZE_MASK) {
-		return visualizeTriangles(triangleIndex);
+	if (depth == 0) {
+		return vec4f(0, 0, 0, 1);
+	}
+
+	let debugValueMax: u32 = textureLoad(debugTexture, uv).x;
+
+	if (DEBUG_MODE == VISUALIZE_TRIANGLES) {
+		return visualizeTriangles(triangleIndex, debugValueMax);
+	}
+
+	if (DEBUG_MODE == VISUALIZE_PATCHES) {
+		return visualizePatches(triangleIndex);
+	}
+
+	if (DEBUG_MODE == VISUALIZE_INSTANCES) {
+		return visualizeInstances(instanceIndex);
 	}
 
 	if (DEBUG_MODE == VISUALIZE_MASK) {
 		return visualizeMask(uv);
 	}
 
-	return vec4f(0);
+	return vec4f(0, 0, 0, 1);
 }
 
 fn unpackVisibilityTexel(visibilityTexel: vec2u, instanceIndex: ptr<function, u32>, triangleIndex: ptr<function, u32>, depth: ptr<function, u32>) {
@@ -44,6 +62,9 @@ fn unpackVisibilityTexel(visibilityTexel: vec2u, instanceIndex: ptr<function, u3
 	*depth = visibilityTexel.g;
 }
 
+/**
+ * Colored wireframe with Sobel edge detection
+ */
 fn applyWireframeFilter(PixelPosXY: vec2i, DepthInt: u32, WireColor: vec3f) -> vec3f {
 	// Sobel edge detect depth
 	let SobelX: array<i32, 9> = array(
@@ -108,27 +129,6 @@ fn applyWireframeFilter(PixelPosXY: vec2i, DepthInt: u32, WireColor: vec3f) -> v
 	return saturate(WireColor * Wireframe);
 }
 
-fn visualizeTriangles(triangleIndex: u32) -> vec4f {
-	// UlongType DbgPixel = DbgBuffer64[PixelPos];
-	// uint DebugDepthInt;
-	// uint DebugValueMax;
-	// UnpackDbgPixel(DbgPixel, DebugDepthInt, DebugValueMax);
-
-	var triIndex: u32 = triangleIndex;
-
-	let subPatch: u32 = BitFieldExtractU32(DebugValueMax, 8, 8);
-	let microTri: u32 = BitFieldExtractU32(DebugValueMax, 8, 16);
-
-	if (MicroTri != 0) {
-		TriIndex = murmurHash(triIndex, subPatch);
-		TriIndex = murmurHash(triIndex, microTri);
-	}
-
-	let color: vec3f = intToColor(triangleIndex) * 0.8 + 0.2;
-
-	return vec4f(color, 1);
-}
-
 fn visualizeMask(uv: vec2u) -> vec4f {
 	let depth: u32 = textureLoad(depthTexture, uv).r;
 
@@ -139,28 +139,69 @@ fn visualizeMask(uv: vec2u) -> vec4f {
 	return vec4f(0, 1, 0, .5);
 }
 
-fn intToColor(int: u32) -> vec3f {
-	return vec3f(
-		f32((int >> 16) & 0xff),
-		f32((int >> 8) & 0xff),
-		f32(int & 0xff),
-	);
+fn visualizeTriangles(triangleIndex: u32, debugValueMax: u32) -> vec4f {
+	var triIndex: u32 = triangleIndex;
+
+	let subPatchAndMicroTri: vec2u = vec2u(unpack2x16unorm(debugValueMax));
+	let subPatch: u32 = subPatchAndMicroTri.x;
+	let microTri: u32 = subPatchAndMicroTri.y;
+
+	if (microTri != 0) {
+		triIndex = murmurAdd(triIndex, subPatch);
+		triIndex = murmurAdd(triIndex, microTri);
+	}
+
+	let color: vec3f = intToColor(triIndex) * 0.8 + 0.2;
+
+	return vec4f(color, 1);
 }
 
-fn murmurHash(seed: u32) -> u32 {
-	const M: u32 = 0x5bd1e995u;
-	var h: u32 = 1190494759u;
-	var src: u32 = seed;
+fn visualizePatches(triangleIndex: u32) -> vec4f {
+	let color: vec3f = intToColor(triangleIndex) * 0.8 + 0.2;
 
-	src *= M;
-	src ^= src >> 24u;
-	src *= M;
+	return vec4f(color, 1);
+}
 
-	h *= M;
-	h ^= src;
-	h ^= h >> 13u;
-	h *= M;
-	h ^= h >> 15u;
+fn visualizeInstances(instanceIndex: u32) -> vec4f {
+	let color: vec3f = intToColor(instanceIndex) * 0.8 + 0.2;
 
-	return h;
+	return vec4f(color, 1);
+}
+
+fn intToColor(int: u32) -> vec3f {
+	var hash: u32 = murmurMix(int);
+	var color: vec3f = vec3f(
+		f32((hash >>  0) & 255),
+		f32((hash >>  8) & 255),
+		f32((hash >> 16) & 255),
+	);
+
+	return color * (1.0f / 255.0f);
+}
+
+fn murmurAdd(_hash: u32, _element: u32) -> u32 {
+	var hash: u32 = _hash;
+	var element: u32 = _element;
+
+	element *= 0xcc9e2d51;
+	element = (element << 15) | (element >> (32 - 15));
+	element *= 0x1b873593;
+
+	hash ^= element;
+	hash = (hash << 13) | (hash >> (32 - 13));
+	hash = hash * 5 + 0xe6546b64;
+
+	return hash;
+}
+
+fn murmurMix(_hash: u32) -> u32 {
+	var hash: u32 = _hash;
+
+	hash ^= hash >> 16;
+	hash *= 0x85ebca6b;
+	hash ^= hash >> 13;
+	hash *= 0xc2b2ae35;
+	hash ^= hash >> 16;
+
+	return hash;
 }
