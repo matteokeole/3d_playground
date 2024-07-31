@@ -12,6 +12,7 @@ struct VisibilityTexel {
 	value: u32,
 	depth: f32,
 	debugValues: vec2u,
+	visualizationValues: vec2u,
 }
 
 const far: f32 = 1000;
@@ -89,4 +90,19 @@ fn writeVisibilityTexel(texel: ptr<storage, VisibilityTexel, read_write>) {
 	let depthInt: u32 = u32(texel.depth);
 
 	writePixel(visibilityTexture, texel.uv, texel.value, depthInt);
+	writePixel(debugTexture, texel.uv, texel.visualizationValues.x, depthInt);
+}
+
+fn getVisualizationValues() -> vec2u {
+	return getVisualizationValues(1, 0, 0);
+}
+
+fn getVisualizationValues(addValue: u32, subPatch: u32, microTri: u32) -> vec2u {
+	var visualizationValueMax: u32 = 1;
+	let visualizationValueAdd: u32 = addValue;
+
+	visualizationValueMax |= (subPatch & Oxff) << 8;
+	visualizationValueMax |= (microTri & Oxff) << 16;
+
+	return vec2u(visualizeValueMax, visualizeValueAdd);
 }
