@@ -1,6 +1,5 @@
 @group(0) @binding(0) var depthTexture: texture_storage_2d<r32uint, read>;
 @group(0) @binding(1) var visibilityTexture: texture_storage_2d<rg32uint, read>;
-@group(0) @binding(2) var debugTexture: texture_storage_2d<r32uint, read>;
 
 struct Input {
 	@builtin(position) position: vec4f,
@@ -10,20 +9,17 @@ struct VisibilityTexel {
 	uv: vec2u,
 	value: u32,
 	depth: f32,
-	debugValues: vec2u,
 }
 
 const WIRE_COLOR: vec3f = vec3f(1, .2, 0);
 const VISUALIZE_MASK: u32 = 0;
 const VISUALIZE_TRIANGLES: u32 = 1;
-const VISUALIZE_PATCHES: u32 = 2;
-const VISUALIZE_INSTANCES: u32 = 3;
-const DEBUG_MODE: u32 = VISUALIZE_PATCHES;
+const VISUALIZE_INSTANCES: u32 = 2;
+const DEBUG_MODE: u32 = VISUALIZE_TRIANGLES;
 
 @fragment
 fn main(input: Input) -> @location(0) vec4f {
 	let uv: vec2u = vec2u(input.position.xy);
-
 	let visibilityTexel: vec2u = textureLoad(visibilityTexture, uv).xy;
 	var instanceIndex: u32 = 0;
 	var triangleIndex: u32 = 0;
@@ -35,14 +31,8 @@ fn main(input: Input) -> @location(0) vec4f {
 		return vec4f(0, 0, 0, 1);
 	}
 
-	let debugValueMax: u32 = textureLoad(debugTexture, uv).x;
-
 	if (DEBUG_MODE == VISUALIZE_TRIANGLES) {
-		return visualizeTriangles(triangleIndex, debugValueMax);
-	}
-
-	if (DEBUG_MODE == VISUALIZE_PATCHES) {
-		return visualizePatches(triangleIndex);
+		return visualizeTriangles(triangleIndex);
 	}
 
 	if (DEBUG_MODE == VISUALIZE_INSTANCES) {
@@ -139,24 +129,7 @@ fn visualizeMask(uv: vec2u) -> vec4f {
 	return vec4f(0, 1, 0, .5);
 }
 
-fn visualizeTriangles(triangleIndex: u32, debugValueMax: u32) -> vec4f {
-	var triIndex: u32 = triangleIndex;
-
-	let subPatchAndMicroTri: vec2u = vec2u(unpack2x16unorm(debugValueMax));
-	let subPatch: u32 = subPatchAndMicroTri.x;
-	let microTri: u32 = subPatchAndMicroTri.y;
-
-	if (microTri != 0) {
-		triIndex = murmurAdd(triIndex, subPatch);
-		triIndex = murmurAdd(triIndex, microTri);
-	}
-
-	let color: vec3f = intToColor(triIndex) * 0.8 + 0.2;
-
-	return vec4f(color, 1);
-}
-
-fn visualizePatches(triangleIndex: u32) -> vec4f {
+fn visualizeTriangles(triangleIndex: u32) -> vec4f {
 	let color: vec3f = intToColor(triangleIndex) * 0.8 + 0.2;
 
 	return vec4f(color, 1);
@@ -177,21 +150,6 @@ fn intToColor(int: u32) -> vec3f {
 	);
 
 	return color * (1.0f / 255.0f);
-}
-
-fn murmurAdd(_hash: u32, _element: u32) -> u32 {
-	var hash: u32 = _hash;
-	var element: u32 = _element;
-
-	element *= 0xcc9e2d51;
-	element = (element << 15) | (element >> (32 - 15));
-	element *= 0x1b873593;
-
-	hash ^= element;
-	hash = (hash << 13) | (hash >> (32 - 13));
-	hash = hash * 5 + 0xe6546b64;
-
-	return hash;
 }
 
 fn murmurMix(_hash: u32) -> u32 {
