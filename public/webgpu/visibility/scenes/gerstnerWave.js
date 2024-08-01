@@ -10,7 +10,7 @@ export async function createScene() {
 
 	const wavePlane = new Mesh(
 		new GridGeometry({
-			size: new Vector2(16, 16),
+			size: new Vector2(24, 24),
 			step: 1,
 		}),
 		null,

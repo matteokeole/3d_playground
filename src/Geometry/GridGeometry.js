@@ -12,42 +12,45 @@ export class GridGeometry extends Geometry {
 	 * @param {GridGeometryDescriptor} descriptor
 	 */
 	static #calculateVerticesAndIndices(descriptor) {
-		const size = descriptor.size;
+		const [columnCount, rowCount] = descriptor.size;
+		const w = columnCount + 1;
+		const h = rowCount + 1;
 		const step = descriptor.step;
+		const vertexBufferLength = w * h * 3;
+		const vertexBuffer = new Float32Array(vertexBufferLength);
+		const indexBufferLength = columnCount * rowCount * 6;
+		const indexBuffer = new Uint32Array(indexBufferLength);
 
-		const halfSize = new Vector2(size).divideScalar(2);
-		const negatedHalfSize = new Vector2(halfSize).multiplyScalar(-1);
-		const vertexCount = new Vector2(size).divideScalar(step).addScalar(1);
-		const vertices = new Float32Array(vertexCount[0] * vertexCount[1] * 3);
+		for (let rowIndex = 0, z = step * (rowCount / 2); rowIndex < h; rowIndex++, z -= step) {
+			for (let columnIndex = 0, x = -step * (columnCount / 2); columnIndex < w; columnIndex++, x += step) {
+				const i = ((rowIndex * h) + columnIndex) * 3;
 
-		for (let z = halfSize[1], i = 0; z >= negatedHalfSize[0]; z -= step, i++) {
-			for (let x = negatedHalfSize[0], j = 0; x <= halfSize[0]; x += step, j++) {
-				const vertex = new Vector3(x, 0, z);
-				const offset = i * vertexCount[1] * 3 + j * 3;
-
-				vertices.set(vertex, offset);
+				vertexBuffer[i + 0] = x;
+				vertexBuffer[i + 1] = 0;
+				vertexBuffer[i + 2] = z;
 			}
 		}
 
-		const indexArray = [];
-
-		for (let i = 0; i < vertexCount[1] - 1; i++) {
-			for (let j = 0; j < vertexCount[0] - 1; j++) {
-				const i0 = i * vertexCount[1] + j;
+		for (let rowIndex = 0; rowIndex < rowCount; rowIndex++) {
+			for (let columnIndex = 0; columnIndex < columnCount; columnIndex++) {
+				const i = ((rowIndex * columnCount) + columnIndex) * 6;
+				const i0 = (rowIndex * w) + columnIndex;
 				const i1 = i0 + 1;
-				const i2 = i0 + vertexCount[1];
+				const i2 = i0 + w;
 				const i3 = i2 + 1;
 
-				indexArray.push(i0, i1, i2);
-				indexArray.push(i1, i3, i2);
+				indexBuffer[i + 0] = i0;
+				indexBuffer[i + 1] = i1;
+				indexBuffer[i + 2] = i2;
+				indexBuffer[i + 3] = i1;
+				indexBuffer[i + 4] = i3;
+				indexBuffer[i + 5] = i2;
 			}
 		}
 
-		const indices = new Uint8Array(indexArray);
-
 		return {
-			vertices,
-			indices,
+			vertices: vertexBuffer,
+			indices: indexBuffer,
 		};
 	}
 
