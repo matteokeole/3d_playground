@@ -40,6 +40,7 @@ export class Renderer extends WebGPURenderer {
 
 		this._renderPipelines.visibility = this.#createVisibilityRenderPipeline();
 		this._renderPipelines.base = this.#createBaseRenderPipeline();
+		this._computePipelines.clear = this.#createClearComputePipeline();
 	}
 
 	render() {
@@ -49,6 +50,7 @@ export class Renderer extends WebGPURenderer {
 
 		this.#renderVisibilityPass(commandEncoder);
 		this.#renderBasePass(commandEncoder);
+		this.#computeClearPass(commandEncoder);
 
 		const commandBuffer = commandEncoder.finish();
 
@@ -90,10 +92,14 @@ export class Renderer extends WebGPURenderer {
 		const baseVertexShaderSource = await shaderLoader.load("public/webgpu/visibility/shaders/base.vert.wgsl");
 		const baseFragmentShaderSource = await shaderLoader.load("public/webgpu/visibility/shaders/base.frag.wgsl");
 
+		// Clear
+		const clearComputeShaderSource = await shaderLoader.load("public/webgpu/visibility/shaders/clear.comp.wgsl");
+
 		this._shaderModules.visibilityVertex = this.#createShaderModule("Visibility vertex shader", visibilityVertexShaderSource);
 		this._shaderModules.visibilityFragment = this.#createShaderModule("Visibility fragment shader", visibilityFragmentShaderSource);
 		this._shaderModules.baseVertex = this.#createShaderModule("Base vertex shader", baseVertexShaderSource);
 		this._shaderModules.baseFragment = this.#createShaderModule("Base fragment shader", baseFragmentShaderSource);
+		this._shaderModules.clearCompute = this.#createShaderModule("Clear compute shader", clearComputeShaderSource);
 	}
 
 	/**
@@ -209,6 +215,24 @@ export class Renderer extends WebGPURenderer {
 		});
 
 		return baseRenderPipeline;
+	}
+
+	#createClearComputePipeline() {
+		this._bindGroupLayouts.clear = this.#createClearBindGroupLayout();
+
+		this._bindGroups.clear = this.#createClearBindGroup();
+
+		const clearComputePipelineLayout = this.#createClearComputePipelineLayout();
+
+		const clearComputePipeline = this._device.createComputePipeline({
+			layout: clearComputePipelineLayout,
+			compute: {
+				module: this._shaderModules.clearCompute,
+				entrypoint: "main",
+			},
+		});
+
+		return clearComputePipeline;
 	}
 
 	#createVertexStorageBuffer() {
@@ -481,6 +505,32 @@ export class Renderer extends WebGPURenderer {
 		return meshBindGroupLayout;
 	}
 
+	#createClearBindGroupLayout() {
+		const clearBindGroupLayout = this._device.createBindGroupLayout({
+			label: "Clear",
+			entries: [
+				{
+					binding: 0,
+					visibility: GPUShaderStage.COMPUTE,
+					storageTexture: {
+						access: "write-only",
+						format: "r32uint",
+					},
+				},
+				{
+					binding: 1,
+					visibility: GPUShaderStage.COMPUTE,
+					storageTexture: {
+						access: "write-only",
+						format: "rg32uint",
+					},
+				},
+			],
+		});
+
+		return clearBindGroupLayout;
+	}
+
 	#createGeometryBindGroup() {
 		const geometryBindGroup = this._device.createBindGroup({
 			label: "Geometry bind group",
@@ -583,9 +633,28 @@ export class Renderer extends WebGPURenderer {
 		return meshBindGroup;
 	}
 
+	#createClearBindGroup() {
+		const clearBindGroup = this._device.createBindGroup({
+			label: "Clear",
+			layout: this._bindGroupLayouts.clear,
+			entries: [
+				{
+					binding: 0,
+					resource: this._textures.depth.createView(),
+				},
+				{
+					binding: 1,
+					resource: this._textures.visibility.createView(),
+				},
+			],
+		});
+
+		return clearBindGroup;
+	}
+
 	#createVisibilityPipelineLayout() {
 		const visibilityPipelineLayout = this._device.createPipelineLayout({
-			label: "Visibility pipeline layout",
+			label: "Visibility render",
 			bindGroupLayouts: [
 				this._bindGroupLayouts.geometry,
 				this._bindGroupLayouts.mesh,
@@ -599,13 +668,24 @@ export class Renderer extends WebGPURenderer {
 
 	#createBasePipelineLayout() {
 		const basePipelineLayout = this._device.createPipelineLayout({
-			label: "Base pipeline layout",
+			label: "Base render",
 			bindGroupLayouts: [
 				this._bindGroupLayouts.baseVisibility,
 			],
 		});
 
 		return basePipelineLayout;
+	}
+
+	#createClearComputePipelineLayout() {
+		const clearComputePipelineLayout = this._device.createPipelineLayout({
+			label: "Clear compute",
+			bindGroupLayouts: [
+				this._bindGroupLayouts.clear,
+			],
+		});
+
+		return clearComputePipelineLayout;
 	}
 
 	#createDepthTexture() {
@@ -697,5 +777,16 @@ export class Renderer extends WebGPURenderer {
 		renderPass.setBindGroup(0, this._bindGroups.baseVisibility);
 		renderPass.draw(6);
 		renderPass.end();
+	}
+
+	/**
+	 * @param {GPUCommandEncoder} commandEncoder
+	 */
+	#computeClearPass(commandEncoder) {
+		const computePass = commandEncoder.beginComputePass();
+		computePass.setPipeline(this._computePipelines.clear);
+		computePass.setBindGroup(0, this._bindGroups.clear);
+		computePass.dispatchWorkgroups(8, 8, 1);
+		computePass.end();
 	}
 }
