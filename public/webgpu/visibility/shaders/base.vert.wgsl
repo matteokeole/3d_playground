@@ -17,8 +17,10 @@ const vertices: array<vec2f, 6> = array(
 
 @vertex
 fn main(input: Input) -> Output {
+	let vertex: vec2f = vertices[input.vertexIndex];
+
 	var output: Output;
-	output.position = vec4f(vertices[input.vertexIndex], 0, 1);
+	output.position = vec4f(vertex, 0, 1);
 
 	return output;
 }
