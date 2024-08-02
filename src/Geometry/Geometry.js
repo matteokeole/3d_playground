@@ -3,7 +3,7 @@ import {Matrix4, Vector2, Vector3} from "../math/index.js";
 /**
  * @typedef {Object} GeometryDescriptor
  * @property {Float32Array} vertices
- * @property {Uint8Array} indices
+ * @property {Uint32Array} indices
  * @property {Float32Array} normals
  * @property {Float32Array} tangents
  * @property {Float32Array} uvs
@@ -141,6 +141,10 @@ export class Geometry {
 
 	getUVs() {
 		return this._uvs;
+	}
+
+	getTriangleCount() {
+		return this._indices.length / 3;
 	}
 
 	/**

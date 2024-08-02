@@ -1,4 +1,5 @@
-import {Vector2, Vector3} from "../math/index.js";
+import {Matrix4, Vector2, Vector3} from "../math/index.js";
+import {Geometry} from "./Geometry.js";
 
 /**
  * @typedef {Object} GridGeometryDescriptor
@@ -6,59 +7,89 @@ import {Vector2, Vector3} from "../math/index.js";
  * @property {Number} step
  */
 
-export class GridGeometry {
-	#vertices;
-	#indices;
+export class GridGeometry extends Geometry {
+	/**
+	 * @param {GridGeometryDescriptor} descriptor
+	 */
+	static #calculateVerticesAndIndices(descriptor) {
+		const [columnCount, rowCount] = descriptor.size;
+		const w = columnCount + 1;
+		const h = rowCount + 1;
+		const step = descriptor.step;
+		const vertexBufferLength = w * h * 3;
+		const vertexBuffer = new Float32Array(vertexBufferLength);
+		const indexBufferLength = columnCount * rowCount * 6;
+		const indexBuffer = new Uint32Array(indexBufferLength);
+
+		for (let rowIndex = 0, z = step * (rowCount / 2); rowIndex < h; rowIndex++, z -= step) {
+			for (let columnIndex = 0, x = -step * (columnCount / 2); columnIndex < w; columnIndex++, x += step) {
+				const i = ((rowIndex * h) + columnIndex) * 3;
+
+				vertexBuffer[i + 0] = x;
+				vertexBuffer[i + 1] = 0;
+				vertexBuffer[i + 2] = z;
+			}
+		}
+
+		for (let rowIndex = 0; rowIndex < rowCount; rowIndex++) {
+			for (let columnIndex = 0; columnIndex < columnCount; columnIndex++) {
+				const i = ((rowIndex * columnCount) + columnIndex) * 6;
+				const i0 = (rowIndex * w) + columnIndex;
+				const i1 = i0 + 1;
+				const i2 = i0 + w;
+				const i3 = i2 + 1;
+
+				indexBuffer[i + 0] = i0;
+				indexBuffer[i + 1] = i1;
+				indexBuffer[i + 2] = i2;
+				indexBuffer[i + 3] = i1;
+				indexBuffer[i + 4] = i3;
+				indexBuffer[i + 5] = i2;
+			}
+		}
+
+		return {
+			vertices: vertexBuffer,
+			indices: indexBuffer,
+		};
+	}
 
 	/**
 	 * @param {GridGeometryDescriptor} descriptor
 	 */
 	constructor(descriptor) {
-		const size = descriptor.size;
-		const step = descriptor.step;
+		super({
+			...GridGeometry.#calculateVerticesAndIndices(descriptor),
+			normals: Float32Array.of(),
+			tangents: Float32Array.of(),
+			uvs: Float32Array.of(),
+		});
+	}
 
-		const halfSize = new Vector2(size).divideScalar(2);
-		const negatedHalfSize = new Vector2(halfSize).multiplyScalar(-1);
-		const vertexCount = new Vector2(size).divideScalar(step).addScalar(1);
-		const triangleCount = new Vector2(vertexCount[0] - 1, vertexCount[1] - 1).multiplyScalar(2);
+	/**
+	 * Returns the point on the geometry
+	 * that is the farthest in the direction of D.
+	 * 
+	 * @abstract
+	 * @param {Vector3} D Direction vector
+	 * @param {Matrix4} p Mesh projection matrix
+	 * @returns {Vector3}
+	 */
+	support(D, p) {
+		const vertices = this.getVertices();
+		const support = new Vector3(0, 0, 0);
+		let maxDot = Number.NEGATIVE_INFINITY;
 
-		const vertices = new Float32Array(vertexCount[0] * vertexCount[1] * 3);
-		const indices = new Uint8Array(triangleCount[0] * triangleCount[1] * 2);
+		for (let i = 0; i < vertices.length; i += 3) {
+			const vertex = new Vector3(...vertices.subarray(i, i + 3)).multiplyMatrix(p);
+			const dot = vertex.dot(D);
 
-		for (let z = halfSize[1], i = 0; z >= negatedHalfSize[0]; z -= step, i++) {
-			for (let x = negatedHalfSize[0], j = 0; x <= halfSize[0]; x += step, j++) {
-				const vertex = new Vector3(x, 0, z);
-				const offset = i * vertexCount[1] * 3 + j * 3;
-
-				vertices.set(vertex, offset);
+			if (dot > maxDot) {
+				maxDot = dot;
+				support.set(vertex);
 			}
 		}
 
-		const indexArray = [];
-
-		for (let i = 0; i < vertexCount[1] - 1; i++) {
-			for (let j = 0; j < vertexCount[0] - 1; j++) {
-				const i0 = i * vertexCount[1] + j;
-				const i1 = i0 + 1;
-				const i2 = i0 + vertexCount[1];
-				const i3 = i2 + 1;
-
-				indexArray.push(i0, i1, i2);
-				indexArray.push(i1, i3, i2);
-			}
-		}
-
-		indices.set(indexArray);
-
-		this.#vertices = vertices;
-		this.#indices = indices;
-	}
-
-	getVertices() {
-		return this.#vertices;
-	}
-
-	getIndices() {
-		return this.#indices;
+		return support;
 	}
 }

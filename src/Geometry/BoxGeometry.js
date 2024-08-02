@@ -9,7 +9,7 @@ export class BoxGeometry extends Geometry {
 	 */
 	constructor(size) {
 		super({
-			indices: Uint8Array.of(
+			indices: Uint32Array.of(
 				// Front
 				0, 1, 2,
 				0, 2, 3,

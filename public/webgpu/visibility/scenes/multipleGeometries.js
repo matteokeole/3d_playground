@@ -13,11 +13,11 @@ export async function createScene() {
 		   -1,  0, -1,
 			0,  0,  1,
 		),
-		indices: Uint8Array.of(
+		indices: Uint32Array.of(
 			0, 1, 2,
 			0, 2, 3,
 			0, 3, 1,
-			1, 2, 3,
+			1, 3, 2,
 		),
 	}), null);
 	tetrahedron.setPosition(new Vector3(0, 0, 5));

@@ -4,7 +4,7 @@ import {Geometry} from "./Geometry.js";
 /**
  * @typedef {Object} PolytopeGeometryDescriptor
  * @property {Float32Array} vertices
- * @property {Uint8Array} indices
+ * @property {Uint32Array} indices
  */
 
 export class PolytopeGeometry extends Geometry {

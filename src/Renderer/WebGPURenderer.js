@@ -2,7 +2,7 @@ import {Camera, Scene} from "../index.js";
 import {Renderer} from "./Renderer.js";
 
 export class WebGPURenderer extends Renderer {
-	static _INDIRECT_BUFFER_SIZE = 5;
+	static _INDIRECT_BUFFER_SIZE = 4;
 
 	/**
 	 * @type {?GPUDevice}

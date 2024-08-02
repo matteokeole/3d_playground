@@ -3,14 +3,14 @@ import {GridGeometry} from "../../../../src/Geometry/index.js";
 import {PI, Vector2, Vector3} from "../../../../src/math/index.js";
 import {Mesh} from "../../../../src/Mesh/index.js";
 import {SENSITIVITY} from "../../../hl2/main.js";
-import {CAMERA_HEIGHT, FIELD_OF_VIEW} from "../../../minecraft/main.js";
+import {FIELD_OF_VIEW} from "../../../index.js";
 
 export async function createScene() {
 	const meshes = [];
 
 	const wavePlane = new Mesh(
 		new GridGeometry({
-			size: new Vector2(10, 10),
+			size: new Vector2(24, 24),
 			step: 1,
 		}),
 		null,
@@ -26,8 +26,9 @@ export async function createScene() {
 export function createCamera(aspectRatio) {
 	const camera = new Camera();
 
-	camera.setPosition(new Vector3(0, CAMERA_HEIGHT, -5));
-	camera.target = new Vector3(camera.getPosition());
+	camera.setPosition(new Vector3(0, 20, 0));
+	camera.target.set(camera.getPosition());
+	camera.getRotation().set(new Vector3(-PI / 2, 0, 0));
 	camera.fieldOfView = FIELD_OF_VIEW;
 	camera.aspectRatio = aspectRatio;
 	camera.near = .01;

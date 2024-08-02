@@ -313,7 +313,7 @@ export class Renderer extends WebGPURenderer {
 				firstIndex, firstIndex + 2, firstIndex + 3,
 			), i * 6);
 			vertexMap.set(meshes[i].getGeometry().getVertices(), i * 4 * 3);
-			uvMap.set(Uint8Array.of(
+			uvMap.set(Uint32Array.of(
 				0, 1,
 				0, 0,
 				1, 0,
