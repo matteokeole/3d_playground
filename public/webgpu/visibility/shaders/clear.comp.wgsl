@@ -12,14 +12,14 @@ const viewport: vec4u = vec4u(0, 0, 1920, 1080);
 fn main(input: Input) {
 	let position: vec2u = input.globalInvocationId.xy;
 
-	if (any(position.xy >= viewport.zw)) {
+	if (any(position >= viewport.zw)) {
 		return;
 	}
 
-	clearTexel(position.xy);
+	clearTexel(position);
 }
 
 fn clearTexel(uv: vec2u) {
-	textureStore(depthTexture, uv, vec4u(1, 1, 1, 1));
+	textureStore(depthTexture, uv, vec4u(0, 0, 0, 0));
 	textureStore(visibilityTexture, uv, vec4u(0, 0, 0, 0));
 }

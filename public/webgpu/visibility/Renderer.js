@@ -786,7 +786,11 @@ export class Renderer extends WebGPURenderer {
 		const computePass = commandEncoder.beginComputePass();
 		computePass.setPipeline(this._computePipelines.clear);
 		computePass.setBindGroup(0, this._bindGroups.clear);
-		computePass.dispatchWorkgroups(8, 8, 1);
+
+		const x = this._viewport[2] / 7;
+		const y = this._viewport[3] / 7;
+
+		computePass.dispatchWorkgroups(x, y, 1);
 		computePass.end();
 	}
 }
