@@ -4,10 +4,13 @@ import {Vector3} from "../../../src/math/index.js";
 import {Mesh} from "../../../src/Mesh/Mesh.js";
 import {keys} from "./input.js";
 
-const VELOCITY = 1.8;
+const VELOCITY = .2;
 
 export class Instance extends _Instance {
-	_update() {
+	/**
+	 * @param {Number} deltaTime
+	 */
+	_update(deltaTime) {
 		const scene = this._renderer.getScene();
 		const camera = this._renderer.getCamera();
 
@@ -23,9 +26,9 @@ export class Instance extends _Instance {
 		direction.normalize();
 		direction.multiplyScalar(VELOCITY);
 
-		const relativeVelocity = camera.getRelativeVelocity(direction);
+		const acceleration = camera.getRelativeVelocity(direction);
 
-		camera.getPosition().add(relativeVelocity);
+		camera.getPosition().add(acceleration.multiplyScalar(deltaTime));
 
 		const cameraHull = camera.getHull();
 

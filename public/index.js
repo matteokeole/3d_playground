@@ -1,5 +1,6 @@
 import {Vector2, Vector3} from "../src/math/index.js";
 
+export const FRAMES_PER_SECOND = 60;
 export const ENTITY_HEIGHT_STAND = 64;
 export const PLAYER_VIEWPOINT = 64;
 export const FIELD_OF_VIEW = 75;
