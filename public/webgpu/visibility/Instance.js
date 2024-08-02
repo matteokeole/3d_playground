@@ -25,6 +25,7 @@ export class Instance extends _Instance {
 		);
 		direction.normalize();
 		direction.multiplyScalar(VELOCITY);
+		// direction[1] -= .098;
 
 		const acceleration = camera.getRelativeVelocity(direction);
 
@@ -70,10 +71,7 @@ export class Instance extends _Instance {
 			const force = hitResponse.normal.multiplyScalar(hitResponse.depth);
 
 			hull.getPosition().subtract(force);
-			hull.updateProjection();
 		}
-
-		camera.setPosition(hull.getPosition());
 	}
 
 	/**

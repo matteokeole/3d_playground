@@ -106,6 +106,8 @@ export class Camera {
 	 */
 	#hull;
 
+	#viewpoint;
+
 	/**
 	 * @type {?Session}
 	 */
@@ -129,6 +131,7 @@ export class Camera {
 		this.bias = 0;
 		this.turnVelocity = 0;
 		this.#hull = null;
+		this.#viewpoint = 0;
 		this.#captureSession = null;
 	}
 
@@ -198,6 +201,17 @@ export class Camera {
 	 */
 	setHull(hull) {
 		this.#hull = hull;
+	}
+
+	getViewpoint() {
+		return this.#viewpoint;
+	}
+
+	/**
+	 * @param {Number} viewpoint
+	 */
+	setViewpoint(viewpoint) {
+		this.#viewpoint = viewpoint;
 	}
 
 	getCaptureSession() {

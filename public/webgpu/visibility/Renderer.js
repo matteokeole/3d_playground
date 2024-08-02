@@ -1,16 +1,17 @@
-import {Scene} from "../../../src/index.js";
+import {Geometry} from "../../../src/Geometry/Geometry.js";
 import {ShaderLoader} from "../../../src/Loader/index.js";
 import {Mesh} from "../../../src/Mesh/index.js";
 import {WebGPURenderer} from "../../../src/Renderer/index.js";
+import {Scene} from "../../../src/Scene/index.js";
 
 export class Renderer extends WebGPURenderer {
 	/**
-	 * @type {Record.<String, GPUBuffer>}
+	 * @type {Map.<Geometry, GPUBuffer>}
 	 */
 	#meshStorageBuffers;
 
 	/**
-	 * @type {Record.<String, GPUBindGroup>}
+	 * @type {Map.<Geometry, GPUBindGroup>}
 	 */
 	#meshBindGroups;
 
@@ -20,8 +21,8 @@ export class Renderer extends WebGPURenderer {
 	constructor(canvas) {
 		super(canvas);
 
-		this.#meshStorageBuffers = {};
-		this.#meshBindGroups = {};
+		this.#meshStorageBuffers = new Map();
+		this.#meshBindGroups = new Map();
 	}
 
 	async build() {
@@ -62,8 +63,8 @@ export class Renderer extends WebGPURenderer {
 	 * @returns {?GPUBuffer}
 	 */
 	getMeshBuffer(mesh) {
-		const geometryName = mesh.getGeometry().constructor.name;
-		const buffer = this.#meshStorageBuffers[geometryName];
+		const geometry = mesh.getGeometry();
+		const buffer = this.#meshStorageBuffers.get(geometry);
 
 		if (!buffer) {
 			return null;
@@ -131,14 +132,13 @@ export class Renderer extends WebGPURenderer {
 
 		for (let i = 0; i < geometries.length; i++) {
 			const geometry = geometries[i];
-			const geometryName = geometry.constructor.name;
 			const meshes = this._scene.getMeshesByGeometry(geometry);
 
 			const meshStorageBuffer = this.#createMeshStorageBuffer(meshes);
 			const meshBindGroup = this.#createMeshBindGroup(meshStorageBuffer);
 
-			this.#meshStorageBuffers[geometryName] = meshStorageBuffer;
-			this.#meshBindGroups[geometryName] = meshBindGroup;
+			this.#meshStorageBuffers.set(geometry, meshStorageBuffer);
+			this.#meshBindGroups.set(geometry, meshBindGroup);
 		}
 
 		this._bindGroups.geometry = this.#createGeometryBindGroup();
@@ -228,7 +228,7 @@ export class Renderer extends WebGPURenderer {
 			layout: clearComputePipelineLayout,
 			compute: {
 				module: this._shaderModules.clearCompute,
-				entrypoint: "main",
+				entryPoint: "main",
 			},
 		});
 
