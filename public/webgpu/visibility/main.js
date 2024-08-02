@@ -4,7 +4,7 @@ import {listen} from "./input.js";
 import {Instance} from "./Instance.js";
 import {Renderer} from "./Renderer.js";
 
-import {createCamera, createScene} from "./scenes/gerstnerWave.js";
+import {createCamera, createScene} from "./scenes/slope.js";
 
 export default async function() {
 	const canvas = document.createElement("canvas");

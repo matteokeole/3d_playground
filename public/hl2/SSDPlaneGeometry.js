@@ -16,7 +16,7 @@ export class SSDPlaneGeometry extends Geometry {
 		vertices.set(anchors[3], 9);
 
 		return new SSDPlaneGeometry({
-			indices: Uint8Array.of(),
+			indices: Uint32Array.of(),
 			vertices,
 			normals: Float32Array.of(
 				...normal,
