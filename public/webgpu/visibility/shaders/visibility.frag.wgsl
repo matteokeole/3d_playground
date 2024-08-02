@@ -23,7 +23,7 @@ fn main(input: Input) {
 	let depth: f32 = input.position.w * far;
 	var texel: VisibilityTexel = createVisibilityTexel(uv, value, depth);
 
-	if (depth <= sampledDepth) {
+	if (depth < sampledDepth) {
 		return;
 	}
 
@@ -48,7 +48,7 @@ fn createVisibilityTexel(uv: vec2u, value: u32, depth: f32) -> VisibilityTexel {
 }
 
 fn writeTexel(texel: ptr<function, VisibilityTexel>) {
-	texel.depth = saturate(texel.depth);
+	// texel.depth = saturate(texel.depth);
 
 	let depthInt: u32 = u32(texel.depth);
 

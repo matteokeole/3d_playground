@@ -11,10 +11,12 @@ struct VisibilityTexel {
 	depth: f32,
 }
 
+const far: f32 = 1000;
 const WIRE_COLOR: vec3f = vec3f(1, .2, 0);
 const VISUALIZE_MASK: u32 = 0;
 const VISUALIZE_TRIANGLES: u32 = 1;
 const VISUALIZE_INSTANCES: u32 = 2;
+const VISUALIZE_DEPTH: u32 = 3;
 const DEBUG_MODE: u32 = VISUALIZE_TRIANGLES;
 
 @fragment
@@ -41,6 +43,10 @@ fn main(input: Input) -> @location(0) vec4f {
 
 	if (DEBUG_MODE == VISUALIZE_MASK) {
 		return visualizeMask(uv);
+	}
+
+	if (DEBUG_MODE == VISUALIZE_DEPTH) {
+		return visualizeDepth(uv);
 	}
 
 	return vec4f(0, 0, 0, 1);
@@ -137,6 +143,14 @@ fn visualizeTriangles(triangleIndex: u32) -> vec4f {
 
 fn visualizeInstances(instanceIndex: u32) -> vec4f {
 	let color: vec3f = intToColor(instanceIndex) * 0.8 + 0.2;
+
+	return vec4f(color, 1);
+}
+
+fn visualizeDepth(uv: vec2u) -> vec4f {
+	let depthInt: u32 = textureLoad(visibilityTexture, uv).g;
+	let depth: f32 = f32(depthInt) / far;
+	let color: vec3f = vec3f(depth);
 
 	return vec4f(color, 1);
 }
