@@ -1,5 +1,7 @@
-@group(0) @binding(0) var depthTexture: texture_storage_2d<r32uint, write>;
-@group(0) @binding(1) var visibilityTexture: texture_storage_2d<rg32uint, write>;
+// @group(0) @binding(0) var depthTexture: texture_storage_2d<r32uint, write>;
+// @group(0) @binding(1) var visibilityTexture: texture_storage_2d<rg32uint, write>;
+@group(0) @binding(2) var<storage, read_write> depthBuffer: array<atomic<u32>>;
+@group(0) @binding(3) var<storage, read_write> visibilityBuffer: array<atomic<u32>>;
 
 struct Input {
 	@builtin(global_invocation_id) globalInvocationId: vec3u,
@@ -20,6 +22,10 @@ fn main(input: Input) {
 }
 
 fn clearTexel(uv: vec2u) {
-	textureStore(depthTexture, uv, vec4u(0));
-	textureStore(visibilityTexture, uv, vec4u(0));
+	let xy: u32 = uv.y * 1920 + uv.x;
+
+	// textureStore(depthTexture, uv, vec4u(0));
+	// textureStore(visibilityTexture, uv, vec4u(0));
+	atomicStore(&depthBuffer[xy], 0);
+	atomicStore(&visibilityBuffer[xy], 0);
 }

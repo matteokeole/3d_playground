@@ -123,6 +123,10 @@ export class Renderer extends WebGPURenderer {
 		this._buffers.indirect = this.#createGeometryIndirectBuffer();
 		this._buffers.camera = this.#createCameraUniformBuffer();
 
+		// Atomic buffers
+		this._buffers.visibility = this.#createVisibilityBuffer();
+		this._buffers.depth = this.#createDepthBuffer();
+
 		this._bindGroupLayouts.geometry = this.#createGeometryBindGroupLayout();
 		this._bindGroupLayouts.visibility = this.#createVisibilityBindGroupLayout();
 		this._bindGroupLayouts.mesh = this.#createMeshBindGroupLayout();
@@ -438,6 +442,20 @@ export class Renderer extends WebGPURenderer {
 						format: "rg32uint",
 					},
 				},
+				{
+					binding: 2,
+					visibility: GPUShaderStage.FRAGMENT,
+					buffer: {
+						type: "storage",
+					},
+				},
+				{
+					binding: 3,
+					visibility: GPUShaderStage.FRAGMENT,
+					buffer: {
+						type: "storage",
+					},
+				},
 			],
 		});
 
@@ -462,6 +480,20 @@ export class Renderer extends WebGPURenderer {
 					storageTexture: {
 						access: "read-only",
 						format: "rg32uint",
+					},
+				},
+				{
+					binding: 2,
+					visibility: GPUShaderStage.FRAGMENT,
+					buffer: {
+						type: "storage",
+					},
+				},
+				{
+					binding: 3,
+					visibility: GPUShaderStage.FRAGMENT,
+					buffer: {
+						type: "storage",
 					},
 				},
 			],
@@ -524,6 +556,20 @@ export class Renderer extends WebGPURenderer {
 						format: "rg32uint",
 					},
 				},
+				{
+					binding: 2,
+					visibility: GPUShaderStage.COMPUTE,
+					buffer: {
+						type: "storage",
+					},
+				},
+				{
+					binding: 3,
+					visibility: GPUShaderStage.COMPUTE,
+					buffer: {
+						type: "storage",
+					},
+				},
 			],
 		});
 
@@ -570,6 +616,18 @@ export class Renderer extends WebGPURenderer {
 					binding: 1,
 					resource: this._textures.visibility.createView(),
 				},
+				{
+					binding: 2,
+					resource: {
+						buffer: this._buffers.depth,
+					},
+				},
+				{
+					binding: 3,
+					resource: {
+						buffer: this._buffers.visibility,
+					},
+				},
 			],
 		});
 
@@ -588,6 +646,18 @@ export class Renderer extends WebGPURenderer {
 				{
 					binding: 1,
 					resource: this._textures.visibility.createView(),
+				},
+				{
+					binding: 2,
+					resource: {
+						buffer: this._buffers.depth,
+					},
+				},
+				{
+					binding: 3,
+					resource: {
+						buffer: this._buffers.visibility,
+					},
 				},
 			],
 		});
@@ -644,6 +714,18 @@ export class Renderer extends WebGPURenderer {
 				{
 					binding: 1,
 					resource: this._textures.visibility.createView(),
+				},
+				{
+					binding: 2,
+					resource: {
+						buffer: this._buffers.depth,
+					},
+				},
+				{
+					binding: 3,
+					resource: {
+						buffer: this._buffers.visibility,
+					},
 				},
 			],
 		});
@@ -713,6 +795,26 @@ export class Renderer extends WebGPURenderer {
 		});
 
 		return visibilityTexture;
+	}
+
+	#createVisibilityBuffer() {
+		const visibilityBuffer = this._device.createBuffer({
+			label: "Visibility",
+			size: this._viewport[2] * this._viewport[3] * Uint32Array.BYTES_PER_ELEMENT,
+			usage: GPUBufferUsage.STORAGE,
+		});
+
+		return visibilityBuffer;
+	}
+
+	#createDepthBuffer() {
+		const depthBuffer = this._device.createBuffer({
+			label: "Depth",
+			size: this._viewport[2] * this._viewport[3] * Uint32Array.BYTES_PER_ELEMENT,
+			usage: GPUBufferUsage.STORAGE,
+		});
+
+		return depthBuffer;
 	}
 
 	#writeCameraBuffer() {

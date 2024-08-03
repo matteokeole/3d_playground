@@ -1,5 +1,7 @@
-@group(3) @binding(0) var depthTexture: texture_storage_2d<r32uint, read_write>;
-@group(3) @binding(1) var visibilityTexture: texture_storage_2d<rg32uint, write>;
+// @group(3) @binding(0) var depthTexture: texture_storage_2d<r32uint, read_write>;
+// @group(3) @binding(1) var visibilityTexture: texture_storage_2d<rg32uint, write>;
+@group(3) @binding(2) var<storage, read_write> depthBuffer: array<atomic<u32>>;
+@group(3) @binding(3) var<storage, read_write> visibilityBuffer: array<atomic<u32>>;
 
 struct Input {
 	@builtin(position) position: vec4f,
@@ -14,6 +16,10 @@ struct VisibilityTexel {
 }
 
 const far: f32 = 1000;
+
+struct Test {
+	items: array<atomic<i32>>,
+}
 
 @fragment
 fn main(input: Input) {
@@ -43,7 +49,8 @@ fn createVisibilityTexel(uv: vec2u, value: u32, depth: f32) -> VisibilityTexel {
 
 fn earlyDepthTest(texel: VisibilityTexel) -> bool {
 	let depth: u32 = u32(saturate(texel.depth) * 0xffffffff);
-	let currentDepth: u32 = textureLoad(depthTexture, texel.uv).r;
+	let xy: u32 = texel.uv.y * 1920 + texel.uv.x;
+	let currentDepth: u32 = atomicLoad(&depthBuffer[xy]);
 
 	return currentDepth < depth;
 }
@@ -51,18 +58,23 @@ fn earlyDepthTest(texel: VisibilityTexel) -> bool {
 fn writeVisibilityTexel(texel: ptr<function, VisibilityTexel>) {
 	let depth: u32 = u32(saturate(texel.depth) * 0xffffffff);
 
-	writeTexel(visibilityTexture, texel.uv, texel.value, depth);
+	writeTexel(texel.uv, texel.value, depth);
 }
 
-fn writeTexel(texture: texture_storage_2d<rg32uint, write>, uv: vec2u, value: u32, depth: u32) {
-	let currentDepth: u32 = textureLoad(depthTexture, uv).r;
+fn writeTexel(uv: vec2u, value: u32, depth: u32) {
+	/* let currentDepth: u32 = textureLoad(depthTexture, uv).r;
 
 	if (depth <= currentDepth) {
 		return;
 	}
 
-	let packedValue: vec2u = vec2u(value, depth);
+	let packedValue: vec2u = vec2u(value, depth); */
 
-	textureStore(texture, uv, vec4u(packedValue, 0, 1));
-	textureStore(depthTexture, uv, vec4u(depth, 0, 0, 1));
+	let xy: u32 = uv.y * 1920 + uv.x;
+
+	atomicMax(&depthBuffer[xy], depth);
+	atomicMax(&visibilityBuffer[xy], value);
+
+	// textureStore(visibilityTexture, uv, vec4u(packedValue, 0, 1));
+	// textureStore(depthTexture, uv, vec4u(depth, 0, 0, 1));
 }

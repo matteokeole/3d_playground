@@ -1,5 +1,7 @@
-@group(0) @binding(0) var depthTexture: texture_storage_2d<r32uint, read>;
-@group(0) @binding(1) var visibilityTexture: texture_storage_2d<rg32uint, read>;
+// @group(0) @binding(0) var depthTexture: texture_storage_2d<r32uint, read>;
+// @group(0) @binding(1) var visibilityTexture: texture_storage_2d<rg32uint, read>;
+@group(0) @binding(2) var<storage, read_write> depthBuffer: array<atomic<u32>>;
+@group(0) @binding(3) var<storage, read_write> visibilityBuffer: array<atomic<u32>>;
 
 struct Input {
 	@builtin(position) position: vec4f,
@@ -21,7 +23,8 @@ const DEBUG_MODE: u32 = VISUALIZE_DEPTH;
 @fragment
 fn main(input: Input) -> @location(0) vec4f {
 	let uv: vec2u = vec2u(input.position.xy);
-	let visibilityTexel: vec2u = textureLoad(visibilityTexture, uv).rg;
+	let xy: u32 = uv.y * 1920 + uv.x;
+	let visibilityTexel: vec2u = vec2u(atomicLoad(&visibilityBuffer[xy]), atomicLoad(&depthBuffer[xy]));
 	var instanceIndex: u32;
 	var triangleIndex: u32;
 	var depth: u32;
@@ -52,73 +55,6 @@ fn unpackVisibilityTexel(texel: vec2u, instanceIndex: ptr<function, u32>, triang
 	*depth = texel.g;
 }
 
-/**
- * Colored wireframe with Sobel edge detection
- */
-fn applyWireframeFilter(PixelPosXY: vec2i, DepthInt: u32, WireColor: vec3f) -> vec3f {
-	// Sobel edge detect depth
-	let SobelX: array<i32, 9> = array(
-		1,  0, -1,
-		2,  0, -2,
-		1,  0, -1
-	);
-
-	let SobelY: array<i32, 9> = array(
-		 1,  2,  1,
-		 0,  0,  0,
-		-1, -2, -1
-	);
-
-	let UVSample: array<vec2i, 9> = array(
-		vec2i(-1,  1),  vec2i(0,  1),  vec2i(1,  1),
-		vec2i(-1,  0),  vec2i(0,  0),  vec2i(1,  0),
-		vec2i(-1, -1),  vec2i(0, -1),  vec2i(1, -1)
-	);
-
-	var DepthGrad: vec2f = vec2f(0);
-	var BitGrad: vec2u = vec2u(0x88888888);
-
-	var VisibleClusterIndexCurrent: u32 = 0;
-	var TriIndexCurrent: u32 = 0;
-	var DepthIntCurrent: u32 = 0;
-
-	for (var Tap: u32 = 0; Tap < 9u; Tap += 1) {
-		let VisPixelCurrent: vec2u = textureLoad(visibilityTexture, PixelPosXY + UVSample[Tap]).xy;
-
-		unpackVisibilityTexel(VisPixelCurrent, &VisibleClusterIndexCurrent, &TriIndexCurrent, &DepthIntCurrent);
-
-		let SampleDensityDepth: f32 = log2(/*ConvertFromDeviceZ*/(f32(DepthIntCurrent)) + 1.0f) * 10.0f;
-
-		DepthGrad += vec2f(f32(SobelX[Tap]), f32(SobelY[Tap])) * SampleDensityDepth;
-
-		var Bits: u32 = 0;
-
-		for (var BitIndex: u32 = 0; BitIndex < 8; BitIndex += 1) {
-			Bits |= ((TriIndexCurrent >> BitIndex) & 1u) << (BitIndex * 4u);
-		}
-
-		BitGrad.x += u32(SobelX[Tap]) * Bits;
-		BitGrad.y += u32(SobelY[Tap]) * Bits;
-	}
-
-	var Wireframe: f32 = 0;
-
-	for (var BitIndex: u32 = 0; BitIndex < 8; BitIndex += 1) {
-		let Grad: vec2f = vec2f(f32((BitGrad.x >> (BitIndex * 4u)) & 0xF), f32((BitGrad.y >> (BitIndex * 4u)) & 0xF));
-
-		Wireframe = max(Wireframe, length(Grad - f32(8u)));
-	}
-
-	Wireframe *= 0.25f;
-
-	if (Wireframe == 0.0f)
-	{
-		discard;
-	}
-
-	return saturate(WireColor * Wireframe);
-}
-
 fn visualizeDepth(depth: u32) -> vec4f {
 	let depthFloat: f32 = linearizeDepth(f32(depth) / 0xffffffff);
 	let color: vec3f = vec3f(depthFloat);
@@ -127,7 +63,8 @@ fn visualizeDepth(depth: u32) -> vec4f {
 }
 
 fn visualizeMask(uv: vec2u) -> vec4f {
-	let sampledDepth: u32 = textureLoad(visibilityTexture, uv).g;
+	let xy: u32 = uv.y * 1920 + uv.x;
+	let sampledDepth: u32 = atomicLoad(&depthBuffer[xy]);
 
 	if (sampledDepth <= 0) {
 		return vec4f(0, 0, 0, 1);
