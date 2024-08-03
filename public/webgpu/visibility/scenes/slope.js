@@ -3,7 +3,7 @@ import {BoxGeometry, PolytopeGeometry} from "../../../../src/Geometry/index.js";
 import {PI, Vector2, Vector3} from "../../../../src/math/index.js";
 import {Mesh} from "../../../../src/Mesh/index.js";
 import {Scene} from "../../../../src/Scene/index.js";
-import {FIELD_OF_VIEW, PLAYER_COLLISION_HULL, PLAYER_VIEWPOINT, SIGHT_RANGE} from "../../../index.js";
+import {FIELD_OF_VIEW, PLAYER_COLLISION_HULL, PLAYER_VIEWPOINT} from "../../../index.js";
 import {SENSITIVITY} from "../../../hl2/main.js";
 
 export async function createScene() {
@@ -80,8 +80,8 @@ export function createCamera(aspectRatio) {
 	camera.setDistance(new Vector3(0, 0, 0));
 	camera.fieldOfView = FIELD_OF_VIEW;
 	camera.aspectRatio = aspectRatio;
-	camera.near = SIGHT_RANGE[0];
-	camera.far = SIGHT_RANGE[1];
+	camera.near = 1;
+	camera.far = 1000;
 	camera.bias = PI * .545;
 	camera.turnVelocity = SENSITIVITY;
 	camera.lookAt(new Vector2(0, 0));

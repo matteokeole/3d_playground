@@ -9,4 +9,4 @@ export const PLAYER_COLLISION_HULL = new Vector3(33, 73, 33);
 /**
  * @see {@link https://developer.valvesoftware.com/wiki/Viewcone}
  */
-export const SIGHT_RANGE = new Vector2(0, 2048);
+export const SIGHT_RANGE = new Vector2(1, 2048);

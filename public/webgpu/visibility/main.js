@@ -24,7 +24,10 @@ export default async function() {
 	renderer.resize();
 
 	renderer.setCamera(createCamera(viewport[0] / viewport[1]));
-	renderer.setScene(await createScene());
+
+	const scene = await createScene();
+
+	renderer.setScene(scene);
 
 	document.body.appendChild(canvas);
 	listen(renderer);

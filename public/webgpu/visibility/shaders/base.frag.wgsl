@@ -16,7 +16,7 @@ const VISUALIZE_DEPTH: u32 = 0;
 const VISUALIZE_MASK: u32 = 1;
 const VISUALIZE_INSTANCES: u32 = 2;
 const VISUALIZE_TRIANGLES: u32 = 3;
-const DEBUG_MODE: u32 = VISUALIZE_TRIANGLES;
+const DEBUG_MODE: u32 = VISUALIZE_DEPTH;
 
 @fragment
 fn main(input: Input) -> @location(0) vec4f {
@@ -120,9 +120,8 @@ fn applyWireframeFilter(PixelPosXY: vec2i, DepthInt: u32, WireColor: vec3f) -> v
 }
 
 fn visualizeDepth(uv: vec2u) -> vec4f {
-	let sampledDepth: u32 = textureLoad(visibilityTexture, uv).g;
-	let depth: f32 = f32(sampledDepth);
-	let color: vec3f = vec3f(depth);
+	let depth: f32 = f32(textureLoad(visibilityTexture, uv).g) / 255;
+	var color: vec3f = vec3f(depth);
 
 	return vec4f(color, 1);
 }
@@ -170,4 +169,12 @@ fn murmurMix(_hash: u32) -> u32 {
 	hash ^= hash >> 16;
 
 	return hash;
+}
+
+fn linearizeDepth(uv: vec2u) -> f32 {
+	let n: f32 = 1; // camera z near
+	let f: f32 = 1000; // camera z far
+	let depth: u32 = textureLoad(visibilityTexture, uv).g;
+
+	return (2.0 * n) / (f + n - f32(depth) * (f - n));	
 }
