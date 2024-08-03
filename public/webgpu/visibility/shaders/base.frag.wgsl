@@ -120,15 +120,15 @@ fn applyWireframeFilter(PixelPosXY: vec2i, DepthInt: u32, WireColor: vec3f) -> v
 }
 
 fn visualizeDepth(uv: vec2u) -> vec4f {
-	let depthInt: u32 = textureLoad(visibilityTexture, uv).g;
-	let depth: f32 = f32(depthInt) / far;
+	let sampledDepth: u32 = textureLoad(visibilityTexture, uv).g;
+	let depth: f32 = f32(sampledDepth);
 	let color: vec3f = vec3f(depth);
 
 	return vec4f(color, 1);
 }
 
 fn visualizeMask(uv: vec2u) -> vec4f {
-	let sampledDepth: u32 = textureLoad(depthTexture, uv).r;
+	let sampledDepth: u32 = textureLoad(visibilityTexture, uv).g;
 
 	if (sampledDepth <= 0) {
 		return vec4f(0, 0, 0, 1);
