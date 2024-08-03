@@ -73,10 +73,10 @@ export class WebGPURenderer extends Renderer {
 	}
 
 	/**
-	 * @param {Scene} scene
+	 * @param {Object} scene
 	 */
 	setScene(scene) {
-		this._scene = scene;
+		super.setScene(scene);
 	}
 
 	/**

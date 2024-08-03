@@ -120,7 +120,7 @@ export class Renderer extends WebGPURenderer {
 		this._buffers.vertexStorage = this.#createVertexStorageBuffer();
 		this._buffers.indexStorage = this.#createIndexStorageBuffer();
 		this._buffers.geometryStorage = this.#createGeometryStorageBuffer();
-		this._buffers.indirect = this.#createIndirectBuffer();
+		this._buffers.indirect = this.#createGeometryIndirectBuffer();
 		this._buffers.camera = this.#createCameraUniformBuffer();
 
 		this._bindGroupLayouts.geometry = this.#createGeometryBindGroupLayout();
@@ -298,18 +298,17 @@ export class Renderer extends WebGPURenderer {
 		return indexStorageBuffer;
 	}
 
-	#createIndirectBuffer() {
-		const meshCount = this._scene.getMeshes().length;
+	#createGeometryIndirectBuffer() {
+		const geometries = this._scene.getGeometries();
 
 		const indirectBuffer = this._device.createBuffer({
-			label: "Indirect buffer",
-			size: meshCount * WebGPURenderer._INDIRECT_BUFFER_SIZE * Uint32Array.BYTES_PER_ELEMENT,
+			label: "Geometry indirect",
+			size: geometries.length * WebGPURenderer._INDIRECT_BUFFER_SIZE * Uint32Array.BYTES_PER_ELEMENT,
 			usage: GPUBufferUsage.INDIRECT | GPUBufferUsage.COPY_DST,
 			mappedAtCreation: true,
 		});
 		const indirectBufferMap = new Uint32Array(indirectBuffer.getMappedRange());
 
-		const geometries = this._scene.getGeometries();
 		let offset = 0;
 		let firstIndex = 0;
 
@@ -737,7 +736,6 @@ export class Renderer extends WebGPURenderer {
 		});
 		renderPass.setPipeline(this._renderPipelines.visibility);
 		renderPass.setBindGroup(0, this._bindGroups.geometry);
-		renderPass.setBindGroup(1, this._bindGroups.meshes);
 		renderPass.setBindGroup(2, this._bindGroups.camera);
 		renderPass.setBindGroup(3, this._bindGroups.visibility);
 
@@ -746,9 +744,8 @@ export class Renderer extends WebGPURenderer {
 		// One instanced indirect draw call per unique geometry
 		for (let i = 0; i < geometries.length; i++) {
 			const geometry = geometries[i];
-			const geometryName = geometry.constructor.name;
 			const indirectBufferOffset = i * WebGPURenderer._INDIRECT_BUFFER_SIZE * Uint32Array.BYTES_PER_ELEMENT;
-			const meshBindGroup = this.#meshBindGroups[geometryName];
+			const meshBindGroup = this.#meshBindGroups.get(geometry);
 
 			// Bind the projection buffer for all meshes having that geometry
 			renderPass.setBindGroup(1, meshBindGroup);
