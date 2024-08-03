@@ -1,8 +1,13 @@
-@group(0) @binding(0) var<storage> vertexBuffer: array<f32>;
-@group(0) @binding(1) var<storage> indexBuffer: array<u32>;
-@group(0) @binding(2) var<storage> geometry: Geometry;
-@group(1) @binding(0) var<storage> instances: array<Instance>;
-@group(2) @binding(0) var<uniform> camera: Camera;
+@group(0) @binding(0) var<uniform> view: View;
+@group(1) @binding(0) var<storage> vertexBuffer: array<f32>;
+@group(1) @binding(1) var<storage> indexBuffer: array<u32>;
+@group(1) @binding(2) var<storage> geometry: Geometry;
+@group(3) @binding(0) var<storage> instances: array<Instance>;
+
+struct View {
+	viewport: vec4u,
+	viewProjection: mat4x4f,
+}
 
 struct Geometry {
 	triangleCount: u32,
@@ -10,10 +15,6 @@ struct Geometry {
 
 struct Instance {
 	projection: mat4x4f,
-}
-
-struct Camera {
-	viewProjection: mat4x4f,
 }
 
 struct Input {
@@ -39,7 +40,7 @@ fn main(input: Input) -> Output {
 	let instance: Instance = instances[input.instanceIndex];
 
 	var output: Output;
-	output.position = camera.viewProjection * instance.projection * vec4f(vertex, 1);
+	output.position = view.viewProjection * instance.projection * vec4f(vertex, 1);
 	output.instanceIndex = input.instanceIndex;
 	output.triangleIndex = instanceTriangleIndex;
 

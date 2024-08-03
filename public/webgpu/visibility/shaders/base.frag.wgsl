@@ -1,16 +1,20 @@
-// @group(0) @binding(0) var depthTexture: texture_storage_2d<r32uint, read>;
-// @group(0) @binding(1) var visibilityTexture: texture_storage_2d<rg32uint, read>;
-@group(0) @binding(2) var<storage, read_write> depthBuffer: array<atomic<u32>>;
-@group(0) @binding(3) var<storage, read_write> visibilityBuffer: array<atomic<u32>>;
+@group(0) @binding(0) var<uniform> view: View;
+@group(1) @binding(2) var<storage, read_write> depthBuffer: array<atomic<u32>>;
+@group(1) @binding(3) var<storage, read_write> visibilityBuffer: array<atomic<u32>>;
 
-struct Input {
-	@builtin(position) position: vec4f,
+struct View {
+	viewport: vec4u,
+	viewProjection: mat4x4f,
 }
 
 struct VisibilityTexel {
 	uv: vec2u,
 	value: u32,
 	depth: f32,
+}
+
+struct Input {
+	@builtin(position) position: vec4f,
 }
 
 const far: f32 = 1000;
@@ -23,8 +27,8 @@ const DEBUG_MODE: u32 = VISUALIZE_DEPTH;
 @fragment
 fn main(input: Input) -> @location(0) vec4f {
 	let uv: vec2u = vec2u(input.position.xy);
-	let xy: u32 = uv.y * 1920 + uv.x;
-	let visibilityTexel: vec2u = vec2u(atomicLoad(&visibilityBuffer[xy]), atomicLoad(&depthBuffer[xy]));
+	let pos: u32 = position1d(uv);
+	let visibilityTexel: vec2u = vec2u(atomicLoad(&visibilityBuffer[pos]), atomicLoad(&depthBuffer[pos]));
 	var instanceIndex: u32;
 	var triangleIndex: u32;
 	var depth: u32;
@@ -63,8 +67,8 @@ fn visualizeDepth(depth: u32) -> vec4f {
 }
 
 fn visualizeMask(uv: vec2u) -> vec4f {
-	let xy: u32 = uv.y * 1920 + uv.x;
-	let sampledDepth: u32 = atomicLoad(&depthBuffer[xy]);
+	let pos: u32 = position1d(uv);
+	let sampledDepth: u32 = atomicLoad(&depthBuffer[pos]);
 
 	if (sampledDepth <= 0) {
 		return vec4f(0, 0, 0, 1);
@@ -113,4 +117,8 @@ fn linearizeDepth(depth: f32) -> f32 {
 	let f: f32 = 1000; // camera z far
 
 	return (2.0 * n) / (f + n - depth * (f - n));	
+}
+
+fn position1d(uv: vec2u) -> u32 {
+	return uv.y * view.viewport.z + uv.x;
 }
