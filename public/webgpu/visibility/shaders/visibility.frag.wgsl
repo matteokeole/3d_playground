@@ -22,7 +22,7 @@ fn main(input: Input) {
 
 	let uv: vec2u = vec2u(svPosition.xy);
 	let value: u32 = ((input.instanceIndex + 1) << 7) | input.triangleIndex;
-	let depth: f32 = (1 - input.position.z) * 10;
+	let depth: f32 = input.position.z;
 	var texel: VisibilityTexel = createVisibilityTexel(uv, value, depth);
 
 	writeVisibilityTexel(&texel);
@@ -46,14 +46,14 @@ fn writeVisibilityTexel(texel: ptr<function, VisibilityTexel>) {
 }
 
 fn writeTexel(texture: texture_storage_2d<rg32uint, write>, uv: vec2u, value: u32, depth: u32) {
-	/* let currentDepth: u32 = textureLoad(depthTexture, uv).r;
+	let currentDepth: u32 = textureLoad(depthTexture, uv).r;
 
-	if (depth >= currentDepth) {
+	if (depth > currentDepth) {
 		return;
-	} */
+	}
 
 	let packedValue: vec2u = vec2u(value, depth);
 
 	textureStore(texture, uv, vec4u(packedValue, 0, 1));
-	// textureStore(depthTexture, uv, vec4u(depth, 0, 0, 1));
+	textureStore(depthTexture, uv, vec4u(depth, 0, 0, 1));
 }

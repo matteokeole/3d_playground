@@ -31,7 +31,7 @@ fn main(input: Input) -> @location(0) vec4f {
 	var result: vec4f;
 
 	if (DEBUG_MODE == VISUALIZE_DEPTH) {
-		result = visualizeDepth(uv);
+		result = visualizeDepth(depth);
 	}
 	else if (DEBUG_MODE == VISUALIZE_MASK) {
 		result = visualizeMask(uv);
@@ -119,9 +119,11 @@ fn applyWireframeFilter(PixelPosXY: vec2i, DepthInt: u32, WireColor: vec3f) -> v
 	return saturate(WireColor * Wireframe);
 }
 
-fn visualizeDepth(uv: vec2u) -> vec4f {
-	let depth: f32 = f32(textureLoad(visibilityTexture, uv).g) / 255;
-	var color: vec3f = vec3f(depth);
+fn visualizeDepth(depth: u32) -> vec4f {
+	// var depthFloat: f32 = f32(depth) / 255;
+	var depthFloat: f32 = linearizeDepth(f32(depth) / 255);
+	// depthFloat = (1 - depthFloat) * 10;
+	var color: vec3f = vec3f(depthFloat);
 
 	return vec4f(color, 1);
 }
@@ -171,10 +173,9 @@ fn murmurMix(_hash: u32) -> u32 {
 	return hash;
 }
 
-fn linearizeDepth(uv: vec2u) -> f32 {
+fn linearizeDepth(depth: f32) -> f32 {
 	let n: f32 = 1; // camera z near
-	let f: f32 = 1000; // camera z far
-	let depth: u32 = textureLoad(visibilityTexture, uv).g;
+	let f: f32 = 100; // camera z far
 
-	return (2.0 * n) / (f + n - f32(depth) * (f - n));	
+	return (2.0 * n) / (f + n - depth * (f - n));	
 }
