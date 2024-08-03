@@ -25,7 +25,7 @@ export class Instance extends _Instance {
 		);
 		direction.normalize();
 		direction.multiplyScalar(VELOCITY);
-		direction[1] -= .098;
+		// direction[1] -= .098;
 
 		const acceleration = camera.getRelativeVelocity(direction);
 

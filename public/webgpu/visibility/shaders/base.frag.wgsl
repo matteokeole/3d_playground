@@ -12,50 +12,44 @@ struct VisibilityTexel {
 }
 
 const far: f32 = 1000;
-const WIRE_COLOR: vec3f = vec3f(1, .2, 0);
-const VISUALIZE_MASK: u32 = 0;
-const VISUALIZE_TRIANGLES: u32 = 1;
+const VISUALIZE_DEPTH: u32 = 0;
+const VISUALIZE_MASK: u32 = 1;
 const VISUALIZE_INSTANCES: u32 = 2;
-const VISUALIZE_DEPTH: u32 = 3;
+const VISUALIZE_TRIANGLES: u32 = 3;
 const DEBUG_MODE: u32 = VISUALIZE_TRIANGLES;
 
 @fragment
 fn main(input: Input) -> @location(0) vec4f {
 	let uv: vec2u = vec2u(input.position.xy);
-	let visibilityTexel: vec2u = textureLoad(visibilityTexture, uv).xy;
-	var instanceIndex: u32 = 0;
-	var triangleIndex: u32 = 0;
-	var depth: u32 = 0;
+	let visibilityTexel: vec2u = textureLoad(visibilityTexture, uv).rg;
+	var instanceIndex: u32;
+	var triangleIndex: u32;
+	var depth: u32;
 
 	unpackVisibilityTexel(visibilityTexel, &instanceIndex, &triangleIndex, &depth);
 
-	if (depth == 0) {
-		return vec4f(0, 0, 0, 1);
-	}
-
-	if (DEBUG_MODE == VISUALIZE_TRIANGLES) {
-		return visualizeTriangles(triangleIndex);
-	}
-
-	if (DEBUG_MODE == VISUALIZE_INSTANCES) {
-		return visualizeInstances(instanceIndex);
-	}
-
-	if (DEBUG_MODE == VISUALIZE_MASK) {
-		return visualizeMask(uv);
-	}
+	var result: vec4f;
 
 	if (DEBUG_MODE == VISUALIZE_DEPTH) {
-		return visualizeDepth(uv);
+		result = visualizeDepth(uv);
+	}
+	else if (DEBUG_MODE == VISUALIZE_MASK) {
+		result = visualizeMask(uv);
+	}
+	else if (DEBUG_MODE == VISUALIZE_INSTANCES) {
+		result = visualizeInstances(instanceIndex);
+	}
+	else if (DEBUG_MODE == VISUALIZE_TRIANGLES) {
+		result = visualizeTriangles(triangleIndex);
 	}
 
-	return vec4f(0, 0, 0, 1);
+	return result;
 }
 
-fn unpackVisibilityTexel(visibilityTexel: vec2u, instanceIndex: ptr<function, u32>, triangleIndex: ptr<function, u32>, depth: ptr<function, u32>) {
-	*instanceIndex = visibilityTexel.r >> 7;
-	*triangleIndex = visibilityTexel.r & 0x7f;
-	*depth = visibilityTexel.g;
+fn unpackVisibilityTexel(texel: vec2u, instanceIndex: ptr<function, u32>, triangleIndex: ptr<function, u32>, depth: ptr<function, u32>) {
+	*instanceIndex = (texel.r >> 7) - 1;
+	*triangleIndex = texel.r & 0x7f;
+	*depth = texel.g;
 }
 
 /**
@@ -125,20 +119,22 @@ fn applyWireframeFilter(PixelPosXY: vec2i, DepthInt: u32, WireColor: vec3f) -> v
 	return saturate(WireColor * Wireframe);
 }
 
-fn visualizeMask(uv: vec2u) -> vec4f {
-	let depth: u32 = textureLoad(depthTexture, uv).r;
-
-	if (depth == 0) {
-		return vec4f(0, 0, 0, 0);
-	}
-
-	return vec4f(0, 1, 0, .5);
-}
-
-fn visualizeTriangles(triangleIndex: u32) -> vec4f {
-	let color: vec3f = intToColor(triangleIndex) * 0.8 + 0.2;
+fn visualizeDepth(uv: vec2u) -> vec4f {
+	let depthInt: u32 = textureLoad(visibilityTexture, uv).g;
+	let depth: f32 = f32(depthInt) / far;
+	let color: vec3f = vec3f(depth);
 
 	return vec4f(color, 1);
+}
+
+fn visualizeMask(uv: vec2u) -> vec4f {
+	let sampledDepth: u32 = textureLoad(depthTexture, uv).r;
+
+	if (sampledDepth <= 0) {
+		return vec4f(0, 0, 0, 1);
+	}
+
+	return vec4f(1, 0, 0, .5);
 }
 
 fn visualizeInstances(instanceIndex: u32) -> vec4f {
@@ -147,10 +143,8 @@ fn visualizeInstances(instanceIndex: u32) -> vec4f {
 	return vec4f(color, 1);
 }
 
-fn visualizeDepth(uv: vec2u) -> vec4f {
-	let depthInt: u32 = textureLoad(visibilityTexture, uv).g;
-	let depth: f32 = f32(depthInt) / far;
-	let color: vec3f = vec3f(depth);
+fn visualizeTriangles(triangleIndex: u32) -> vec4f {
+	let color: vec3f = intToColor(triangleIndex) * 0.8 + 0.2;
 
 	return vec4f(color, 1);
 }

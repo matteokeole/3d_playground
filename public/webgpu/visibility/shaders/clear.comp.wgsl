@@ -20,6 +20,6 @@ fn main(input: Input) {
 }
 
 fn clearTexel(uv: vec2u) {
-	textureStore(depthTexture, uv, vec4u(0, 0, 0, 0));
+	// textureStore(depthTexture, uv, vec4u(0, 0, 0, 0));
 	textureStore(visibilityTexture, uv, vec4u(0, 0, 0, 0));
 }

@@ -5,6 +5,7 @@ struct Input {
 	@builtin(position) position: vec4f,
 	@location(0) @interpolate(flat) instanceIndex: u32,
 	@location(1) @interpolate(flat) triangleIndex: u32,
+	@location(2) clipZW: vec2f,
 }
 
 struct VisibilityTexel {
@@ -17,25 +18,14 @@ const far: f32 = 1000;
 
 @fragment
 fn main(input: Input) {
-	let uv: vec2u = vec2u(input.position.xy);
+	let svPosition: vec4f = vec4f(input.position.xy, input.clipZW.x / input.clipZW.y, input.clipZW.y);
+	// let svPosition: vec4f = input.position;
+
+	let uv: vec2u = vec2u(svPosition.xy);
 	let value: u32 = ((input.instanceIndex + 1) << 7) | input.triangleIndex;
-	let sampledDepth: f32 = f32(textureLoad(depthTexture, uv).r);
-	let depth: f32 = input.position.w * far;
-	var texel: VisibilityTexel = createVisibilityTexel(uv, value, depth);
+	var texel: VisibilityTexel = createVisibilityTexel(uv, value, svPosition.z);
 
-	if (depth < sampledDepth) {
-		return;
-	}
-
-	writeTexel(&texel);
-}
-
-fn writeVisibilityTexel(uv: vec2u, visibility: u32, depth: u32) {
-	textureStore(visibilityTexture, uv, vec4u(visibility, depth, 0, 1));
-}
-
-fn writeDepthTexel(uv: vec2u, depth: u32) {
-	textureStore(depthTexture, uv, vec4u(depth, 0, 0, 1));
+	writeVisibilityTexel(&texel);
 }
 
 fn createVisibilityTexel(uv: vec2u, value: u32, depth: f32) -> VisibilityTexel {
@@ -47,11 +37,23 @@ fn createVisibilityTexel(uv: vec2u, value: u32, depth: f32) -> VisibilityTexel {
 	return texel;
 }
 
-fn writeTexel(texel: ptr<function, VisibilityTexel>) {
-	// texel.depth = saturate(texel.depth);
+fn writeVisibilityTexel(texel: ptr<function, VisibilityTexel>) {
+	texel.depth = saturate(texel.depth);
 
-	let depthInt: u32 = u32(texel.depth);
+	let depth: u32 = u32(texel.depth);
 
-	writeVisibilityTexel(texel.uv, texel.value, depthInt);
-	writeDepthTexel(texel.uv, depthInt);
+	writeTexel(visibilityTexture, texel.uv, texel.value, depth);
+}
+
+fn writeTexel(texture: texture_storage_2d<rg32uint, write>, uv: vec2u, value: u32, depth: u32) {
+	/* let sampledDepth: u32 = textureLoad(depthTexture, uv).r;
+
+	if (depth < sampledDepth) {
+		return;
+	} */
+
+	let packedValue: vec2u = vec2u(value, depth);
+
+	textureStore(texture, uv, vec4u(packedValue, 0, 1));
+	// textureStore(depthTexture, uv, vec4u(0, 0, 0, 1));
 }

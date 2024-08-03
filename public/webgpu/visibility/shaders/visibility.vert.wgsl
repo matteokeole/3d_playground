@@ -31,6 +31,7 @@ struct Output {
 	@builtin(position) position: vec4f,
 	@location(0) @interpolate(flat) instanceIndex: u32,
 	@location(1) @interpolate(flat) triangleIndex: u32,
+	@location(2) clipZW: vec2f,
 }
 
 const geometryTriangleCount = 3;
@@ -40,7 +41,7 @@ const rasterBinData: array<vec2u, 1> = array(vec2u());
 @vertex
 fn main(input: Input) -> Output {
 	let index: u32 = indexBuffer[input.vertexIndex];
-	let vertex: vec4f = fetchVertex(index);
+	let vertex: vec3f = fetchVertex(index);
 
 	let instanceTriangleIndex: u32 = input.vertexIndex / 3;
 	let triangleOffset: u32 = input.instanceIndex * geometry.triangleCount;
@@ -48,22 +49,27 @@ fn main(input: Input) -> Output {
 
 	let instanceProjection: mat4x4f = instances[input.instanceIndex].projection;
 
+	let pointTranslatedWorld: vec3f = (instanceProjection * vec4f(vertex, 1)).xyz;
+	let pointClip: vec4f = camera.viewProjection * vec4f(pointTranslatedWorld, 1);
+
 	var output: Output;
-	output.position = camera.viewProjection * instanceProjection * vertex;
+	output.position = pointClip;
+	output.position.z = output.position.w * 0.5;
+	output.clipZW = pointClip.zw;
 	output.instanceIndex = input.instanceIndex;
 	output.triangleIndex = instanceTriangleIndex;
 
 	return output;
 }
 
-fn fetchVertex(index: u32) -> vec4f {
+fn fetchVertex(index: u32) -> vec3f {
 	let vertexIndex: u32 = index * 3;
 	let x: f32 = vertexBuffer[vertexIndex + 0];
 	let y: f32 = vertexBuffer[vertexIndex + 1];
 	let z: f32 = vertexBuffer[vertexIndex + 2];
 	let vertex: vec3f = vec3f(x, y, z);
 
-	return vec4f(vertex, 1);
+	return vertex;
 }
 
 fn getTriangleRange(instanceIndex: u32) -> TriangleRange {
