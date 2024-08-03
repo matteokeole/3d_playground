@@ -120,10 +120,8 @@ fn applyWireframeFilter(PixelPosXY: vec2i, DepthInt: u32, WireColor: vec3f) -> v
 }
 
 fn visualizeDepth(depth: u32) -> vec4f {
-	// var depthFloat: f32 = f32(depth) / 255;
-	var depthFloat: f32 = linearizeDepth(f32(depth) / 255);
-	// depthFloat = (1 - depthFloat) * 10;
-	var color: vec3f = vec3f(depthFloat);
+	let depthFloat: f32 = linearizeDepth(f32(depth) / 0xffffffff);
+	let color: vec3f = vec3f(depthFloat);
 
 	return vec4f(color, 1);
 }
@@ -175,7 +173,7 @@ fn murmurMix(_hash: u32) -> u32 {
 
 fn linearizeDepth(depth: f32) -> f32 {
 	let n: f32 = 1; // camera z near
-	let f: f32 = 100; // camera z far
+	let f: f32 = 1000; // camera z far
 
 	return (2.0 * n) / (f + n - depth * (f - n));	
 }

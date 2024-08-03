@@ -25,6 +25,10 @@ fn main(input: Input) {
 	let depth: f32 = input.position.z;
 	var texel: VisibilityTexel = createVisibilityTexel(uv, value, depth);
 
+	if (!earlyDepthTest(texel)) {
+		return;
+	}
+
 	writeVisibilityTexel(&texel);
 }
 
@@ -37,10 +41,15 @@ fn createVisibilityTexel(uv: vec2u, value: u32, depth: f32) -> VisibilityTexel {
 	return texel;
 }
 
-fn writeVisibilityTexel(texel: ptr<function, VisibilityTexel>) {
-	// texel.depth = saturate(texel.depth);
+fn earlyDepthTest(texel: VisibilityTexel) -> bool {
+	let depth: u32 = u32(saturate(texel.depth) * 0xffffffff);
+	let currentDepth: u32 = textureLoad(depthTexture, texel.uv).r;
 
-	let depth: u32 = u32(texel.depth * 255);
+	return currentDepth < depth;
+}
+
+fn writeVisibilityTexel(texel: ptr<function, VisibilityTexel>) {
+	let depth: u32 = u32(saturate(texel.depth) * 0xffffffff);
 
 	writeTexel(visibilityTexture, texel.uv, texel.value, depth);
 }
@@ -48,7 +57,7 @@ fn writeVisibilityTexel(texel: ptr<function, VisibilityTexel>) {
 fn writeTexel(texture: texture_storage_2d<rg32uint, write>, uv: vec2u, value: u32, depth: u32) {
 	let currentDepth: u32 = textureLoad(depthTexture, uv).r;
 
-	if (depth > currentDepth) {
+	if (depth <= currentDepth) {
 		return;
 	}
 
