@@ -5,7 +5,7 @@ import {Vector3} from "../../../src/math/index.js";
 import {Mesh} from "../../../src/Mesh/Mesh.js";
 import {keys} from "./input.js";
 
-const VELOCITY = .2;
+const VELOCITY = 0.02;
 
 export class Instance extends _Instance {
 	/**
@@ -26,7 +26,7 @@ export class Instance extends _Instance {
 		);
 		direction.normalize();
 		direction.multiplyScalar(VELOCITY);
-		direction[1] -= .098;
+		// direction[1] -= .098;
 
 		const acceleration = camera.getRelativeVelocity(direction);
 
