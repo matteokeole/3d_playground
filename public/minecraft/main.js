@@ -40,7 +40,6 @@ export default async function() {
 
 	const camera = new Camera();
 	camera.getPosition()[1] = CAMERA_HEIGHT;
-	camera.target[1] = CAMERA_HEIGHT;
 	camera.fieldOfView = FIELD_OF_VIEW;
 	camera.aspectRatio = viewport[0] / viewport[1];
 	camera.near = .01;

@@ -15,8 +15,7 @@ export class Instance extends _Instance {
 
 		const camera = this._renderer.getCamera();
 
-		camera.target.add(camera.getRelativeVelocity(direction));
-		camera.getPosition().lerp(camera.target, CAMERA_LERP_FACTOR);
+		camera.getPosition().add(camera.getRelativeVelocity(direction));
 		camera.update();
 
 		// @ts-ignore

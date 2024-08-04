@@ -62,7 +62,6 @@ export function createScene() {
 
 	const pointLight = new Camera();
 	pointLight.setPosition(new Vector3(-1.88, 4.71, -0.63));
-	pointLight.target = new Vector3(pointLight.getPosition());
 	pointLight.setRotation(new Vector3(-0.64, 0.65, 0));
 	pointLight.fieldOfView = FIELD_OF_VIEW;
 	pointLight.aspectRatio = innerWidth / innerHeight;

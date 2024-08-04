@@ -36,9 +36,7 @@ export function createCamera(aspectRatio) {
 	const camera = new Camera();
 
 	camera.setPosition(new Vector3(54, ENTITY_HEIGHT_STAND, 104));
-	camera.target = new Vector3(camera.getPosition());
 	camera.setRotation(new Vector3(-.06, 0, 0));
-
 	camera.fieldOfView = FIELD_OF_VIEW;
 	camera.aspectRatio = aspectRatio;
 	camera.near = .5;

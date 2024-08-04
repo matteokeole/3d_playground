@@ -25,8 +25,7 @@ export class Instance extends _Instance {
 			.normalize()
 			.multiplyScalar(VELOCITY);
 
-		camera.target.add(camera.getRelativeVelocity(cameraDirection));
-		camera.setPosition(camera.target);
+		camera.getPosition().add(camera.getRelativeVelocity(cameraDirection));
 
 		this.#updateCameraMeshes();
 
@@ -112,7 +111,7 @@ export class Instance extends _Instance {
 				const force = this.#testCollideGjkEpa(cameraMesh, staticBoxMesh);
 
 				if (force !== null) {
-					camera.target.subtract(force);
+					camera.getPosition().subtract(force);
 				}
 			}
 		}

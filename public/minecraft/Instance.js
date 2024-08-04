@@ -25,7 +25,6 @@ export class Instance extends _Instance {
 			if (keys.has("Space")) camera.moveY(velocity);
 			if (keys.has("ControlLeft")) camera.moveY(-velocity);
 
-			camera.setPosition(new Vector3(camera.target).lerp(camera.getPosition(), CAMERA_LERP_FACTOR));
 			camera.update();
 		}
 

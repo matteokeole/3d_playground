@@ -42,10 +42,7 @@ export function createCamera(aspectRatio) {
 	// camera.setPosition(new Vector3(50, ENTITY_HEIGHT_STAND, 0));
 	camera.setPosition(new Vector3(48.40, 188.37, 91.85));
 	camera.setRotation(new Vector3(-1.57, 0, 0));
-
-	camera.target = new Vector3(camera.getPosition());
 	camera.fieldOfView = FIELD_OF_VIEW;
-
 	camera.aspectRatio = aspectRatio;
 	camera.near = .5;
 	camera.far = 1000;

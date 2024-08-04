@@ -44,11 +44,6 @@ export class Camera {
 	/**
 	 * @type {Vector3}
 	 */
-	target;
-
-	/**
-	 * @type {Vector3}
-	 */
 	#distance;
 
 	/**
@@ -118,7 +113,6 @@ export class Camera {
 		this.#view = new Matrix4();
 		this.#viewProjection = new Matrix4();
 		this.#position = new Vector3();
-		this.target = new Vector3();
 		this.#distance = new Vector3();
 		this.#rotation = new Vector3();
 		this.#forward = new Vector3(0, 0, 1);
@@ -231,7 +225,7 @@ export class Camera {
 	truck(x) {
 		const right = new Vector3(this.#right);
 
-		this.target.add(right.multiplyScalar(x));
+		this.#position.add(right.multiplyScalar(x));
 	}
 
 	/**
@@ -240,7 +234,7 @@ export class Camera {
 	pedestal(y) {
 		const up = new Vector3(this.#up);
 
-		this.target.add(up.multiplyScalar(y));
+		this.#position.add(up.multiplyScalar(y));
 	}
 
 	/**
@@ -249,14 +243,14 @@ export class Camera {
 	dolly(z) {
 		const forward = new Vector3(this.#forward);
 
-		this.target.add(forward.multiplyScalar(z));
+		this.#position.add(forward.multiplyScalar(z));
 	}
 
 	/**
 	 * @param {Number} y
 	 */
 	moveY(y) {
-		this.target[1] += y;
+		this.#position[1] += y;
 	}
 
 	/**
@@ -265,7 +259,7 @@ export class Camera {
 	moveZ(z) {
 		const newForward = this.#right.cross(new Vector3(0, 1, 0));
 
-		this.target.add(newForward.multiplyScalar(z));
+		this.#position.add(newForward.multiplyScalar(z));
 	}
 
 	/**
