@@ -1,10 +1,10 @@
-@group(3) @binding(0) var depthTexture: texture_storage_2d<r32uint, read_write>;
-@group(3) @binding(1) var visibilityTexture: texture_storage_2d<rg32uint, write>;
+@group(0) @binding(0) var<uniform> view: View;
+@group(2) @binding(2) var<storage, read_write> depthBuffer: array<atomic<u32>>;
+@group(2) @binding(3) var<storage, read_write> visibilityBuffer: array<atomic<u32>>;
 
-struct Input {
-	@builtin(position) position: vec4f,
-	@location(0) @interpolate(flat) instanceIndex: u32,
-	@location(1) @interpolate(flat) triangleIndex: u32,
+struct View {
+	viewport: vec4u,
+	viewProjection: mat4x4f,
 }
 
 struct VisibilityTexel {
@@ -13,29 +13,24 @@ struct VisibilityTexel {
 	depth: f32,
 }
 
+struct Input {
+	@builtin(position) position: vec4f,
+	@location(0) @interpolate(flat) instanceIndex: u32,
+	@location(1) @interpolate(flat) triangleIndex: u32,
+}
+
 const far: f32 = 1000;
 
 @fragment
 fn main(input: Input) {
-	let uv: vec2u = vec2u(input.position.xy);
+	let position: vec4f = vec4f(input.position.xy, input.position.z, input.position.w);
+
+	let uv: vec2u = vec2u(position.xy);
 	let value: u32 = ((input.instanceIndex + 1) << 7) | input.triangleIndex;
-	let sampledDepth: f32 = f32(textureLoad(depthTexture, uv).r);
-	let depth: f32 = input.position.w * far;
+	let depth: f32 = position.z;
 	var texel: VisibilityTexel = createVisibilityTexel(uv, value, depth);
 
-	if (depth < sampledDepth) {
-		return;
-	}
-
-	writeTexel(&texel);
-}
-
-fn writeVisibilityTexel(uv: vec2u, visibility: u32, depth: u32) {
-	textureStore(visibilityTexture, uv, vec4u(visibility, depth, 0, 1));
-}
-
-fn writeDepthTexel(uv: vec2u, depth: u32) {
-	textureStore(depthTexture, uv, vec4u(depth, 0, 0, 1));
+	writeVisibilityTexel(&texel);
 }
 
 fn createVisibilityTexel(uv: vec2u, value: u32, depth: f32) -> VisibilityTexel {
@@ -47,11 +42,18 @@ fn createVisibilityTexel(uv: vec2u, value: u32, depth: f32) -> VisibilityTexel {
 	return texel;
 }
 
-fn writeTexel(texel: ptr<function, VisibilityTexel>) {
-	// texel.depth = saturate(texel.depth);
+fn writeVisibilityTexel(texel: ptr<function, VisibilityTexel>) {
+	let position: u32 = position1d(texel.uv);
+	let depth: u32 = u32(saturate(texel.depth) * 0xffffffff);
 
-	let depthInt: u32 = u32(texel.depth);
+	writeTexel(position, texel.value, depth);
+}
 
-	writeVisibilityTexel(texel.uv, texel.value, depthInt);
-	writeDepthTexel(texel.uv, depthInt);
+fn writeTexel(position: u32, value: u32, depth: u32) {
+	atomicMax(&depthBuffer[position], depth);
+	atomicMax(&visibilityBuffer[position], value);
+}
+
+fn position1d(uv: vec2u) -> u32 {
+	return uv.y * view.viewport.z + uv.x;
 }

@@ -1,6 +1,9 @@
 import {Geometry} from "./Geometry/index.js";
 import {Mesh} from "./Mesh/index.js";
 
+/**
+ * @deprecated
+ */
 export class Scene {
 	#geometries;
 	#meshes;

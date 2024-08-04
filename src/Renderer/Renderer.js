@@ -16,7 +16,7 @@ export class Renderer {
 	_viewport;
 
 	/**
-	 * @type {?Scene}
+	 * @type {?Object}
 	 */
 	_scene;
 
@@ -54,10 +54,11 @@ export class Renderer {
 	}
 
 	/**
-	 * @abstract
-	 * @param {Scene} scene
+	 * @param {Object} scene
 	 */
-	setScene(scene) {}
+	setScene(scene) {
+		this._scene = scene;
+	}
 
 	getCamera() {
 		return this._camera;

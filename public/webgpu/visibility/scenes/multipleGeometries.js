@@ -38,8 +38,8 @@ export function createCamera(aspectRatio) {
 	camera.target.set(camera.getPosition());
 	camera.fieldOfView = FIELD_OF_VIEW;
 	camera.aspectRatio = aspectRatio;
-	camera.near = .01;
-	camera.far = 100;
+	camera.near = 1;
+	camera.far = 1000;
 	camera.bias = PI * .5;
 	camera.turnVelocity = SENSITIVITY;
 	camera.lookAt(new Vector2(0, 0));

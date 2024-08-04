@@ -1,16 +1,17 @@
-import {Scene} from "../../../src/index.js";
+import {Geometry} from "../../../src/Geometry/Geometry.js";
 import {ShaderLoader} from "../../../src/Loader/index.js";
 import {Mesh} from "../../../src/Mesh/index.js";
 import {WebGPURenderer} from "../../../src/Renderer/index.js";
+import {Scene} from "../../../src/Scene/index.js";
 
 export class Renderer extends WebGPURenderer {
 	/**
-	 * @type {Record.<String, GPUBuffer>}
+	 * @type {Map.<Geometry, GPUBuffer>}
 	 */
 	#meshStorageBuffers;
 
 	/**
-	 * @type {Record.<String, GPUBindGroup>}
+	 * @type {Map.<Geometry, GPUBindGroup>}
 	 */
 	#meshBindGroups;
 
@@ -20,8 +21,8 @@ export class Renderer extends WebGPURenderer {
 	constructor(canvas) {
 		super(canvas);
 
-		this.#meshStorageBuffers = {};
-		this.#meshBindGroups = {};
+		this.#meshStorageBuffers = new Map();
+		this.#meshBindGroups = new Map();
 	}
 
 	async build() {
@@ -35,6 +36,17 @@ export class Renderer extends WebGPURenderer {
 	setScene(scene) {
 		super.setScene(scene);
 
+		this._buffers.viewUniform = this.#createViewUniformBuffer();
+
+		this._buffers.vertexStorage = this.#createVertexStorageBuffer();
+		this._buffers.indexStorage = this.#createIndexStorageBuffer();
+		this._buffers.geometryStorage = this.#createGeometryStorageBuffer();
+
+		this._buffers.indirect = this.#createGeometryIndirectBuffer();
+
+		this._buffers.visibility = this.#createVisibilityBuffer();
+		this._buffers.depth = this.#createDepthBuffer();
+
 		this._textures.depth = this.#createDepthTexture();
 		this._textures.visibility = this.#createVisibilityTexture();
 
@@ -44,7 +56,8 @@ export class Renderer extends WebGPURenderer {
 	}
 
 	render() {
-		this.#writeCameraBuffer();
+		this.#writeViewUniformBuffer();
+		this.#writeCameraUniformBuffer();
 
 		const commandEncoder = this._device.createCommandEncoder();
 
@@ -62,8 +75,8 @@ export class Renderer extends WebGPURenderer {
 	 * @returns {?GPUBuffer}
 	 */
 	getMeshBuffer(mesh) {
-		const geometryName = mesh.getGeometry().constructor.name;
-		const buffer = this.#meshStorageBuffers[geometryName];
+		const geometry = mesh.getGeometry();
+		const buffer = this.#meshStorageBuffers.get(geometry);
 
 		if (!buffer) {
 			return null;
@@ -116,34 +129,27 @@ export class Renderer extends WebGPURenderer {
 	}
 
 	#createVisibilityRenderPipeline() {
-		this._buffers.vertexStorage = this.#createVertexStorageBuffer();
-		this._buffers.indexStorage = this.#createIndexStorageBuffer();
-		this._buffers.geometryStorage = this.#createGeometryStorageBuffer();
-		this._buffers.indirect = this.#createIndirectBuffer();
-		this._buffers.camera = this.#createCameraUniformBuffer();
-
+		this._bindGroupLayouts.view = this.#createViewBindGroupLayout();
 		this._bindGroupLayouts.geometry = this.#createGeometryBindGroupLayout();
 		this._bindGroupLayouts.visibility = this.#createVisibilityBindGroupLayout();
 		this._bindGroupLayouts.mesh = this.#createMeshBindGroupLayout();
-		this._bindGroupLayouts.camera = this.#createCameraBindGroupLayout();
 
 		const geometries = this._scene.getGeometries();
 
 		for (let i = 0; i < geometries.length; i++) {
 			const geometry = geometries[i];
-			const geometryName = geometry.constructor.name;
 			const meshes = this._scene.getMeshesByGeometry(geometry);
 
 			const meshStorageBuffer = this.#createMeshStorageBuffer(meshes);
 			const meshBindGroup = this.#createMeshBindGroup(meshStorageBuffer);
 
-			this.#meshStorageBuffers[geometryName] = meshStorageBuffer;
-			this.#meshBindGroups[geometryName] = meshBindGroup;
+			this.#meshStorageBuffers.set(geometry, meshStorageBuffer);
+			this.#meshBindGroups.set(geometry, meshBindGroup);
 		}
 
+		this._bindGroups.view = this.#createViewBindGroup();
 		this._bindGroups.geometry = this.#createGeometryBindGroup();
 		this._bindGroups.visibility = this.#createVisibilityBindGroup();
-		this._bindGroups.camera = this.#createCameraBindGroup();
 
 		const visibilityPipelineLayout = this.#createVisibilityPipelineLayout();
 
@@ -228,11 +234,21 @@ export class Renderer extends WebGPURenderer {
 			layout: clearComputePipelineLayout,
 			compute: {
 				module: this._shaderModules.clearCompute,
-				entrypoint: "main",
+				entryPoint: "main",
 			},
 		});
 
 		return clearComputePipeline;
+	}
+
+	#createViewUniformBuffer() {
+		const viewUniformBuffer = this._device.createBuffer({
+			label: "View uniform",
+			size: 20 * Float32Array.BYTES_PER_ELEMENT,
+			usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+		});
+
+		return viewUniformBuffer;
 	}
 
 	#createVertexStorageBuffer() {
@@ -298,18 +314,17 @@ export class Renderer extends WebGPURenderer {
 		return indexStorageBuffer;
 	}
 
-	#createIndirectBuffer() {
-		const meshCount = this._scene.getMeshes().length;
+	#createGeometryIndirectBuffer() {
+		const geometries = this._scene.getGeometries();
 
 		const indirectBuffer = this._device.createBuffer({
-			label: "Indirect buffer",
-			size: meshCount * WebGPURenderer._INDIRECT_BUFFER_SIZE * Uint32Array.BYTES_PER_ELEMENT,
+			label: "Geometry indirect",
+			size: geometries.length * WebGPURenderer._INDIRECT_BUFFER_SIZE * Uint32Array.BYTES_PER_ELEMENT,
 			usage: GPUBufferUsage.INDIRECT | GPUBufferUsage.COPY_DST,
 			mappedAtCreation: true,
 		});
 		const indirectBufferMap = new Uint32Array(indirectBuffer.getMappedRange());
 
-		const geometries = this._scene.getGeometries();
 		let offset = 0;
 		let firstIndex = 0;
 
@@ -355,16 +370,6 @@ export class Renderer extends WebGPURenderer {
 		return geometryStorageBuffer;
 	}
 
-	#createCameraUniformBuffer() {
-		const cameraUniformBuffer = this._device.createBuffer({
-			label: "Camera uniform buffer",
-			size: 16 * Float32Array.BYTES_PER_ELEMENT,
-			usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-		});
-
-		return cameraUniformBuffer;
-	}
-
 	/**
 	 * @param {Mesh[]} meshes
 	 */
@@ -386,6 +391,23 @@ export class Renderer extends WebGPURenderer {
 		this._device.queue.writeBuffer(meshStorageBuffer, 0, meshStorageArray);
 
 		return meshStorageBuffer;
+	}
+
+	#createViewBindGroupLayout() {
+		const viewBindGroupLayout = this._device.createBindGroupLayout({
+			label: "View",
+			entries: [
+				{
+					binding: 0,
+					visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT | GPUShaderStage.COMPUTE,
+					buffer: {
+						type: "uniform",
+					},
+				},
+			],
+		});
+
+		return viewBindGroupLayout;
 	}
 
 	#createGeometryBindGroupLayout() {
@@ -439,6 +461,20 @@ export class Renderer extends WebGPURenderer {
 						format: "rg32uint",
 					},
 				},
+				{
+					binding: 2,
+					visibility: GPUShaderStage.FRAGMENT,
+					buffer: {
+						type: "storage",
+					},
+				},
+				{
+					binding: 3,
+					visibility: GPUShaderStage.FRAGMENT,
+					buffer: {
+						type: "storage",
+					},
+				},
 			],
 		});
 
@@ -465,27 +501,24 @@ export class Renderer extends WebGPURenderer {
 						format: "rg32uint",
 					},
 				},
-			],
-		});
-
-		return baseVisibilityBindGroupLayout;
-	}
-
-	#createCameraBindGroupLayout() {
-		const cameraBindGroupLayout = this._device.createBindGroupLayout({
-			label: "Camera bind group layout",
-			entries: [
 				{
-					binding: 0,
-					visibility: GPUShaderStage.VERTEX,
+					binding: 2,
+					visibility: GPUShaderStage.FRAGMENT,
 					buffer: {
-						type: "uniform",
+						type: "storage",
+					},
+				},
+				{
+					binding: 3,
+					visibility: GPUShaderStage.FRAGMENT,
+					buffer: {
+						type: "storage",
 					},
 				},
 			],
 		});
 
-		return cameraBindGroupLayout;
+		return baseVisibilityBindGroupLayout;
 	}
 
 	#createMeshBindGroupLayout() {
@@ -525,10 +558,41 @@ export class Renderer extends WebGPURenderer {
 						format: "rg32uint",
 					},
 				},
+				{
+					binding: 2,
+					visibility: GPUShaderStage.COMPUTE,
+					buffer: {
+						type: "storage",
+					},
+				},
+				{
+					binding: 3,
+					visibility: GPUShaderStage.COMPUTE,
+					buffer: {
+						type: "storage",
+					},
+				},
 			],
 		});
 
 		return clearBindGroupLayout;
+	}
+
+	#createViewBindGroup() {
+		const viewBindGroup = this._device.createBindGroup({
+			label: "View",
+			layout: this._bindGroupLayouts.view,
+			entries: [
+				{
+					binding: 0,
+					resource: {
+						buffer: this._buffers.viewUniform,
+					},
+				},
+			],
+		});
+
+		return viewBindGroup;
 	}
 
 	#createGeometryBindGroup() {
@@ -571,6 +635,18 @@ export class Renderer extends WebGPURenderer {
 					binding: 1,
 					resource: this._textures.visibility.createView(),
 				},
+				{
+					binding: 2,
+					resource: {
+						buffer: this._buffers.depth,
+					},
+				},
+				{
+					binding: 3,
+					resource: {
+						buffer: this._buffers.visibility,
+					},
+				},
 			],
 		});
 
@@ -590,27 +666,22 @@ export class Renderer extends WebGPURenderer {
 					binding: 1,
 					resource: this._textures.visibility.createView(),
 				},
-			],
-		});
-
-		return baseVisibilityBindGroup;
-	}
-
-	#createCameraBindGroup() {
-		const cameraBindGroup = this._device.createBindGroup({
-			label: "Camera bind group",
-			layout: this._bindGroupLayouts.camera,
-			entries: [
 				{
-					binding: 0,
+					binding: 2,
 					resource: {
-						buffer: this._buffers.camera,
+						buffer: this._buffers.depth,
+					},
+				},
+				{
+					binding: 3,
+					resource: {
+						buffer: this._buffers.visibility,
 					},
 				},
 			],
 		});
 
-		return cameraBindGroup;
+		return baseVisibilityBindGroup;
 	}
 
 	/**
@@ -646,6 +717,18 @@ export class Renderer extends WebGPURenderer {
 					binding: 1,
 					resource: this._textures.visibility.createView(),
 				},
+				{
+					binding: 2,
+					resource: {
+						buffer: this._buffers.depth,
+					},
+				},
+				{
+					binding: 3,
+					resource: {
+						buffer: this._buffers.visibility,
+					},
+				},
 			],
 		});
 
@@ -656,10 +739,10 @@ export class Renderer extends WebGPURenderer {
 		const visibilityPipelineLayout = this._device.createPipelineLayout({
 			label: "Visibility render",
 			bindGroupLayouts: [
+				this._bindGroupLayouts.view,
 				this._bindGroupLayouts.geometry,
-				this._bindGroupLayouts.mesh,
-				this._bindGroupLayouts.camera,
 				this._bindGroupLayouts.visibility,
+				this._bindGroupLayouts.mesh,
 			],
 		});
 
@@ -670,6 +753,7 @@ export class Renderer extends WebGPURenderer {
 		const basePipelineLayout = this._device.createPipelineLayout({
 			label: "Base render",
 			bindGroupLayouts: [
+				this._bindGroupLayouts.view,
 				this._bindGroupLayouts.baseVisibility,
 			],
 		});
@@ -681,6 +765,7 @@ export class Renderer extends WebGPURenderer {
 		const clearComputePipelineLayout = this._device.createPipelineLayout({
 			label: "Clear compute",
 			bindGroupLayouts: [
+				this._bindGroupLayouts.view,
 				this._bindGroupLayouts.clear,
 			],
 		});
@@ -716,10 +801,36 @@ export class Renderer extends WebGPURenderer {
 		return visibilityTexture;
 	}
 
-	#writeCameraBuffer() {
+	#createVisibilityBuffer() {
+		const visibilityBuffer = this._device.createBuffer({
+			label: "Visibility",
+			size: this._viewport[2] * this._viewport[3] * Uint32Array.BYTES_PER_ELEMENT,
+			usage: GPUBufferUsage.STORAGE,
+		});
+
+		return visibilityBuffer;
+	}
+
+	#createDepthBuffer() {
+		const depthBuffer = this._device.createBuffer({
+			label: "Depth",
+			size: this._viewport[2] * this._viewport[3] * Uint32Array.BYTES_PER_ELEMENT,
+			usage: GPUBufferUsage.STORAGE,
+		});
+
+		return depthBuffer;
+	}
+
+	#writeViewUniformBuffer() {
+		const view = Uint32Array.of(0, 0, this._viewport[2], this._viewport[3]);
+
+		this._device.queue.writeBuffer(this._buffers.viewUniform, 0, view);
+	}
+
+	#writeCameraUniformBuffer() {
 		const viewProjection = this._camera.getViewProjection();
 
-		this._device.queue.writeBuffer(this._buffers.camera, 0, viewProjection);
+		this._device.queue.writeBuffer(this._buffers.viewUniform, 4 * Float32Array.BYTES_PER_ELEMENT, viewProjection);
 	}
 
 	/**
@@ -736,22 +847,20 @@ export class Renderer extends WebGPURenderer {
 			],
 		});
 		renderPass.setPipeline(this._renderPipelines.visibility);
-		renderPass.setBindGroup(0, this._bindGroups.geometry);
-		renderPass.setBindGroup(1, this._bindGroups.meshes);
-		renderPass.setBindGroup(2, this._bindGroups.camera);
-		renderPass.setBindGroup(3, this._bindGroups.visibility);
+		renderPass.setBindGroup(0, this._bindGroups.view);
+		renderPass.setBindGroup(1, this._bindGroups.geometry);
+		renderPass.setBindGroup(2, this._bindGroups.visibility);
 
 		const geometries = this._scene.getGeometries();
 
 		// One instanced indirect draw call per unique geometry
 		for (let i = 0; i < geometries.length; i++) {
 			const geometry = geometries[i];
-			const geometryName = geometry.constructor.name;
 			const indirectBufferOffset = i * WebGPURenderer._INDIRECT_BUFFER_SIZE * Uint32Array.BYTES_PER_ELEMENT;
-			const meshBindGroup = this.#meshBindGroups[geometryName];
+			const meshBindGroup = this.#meshBindGroups.get(geometry);
 
 			// Bind the projection buffer for all meshes having that geometry
-			renderPass.setBindGroup(1, meshBindGroup);
+			renderPass.setBindGroup(3, meshBindGroup);
 
 			// Draw with the same (offsetted) indirect buffer
 			renderPass.drawIndirect(this._buffers.indirect, indirectBufferOffset);
@@ -774,7 +883,8 @@ export class Renderer extends WebGPURenderer {
 			],
 		});
 		renderPass.setPipeline(this._renderPipelines.base);
-		renderPass.setBindGroup(0, this._bindGroups.baseVisibility);
+		renderPass.setBindGroup(0, this._bindGroups.view);
+		renderPass.setBindGroup(1, this._bindGroups.baseVisibility);
 		renderPass.draw(6);
 		renderPass.end();
 	}
@@ -785,7 +895,8 @@ export class Renderer extends WebGPURenderer {
 	#computeClearPass(commandEncoder) {
 		const computePass = commandEncoder.beginComputePass();
 		computePass.setPipeline(this._computePipelines.clear);
-		computePass.setBindGroup(0, this._bindGroups.clear);
+		computePass.setBindGroup(0, this._bindGroups.view);
+		computePass.setBindGroup(1, this._bindGroups.clear);
 
 		const x = this._viewport[2] / 7;
 		const y = this._viewport[3] / 7;

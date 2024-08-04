@@ -1,5 +1,6 @@
 import {Debugger} from "../../../src/index.js";
 import {Vector2, Vector4} from "../../../src/math/index.js";
+import {FRAMES_PER_SECOND} from "../../index.js";
 import {listen} from "./input.js";
 import {Instance} from "./Instance.js";
 import {Renderer} from "./Renderer.js";
@@ -12,7 +13,7 @@ export default async function() {
 	const debuggerClass = new Debugger();
 	const instance = new Instance({
 		renderer,
-		framesPerSecond: 60,
+		framesPerSecond: FRAMES_PER_SECOND,
 		debugger: debuggerClass,
 	});
 
@@ -23,7 +24,10 @@ export default async function() {
 	renderer.resize();
 
 	renderer.setCamera(createCamera(viewport[0] / viewport[1]));
-	renderer.setScene(await createScene());
+
+	const scene = await createScene();
+
+	renderer.setScene(scene);
 
 	document.body.appendChild(canvas);
 	listen(renderer);
