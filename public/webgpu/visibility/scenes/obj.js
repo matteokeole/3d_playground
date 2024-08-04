@@ -20,7 +20,8 @@ export async function createScene() {
 
 	const mesh = new Mesh(geometry, null);
 	mesh.setPosition(new Vector3(0, 0, 5));
-	mesh.setScale(new Vector3(30, 30, 30));
+	// mesh.setRotation(new Vector3(PI / 2, PI, PI));
+	mesh.setScale(new Vector3().addScalar(30));
 	mesh.updateProjection();
 
 	const scene = new Scene();
@@ -36,11 +37,11 @@ export async function createScene() {
 export function createCamera(aspectRatio) {
 	const camera = new PerspectiveCamera();
 
-	camera.setPosition(new Vector3(0, 4, 0));
-	camera.fieldOfView = FIELD_OF_VIEW;
+	camera.setPosition(new Vector3(0, 2, 0));
+	camera.fieldOfView = 45;
 	camera.aspectRatio = aspectRatio;
-	camera.near = 1;
-	camera.far = 1000;
+	camera.near = 0.1;
+	camera.far = 100;
 	camera.bias = PI * .5;
 	camera.turnVelocity = SENSITIVITY;
 	camera.lookAt(new Vector2(0, 0));
