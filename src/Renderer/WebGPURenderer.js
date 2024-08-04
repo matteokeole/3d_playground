@@ -1,4 +1,5 @@
-import {Camera, Scene} from "../index.js";
+import {Scene} from "../index.js";
+import {Camera} from "../Camera/index.js";
 import {Renderer} from "./Renderer.js";
 
 export class WebGPURenderer extends Renderer {

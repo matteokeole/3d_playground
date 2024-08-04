@@ -1,6 +1,6 @@
 import {Instance as _Instance} from "../../src/index.js";
 import {Vector3} from "../../src/math/index.js";
-import {CAMERA_LERP_FACTOR, VELOCITY} from "../hl2/main.js";
+import {VELOCITY} from "../hl2/main.js";
 import {keys} from "./input.js";
 
 export class Instance extends _Instance {

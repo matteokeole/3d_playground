@@ -1,4 +1,5 @@
-import {Camera, Scene, TextureImage} from "../index.js";
+import {Scene, TextureImage} from "../index.js";
+import {Camera} from "../Camera/index.js";
 import {Renderer} from "./Renderer.js";
 
 export class WebGLRenderer extends Renderer {

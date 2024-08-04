@@ -1,6 +1,6 @@
-import {Session} from "./Capture/index.js";
-import {clamp, Matrix3, Matrix4, PI, Vector2, Vector3} from "./math/index.js";
-import {Mesh} from "./Mesh/index.js";
+import {Session} from "../Capture/index.js";
+import {clamp, Matrix3, Matrix4, PI, Vector2, Vector3} from "../math/index.js";
+import {Mesh} from "../Mesh/index.js";
 
 /**
  * @abstract
@@ -21,19 +21,8 @@ export class Camera {
 		);
 	}
 
-	/**
-	 * @type {Matrix4}
-	 */
-	#projection;
-
-	/**
-	 * @type {Matrix4}
-	 */
 	#view;
-
-	/**
-	 * @type {Matrix4}
-	 */
+	#projection;
 	#viewProjection;
 
 	/**
@@ -109,9 +98,9 @@ export class Camera {
 	#captureSession;
 
 	constructor() {
-		this.#projection = new Matrix4();
-		this.#view = new Matrix4();
-		this.#viewProjection = new Matrix4();
+		this.#view = Matrix4.identity();
+		this.#projection = Matrix4.identity();
+		this.#viewProjection = Matrix4.identity();
 		this.#position = new Vector3();
 		this.#distance = new Vector3();
 		this.#rotation = new Vector3();
@@ -129,12 +118,12 @@ export class Camera {
 		this.#captureSession = null;
 	}
 
-	getProjection() {
-		return this.#projection;
-	}
-
 	getView() {
 		return this.#view;
+	}
+
+	getProjection() {
+		return this.#projection;
 	}
 
 	getViewProjection() {
@@ -323,6 +312,12 @@ export class Camera {
 	}
 
 	update() {
+		this.#view = Matrix4.lookAt(
+			this.#position,
+			new Vector3(this.#position).add(this.#forward),
+			this.#up,
+		);
+
 		this.#projection = Matrix4.perspective(
 			this.fieldOfView * PI / 180,
 			this.aspectRatio,
@@ -331,11 +326,7 @@ export class Camera {
 			1,
 			this.bias,
 		).multiply(Matrix4.translation(new Vector3(this.#distance).multiplyScalar(-1)));
-		this.#view = Matrix4.lookAt(
-			this.#position,
-			new Vector3(this.#position).add(this.#forward),
-			this.#up,
-		);
+
 		this.#viewProjection = new Matrix4(this.#projection).multiply(this.#view);
 	}
 

@@ -1,4 +1,4 @@
-import {Camera} from "../../src/index.js";
+import {PerspectiveCamera} from "../../src/Camera/index.js";
 import {ImageBitmapLoader} from "../../src/Loader/index.js";
 import {PI, SQRT1_2, Vector2} from "../../src/math/index.js";
 import {Renderer} from "./Renderer.js";
@@ -38,7 +38,7 @@ export default async function() {
 
 	renderer.loadTextures(textures);
 
-	const camera = new Camera();
+	const camera = new PerspectiveCamera();
 	camera.getPosition()[1] = CAMERA_HEIGHT;
 	camera.fieldOfView = FIELD_OF_VIEW;
 	camera.aspectRatio = viewport[0] / viewport[1];

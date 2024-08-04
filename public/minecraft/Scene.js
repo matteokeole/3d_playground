@@ -1,4 +1,5 @@
-import {Camera, Scene as _Scene} from "../../src/index.js";
+import {Scene as _Scene} from "../../src/index.js";
+import {Camera} from "../../src/Camera/index.js";
 import {Mesh} from "../../src/Mesh/index.js";
 
 export class Scene extends _Scene {

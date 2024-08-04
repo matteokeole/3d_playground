@@ -1,7 +1,6 @@
 import {Instance as _Instance} from "../../src/index.js";
-import {Vector3} from "../../src/math/index.js";
 import {Keybind, keys} from "./input.js";
-import {CAMERA_LERP_FACTOR, VELOCITY, VELOCITY_SQRT1_2} from "./main.js";
+import {VELOCITY, VELOCITY_SQRT1_2} from "./main.js";
 
 const diagonalMovement = () =>
 	(keys.has(Keybind.forward) || keys.has(Keybind.backward)) &&

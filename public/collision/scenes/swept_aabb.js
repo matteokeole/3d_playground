@@ -1,8 +1,8 @@
-import {Camera} from "../../../src/index.js";
-import {BoxGeometry} from "../../../src/Geometry/BoxGeometry.js";
+import {PerspectiveCamera} from "../../../src/Camera/index.js";
+import {BoxGeometry} from "../../../src/Geometry/index.js";
 import {PointLight} from "../../../src/Light/index.js";
 import {SSDLoader} from "../../../src/Loader/index.js";
-import {TextureMaterial} from "../../../src/Material/TextureMaterial.js";
+import {TextureMaterial} from "../../../src/Material/index.js";
 import {Matrix3, PI, Vector2, Vector3} from "../../../src/math/index.js";
 import {Mesh} from "../../hl2/Mesh.js";
 import {Scene} from "../../hl2/Scene.js";
@@ -65,7 +65,7 @@ export async function createScene(imageBitmaps) {
  * @param {Number} aspectRatio
  */
 export function createCamera(aspectRatio) {
-	const camera = new Camera();
+	const camera = new PerspectiveCamera();
 
 	camera.setPosition(new Vector3(0, ENTITY_HEIGHT_STAND, -128));
 	camera.fieldOfView = FIELD_OF_VIEW;

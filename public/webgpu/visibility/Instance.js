@@ -1,4 +1,5 @@
-import {Instance as _Instance, Camera} from "../../../src/index.js";
+import {Instance as _Instance} from "../../../src/index.js";
+import {Camera} from "../../../src/Camera/index.js";
 import {EPA, GJK} from "../../../src/Algorithm/index.js";
 import {Vector3} from "../../../src/math/index.js";
 import {Mesh} from "../../../src/Mesh/Mesh.js";
