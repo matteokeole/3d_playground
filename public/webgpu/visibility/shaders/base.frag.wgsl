@@ -1,6 +1,8 @@
 @group(0) @binding(0) var<uniform> view: View;
-@group(1) @binding(2) var<storage, read_write> depthBuffer: array<atomic<u32>>;
-@group(1) @binding(3) var<storage, read_write> visibilityBuffer: array<atomic<u32>>;
+// @group(1) @binding(2) var<storage, read_write> depthBuffer: array<atomic<u32>>;
+// @group(1) @binding(3) var<storage, read_write> visibilityBuffer: array<atomic<u32>>;
+@group(1) @binding(0) var depthTexture: texture_depth_2d;
+@group(1) @binding(1) var visibilityTexture: texture_storage_2d<rg32uint, read>;
 
 struct View {
 	viewport: vec4u,
@@ -25,6 +27,22 @@ const VISUALIZE_TRIANGLES: u32 = 3;
 const DEBUG_MODE: u32 = VISUALIZE_DEPTH;
 
 @fragment
+fn main(input: Input) -> @location(0) vec4f {
+	let position: vec2u = vec2u(input.position.xy);
+	let depth: f32 = textureLoad(depthTexture, position, 0);
+	let visibility: u32 = textureLoad(visibilityTexture, position).r;
+	let instanceIndex: u32 = (visibility >> 7) - 1;
+	let triangleIndex: u32 = visibility & 0x7f;
+
+	let linearDepth: f32 = linearizeDepth(depth);
+
+	// let color: vec3f = vec3f(linearDepth);
+	let color: vec3f = intToColor(triangleIndex) * 0.8 + 0.2;
+
+	return vec4f(color, 1);
+}
+
+/* @fragment
 fn main(input: Input) -> @location(0) vec4f {
 	let uv: vec2u = vec2u(input.position.xy);
 	let pos: u32 = position1d(uv);
@@ -87,7 +105,7 @@ fn visualizeTriangles(triangleIndex: u32) -> vec4f {
 	let color: vec3f = intToColor(triangleIndex) * 0.8 + 0.2;
 
 	return vec4f(color, 1);
-}
+} */
 
 fn intToColor(int: u32) -> vec3f {
 	var hash: u32 = murmurMix(int);
@@ -119,6 +137,6 @@ fn linearizeDepth(depth: f32) -> f32 {
 	return (2.0 * n) / (f + n - depth * (f - n));	
 }
 
-fn position1d(uv: vec2u) -> u32 {
+/* fn position1d(uv: vec2u) -> u32 {
 	return uv.y * view.viewport.z + uv.x;
-}
+} */

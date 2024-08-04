@@ -1,6 +1,6 @@
 @group(0) @binding(0) var<uniform> view: View;
-@group(2) @binding(2) var<storage, read_write> depthBuffer: array<atomic<u32>>;
-@group(2) @binding(3) var<storage, read_write> visibilityBuffer: array<atomic<u32>>;
+// @group(2) @binding(2) var<storage, read_write> depthBuffer: array<atomic<u32>>;
+// @group(2) @binding(3) var<storage, read_write> visibilityBuffer: array<atomic<u32>>;
 
 struct View {
 	viewport: vec4u,
@@ -22,6 +22,13 @@ struct Input {
 const far: f32 = 1000;
 
 @fragment
+fn main(input: Input) -> @location(0) vec4u {
+	let visibility: u32 = ((input.instanceIndex + 1) << 7) | input.triangleIndex;
+
+	return vec4u(visibility, 0, 0, 1);
+}
+
+/* @fragment
 fn main(input: Input) {
 	let position: vec4f = vec4f(input.position.xy, input.position.z, input.position.w);
 
@@ -56,4 +63,4 @@ fn writeTexel(position: u32, value: u32, depth: u32) {
 
 fn position1d(uv: vec2u) -> u32 {
 	return uv.y * view.viewport.z + uv.x;
-}
+} */

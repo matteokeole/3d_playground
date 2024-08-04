@@ -2,7 +2,7 @@
 @group(1) @binding(0) var<storage> vertexBuffer: array<f32>;
 @group(1) @binding(1) var<storage> indexBuffer: array<u32>;
 @group(1) @binding(2) var<storage> geometry: Geometry;
-@group(3) @binding(0) var<storage> instances: array<Instance>;
+@group(2) @binding(0) var<storage> instances: array<Instance>;
 
 struct View {
 	viewport: vec4u,

@@ -48,6 +48,7 @@ export class Renderer extends WebGPURenderer {
 		this._buffers.depth = this.#createDepthBuffer();
 
 		this._textures.depth = this.#createDepthTexture();
+		this._textures.depthStencil = this.#createDepthStencilTexture();
 		this._textures.visibility = this.#createVisibilityTexture();
 
 		this._renderPipelines.visibility = this.#createVisibilityRenderPipeline();
@@ -63,7 +64,7 @@ export class Renderer extends WebGPURenderer {
 
 		this.#renderVisibilityPass(commandEncoder);
 		this.#renderBasePass(commandEncoder);
-		this.#computeClearPass(commandEncoder);
+		// this.#computeClearPass(commandEncoder);
 
 		const commandBuffer = commandEncoder.finish();
 
@@ -164,13 +165,17 @@ export class Renderer extends WebGPURenderer {
 				frontFace: "cw",
 				cullMode: "back",
 			},
+			depthStencil: {
+				format: "depth24plus",
+				depthWriteEnabled: true,
+				depthCompare: "less",
+			},
 			fragment: {
 				module: this._shaderModules.visibilityFragment,
 				entryPoint: "main",
 				targets: [
 					{
-						format: this._preferredCanvasFormat,
-						writeMask: 0,
+						format: "rg32uint",
 					},
 				],
 			},
@@ -488,9 +493,8 @@ export class Renderer extends WebGPURenderer {
 				{
 					binding: 0,
 					visibility: GPUShaderStage.FRAGMENT,
-					storageTexture: {
-						access: "read-only",
-						format: "r32uint",
+					texture: {
+						sampleType: "depth",
 					},
 				},
 				{
@@ -501,7 +505,7 @@ export class Renderer extends WebGPURenderer {
 						format: "rg32uint",
 					},
 				},
-				{
+				/* {
 					binding: 2,
 					visibility: GPUShaderStage.FRAGMENT,
 					buffer: {
@@ -514,7 +518,7 @@ export class Renderer extends WebGPURenderer {
 					buffer: {
 						type: "storage",
 					},
-				},
+				}, */
 			],
 		});
 
@@ -660,13 +664,13 @@ export class Renderer extends WebGPURenderer {
 			entries: [
 				{
 					binding: 0,
-					resource: this._textures.depth.createView(),
+					resource: this._textures.depthStencil.createView(),
 				},
 				{
 					binding: 1,
 					resource: this._textures.visibility.createView(),
 				},
-				{
+				/* {
 					binding: 2,
 					resource: {
 						buffer: this._buffers.depth,
@@ -677,7 +681,7 @@ export class Renderer extends WebGPURenderer {
 					resource: {
 						buffer: this._buffers.visibility,
 					},
-				},
+				}, */
 			],
 		});
 
@@ -741,7 +745,7 @@ export class Renderer extends WebGPURenderer {
 			bindGroupLayouts: [
 				this._bindGroupLayouts.view,
 				this._bindGroupLayouts.geometry,
-				this._bindGroupLayouts.visibility,
+				// this._bindGroupLayouts.visibility,
 				this._bindGroupLayouts.mesh,
 			],
 		});
@@ -785,6 +789,20 @@ export class Renderer extends WebGPURenderer {
 		});
 
 		return depthTexture;
+	}
+
+	#createDepthStencilTexture() {
+		const depthStencilTexture = this._device.createTexture({
+			label: "Depth stencil",
+			size: {
+				width: this._viewport[2],
+				height: this._viewport[3],
+			},
+			format: "depth24plus",
+			usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
+		});
+
+		return depthStencilTexture;
 	}
 
 	#createVisibilityTexture() {
@@ -840,16 +858,22 @@ export class Renderer extends WebGPURenderer {
 		const renderPass = commandEncoder.beginRenderPass({
 			colorAttachments: [
 				{
-					view: this._context.getCurrentTexture().createView(),
+					view: this._textures.visibility.createView(),
 					loadOp: "clear",
 					storeOp: "store",
 				},
 			],
+			depthStencilAttachment: {
+				view: this._textures.depthStencil.createView(),
+				depthClearValue: 1,
+				depthLoadOp: "clear",
+				depthStoreOp: "store",
+			},
 		});
 		renderPass.setPipeline(this._renderPipelines.visibility);
 		renderPass.setBindGroup(0, this._bindGroups.view);
 		renderPass.setBindGroup(1, this._bindGroups.geometry);
-		renderPass.setBindGroup(2, this._bindGroups.visibility);
+		// renderPass.setBindGroup(2, this._bindGroups.visibility);
 
 		const geometries = this._scene.getGeometries();
 
@@ -860,7 +884,7 @@ export class Renderer extends WebGPURenderer {
 			const meshBindGroup = this.#meshBindGroups.get(geometry);
 
 			// Bind the projection buffer for all meshes having that geometry
-			renderPass.setBindGroup(3, meshBindGroup);
+			renderPass.setBindGroup(2, meshBindGroup);
 
 			// Draw with the same (offsetted) indirect buffer
 			renderPass.drawIndirect(this._buffers.indirect, indirectBufferOffset);
@@ -879,7 +903,7 @@ export class Renderer extends WebGPURenderer {
 					view: this._context.getCurrentTexture().createView(),
 					loadOp: "clear",
 					storeOp: "store",
-				}
+				},
 			],
 		});
 		renderPass.setPipeline(this._renderPipelines.base);
