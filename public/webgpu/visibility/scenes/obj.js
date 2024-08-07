@@ -8,7 +8,7 @@ import {SENSITIVITY} from "../../../hl2/main.js";
 
 export async function createScene() {
 	const objLoader = new OBJLoader();
-	const obj = await objLoader.load("assets/models/living_room.obj");
+	const obj = await objLoader.load("assets/models/living_room/living_room.obj");
 	const geometry = new Geometry({
 		vertices: obj.vertices,
 		indices: obj.indices,

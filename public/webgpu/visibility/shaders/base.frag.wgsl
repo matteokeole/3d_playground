@@ -11,12 +11,12 @@ struct In {
 	@builtin(position) position: vec4f,
 }
 
-const NEAR: f32 = 1;
+const NEAR: f32 = 5;
 const FAR: f32 = 1000;
 const VISUALIZATION_MODE_DEPTH: u32 = 0;
 const VISUALIZATION_MODE_INSTANCE: u32 = 1;
 const VISUALIZATION_MODE_TRIANGLE: u32 = 2;
-const VISUALIZATION_MODE: u32 = VISUALIZATION_MODE_TRIANGLE;
+const VISUALIZATION_MODE: u32 = VISUALIZATION_MODE_DEPTH;
 
 @fragment
 fn main(in: In) -> @location(0) vec4f {
