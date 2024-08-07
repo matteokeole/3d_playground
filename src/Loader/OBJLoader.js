@@ -121,7 +121,7 @@ export class OBJLoader extends Loader {
 			const keyword = exec[1];
 
 			if (!(keyword in OBJLoader.#KEYWORDS_HANDLERS)) {
-				console.warn(`Unhandled keyword "${keyword}" at line`, i + 1);
+				// console.warn(`Unhandled keyword "${keyword}" at line`, i + 1);
 
 				continue;
 			}
