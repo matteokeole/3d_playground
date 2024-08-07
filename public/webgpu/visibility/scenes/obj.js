@@ -5,11 +5,10 @@ import {PI, Vector2, Vector3} from "../../../../src/math/index.js";
 import {Mesh} from "../../../../src/Mesh/index.js";
 import {Scene} from "../../../../src/Scene/index.js";
 import {SENSITIVITY} from "../../../hl2/main.js";
-import {FIELD_OF_VIEW} from "../../../index.js";
 
 export async function createScene() {
 	const objLoader = new OBJLoader();
-	const obj = await objLoader.load("assets/models/bunny.obj");
+	const obj = await objLoader.load("assets/models/bunny_medium.obj");
 	const geometry = new Geometry({
 		vertices: obj.vertices,
 		indices: obj.indices,
