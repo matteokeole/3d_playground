@@ -21,9 +21,9 @@ export class Camera {
 		);
 	}
 
-	#view;
-	#projection;
-	#viewProjection;
+	_view;
+	_projection;
+	_viewProjection;
 
 	/**
 	 * @type {Vector3}
@@ -98,9 +98,9 @@ export class Camera {
 	#captureSession;
 
 	constructor() {
-		this.#view = Matrix4.identity();
-		this.#projection = Matrix4.identity();
-		this.#viewProjection = Matrix4.identity();
+		this._view = Matrix4.identity();
+		this._projection = Matrix4.identity();
+		this._viewProjection = Matrix4.identity();
 		this.#position = new Vector3();
 		this.#distance = new Vector3();
 		this.#rotation = new Vector3();
@@ -119,15 +119,15 @@ export class Camera {
 	}
 
 	getView() {
-		return this.#view;
+		return this._view;
 	}
 
 	getProjection() {
-		return this.#projection;
+		return this._projection;
 	}
 
 	getViewProjection() {
-		return this.#viewProjection;
+		return this._viewProjection;
 	}
 
 	getPosition() {
@@ -311,24 +311,10 @@ export class Camera {
 		);
 	}
 
-	update() {
-		this.#view = Matrix4.lookAt(
-			this.#position,
-			new Vector3(this.#position).add(this.#forward),
-			this.#up,
-		);
-
-		this.#projection = Matrix4.perspective(
-			this.fieldOfView * PI / 180,
-			this.aspectRatio,
-			this.near,
-			this.far,
-			1,
-			this.bias,
-		).multiply(Matrix4.translation(new Vector3(this.#distance).multiplyScalar(-1)));
-
-		this.#viewProjection = new Matrix4(this.#projection).multiply(this.#view);
-	}
+	/**
+	 * @abstract
+	 */
+	update() {}
 
 	/**
 	 * Returns the current camera position, including the distance.
