@@ -8,7 +8,7 @@ import {SENSITIVITY} from "../../../hl2/main.js";
 
 export async function createScene() {
 	const objLoader = new OBJLoader();
-	const obj = await objLoader.load("assets/models/living_room/living_room.obj");
+	const obj = await objLoader.load("assets/models/cube.obj");
 	const geometry = new Geometry({
 		vertices: obj.vertices,
 		indices: obj.indices,
@@ -18,7 +18,7 @@ export async function createScene() {
 	});
 
 	const mesh = new Mesh(geometry, null);
-	mesh.setPosition(new Vector3(0, 0, -3));
+	mesh.setPosition(new Vector3(0, 0, 2));
 	// mesh.setRotation(new Vector3(PI / 2, PI, PI));
 	mesh.setScale(new Vector3().addScalar(1));
 	mesh.updateProjection();
