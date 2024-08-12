@@ -1,4 +1,5 @@
-import {Camera, Scene} from "../../../../src/index.js";
+import {Scene} from "../../../../src/index.js";
+import {PerspectiveCamera} from "../../../../src/Camera/index.js";
 import {PolytopeGeometry} from "../../../../src/Geometry/index.js";
 import {PI, Vector2, Vector3} from "../../../../src/math/index.js";
 import {Mesh} from "../../../../src/Mesh/index.js";
@@ -38,10 +39,9 @@ export async function createScene() {
  * @param {Number} aspectRatio
  */
 export function createCamera(aspectRatio) {
-	const camera = new Camera();
+	const camera = new PerspectiveCamera();
 
 	camera.setPosition(new Vector3(0, 0, 0));
-	camera.target.set(camera.getPosition());
 	camera.fieldOfView = FIELD_OF_VIEW;
 	camera.aspectRatio = aspectRatio;
 	camera.near = 1;

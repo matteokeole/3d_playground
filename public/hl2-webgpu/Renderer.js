@@ -1,4 +1,5 @@
-import {Camera, Scene} from "../../src/index.js";
+import {Scene} from "../../src/index.js";
+import {Camera} from "../../src/Camera/index.js";
 import {ShaderLoader} from "../../src/Loader/index.js";
 import {WebGPURenderer} from "../../src/Renderer/index.js";
 

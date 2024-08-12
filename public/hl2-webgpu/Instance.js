@@ -1,6 +1,6 @@
 import {Instance as _Instance} from "../../src/index.js";
 import {Vector3} from "../../src/math/index.js";
-import {CAMERA_LERP_FACTOR, VELOCITY} from "../hl2/main.js";
+import {VELOCITY} from "../hl2/main.js";
 import {keys} from "./input.js";
 
 export class Instance extends _Instance {
@@ -15,8 +15,7 @@ export class Instance extends _Instance {
 
 		const camera = this._renderer.getCamera();
 
-		camera.target.add(camera.getRelativeVelocity(direction));
-		camera.getPosition().lerp(camera.target, CAMERA_LERP_FACTOR);
+		camera.getPosition().add(camera.getRelativeVelocity(direction));
 		camera.update();
 
 		// @ts-ignore

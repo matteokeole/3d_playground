@@ -1,4 +1,5 @@
-import {Camera, Scene} from "../../../src/index.js";
+import {Scene} from "../../../src/index.js";
+import {PerspectiveCamera} from "../../../src/Camera/index.js";
 import {PI, Vector2, Vector3} from "../../../src/math/index.js";
 import {FIELD_OF_VIEW} from "../../index.js";
 import {SENSITIVITY} from "../../hl2/main.js";
@@ -37,15 +38,12 @@ export async function createScene(images) {
  * @param {Number} aspectRatio
  */
 export function createCamera(aspectRatio) {
-	const camera = new Camera();
+	const camera = new PerspectiveCamera();
 
 	// camera.setPosition(new Vector3(50, ENTITY_HEIGHT_STAND, 0));
 	camera.setPosition(new Vector3(48.40, 188.37, 91.85));
 	camera.setRotation(new Vector3(-1.57, 0, 0));
-
-	camera.target = new Vector3(camera.getPosition());
 	camera.fieldOfView = FIELD_OF_VIEW;
-
 	camera.aspectRatio = aspectRatio;
 	camera.near = .5;
 	camera.far = 1000;

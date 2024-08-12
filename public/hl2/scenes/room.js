@@ -1,4 +1,4 @@
-import {Camera} from "../../../src/index.js";
+import {PerspectiveCamera} from "../../../src/Camera/index.js";
 import {PointLight} from "../../../src/Light/index.js";
 import {SSDLoader} from "../../../src/Loader/index.js";
 import {PI, Vector2, Vector3} from "../../../src/math/index.js";
@@ -33,11 +33,9 @@ export async function createScene(imageBitmaps) {
  * @param {Number} aspectRatio
  */
 export function createCamera(aspectRatio) {
-	const camera = new Camera();
+	const camera = new PerspectiveCamera();
 
 	camera.setPosition(new Vector3(0, PLAYER_COLLISION_HULL[1], -128));
-	camera.target = new Vector3(camera.getPosition());
-
 	camera.fieldOfView = FIELD_OF_VIEW;
 	camera.aspectRatio = aspectRatio;
 	camera.near = .5;

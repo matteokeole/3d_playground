@@ -1,4 +1,5 @@
-import {Camera, Scene} from "../index.js";
+import {Scene} from "../index.js";
+import {Camera} from "../Camera/index.js";
 import {Vector4} from "../math/index.js";
 
 /**

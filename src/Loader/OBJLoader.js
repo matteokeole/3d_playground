@@ -1,17 +1,67 @@
-import {Vector3} from "../math/index.js";
 import {Loader} from "./Loader.js";
 
 export class OBJLoader extends Loader {
 	/**
 	 * @type {Record.<String, *>}
 	 */
-	static #KEYWORDS = {
-		v(vertexBuffer, vertex) {
-			const vector = Vector3.from(vertex);
+	static #KEYWORDS_HANDLERS = {
+		v(lineSplits, {vertices}) {
+			for (let i = 0; i < lineSplits.length; i++) {
+				const lineSplit = lineSplits[i];
+				const float = parseFloat(lineSplit);
 
-			vertexBuffer.push(vector[0], vector[1], vector[2]);
+				vertices.push(float);
+			}
+		},
+		/* vn(parts, {normals}) {
+			const parsedParts = parts.map(parseFloat);
+
+			normals.push(parsedParts);
+		}, */
+		/* vt(parts, {uvs}) {
+			const parsedParts = parts.map(parseFloat);
+
+			uvs.push(parsedParts);
+		}, */
+		f(parts, {indices}) {
+			const triangleCount = parts.length - 2;
+
+			for (let i = 0; i < triangleCount; i++) {
+				OBJLoader.#addVertex(parts[0], indices);
+				OBJLoader.#addVertex(parts[i + 1], indices);
+				OBJLoader.#addVertex(parts[i + 2], indices);
+			}
 		},
 	};
+
+	/**
+	 * @param {String} vertexString
+	 */
+	static #addVertex(vertexString, indices, vertexData, webglVertexData) {
+		const vertexUvNormalString = vertexString.split("/");
+
+		const indexString = vertexUvNormalString[0];
+		const index = parseInt(indexString) - 1;
+
+		indices.push(index);
+
+		/* for (let i = 0; i < vertexUvNormalString.length; i++) {
+			const objectIndexString = vertexUvNormalString[i];
+
+			if (!objectIndexString) {
+				return;
+			}
+
+			const objectIndex = parseInt(objectIndexString);
+			let index = objectIndex;
+
+			if (objectIndex < 0) {
+				index += vertexData[i].length;
+			}
+
+			webglVertexData[i].push(...vertexData[i][index]);
+		} */
+	}
 
 	/**
 	 * Loads static scene description from a JSON file.
@@ -29,10 +79,28 @@ export class OBJLoader extends Loader {
 
 		const text = await response.text();
 		const lines = text.split("\n");
-		const lineExpression = /(\w*)(?= )*(.*)/;
+		const lineExpression = /(\w*)(?: )*(.*)/;
+		const vertices = [];
+		const indices = [];
+		const uvs = [
+			[0, 0],
+		];
+		const normals = [
+			[0, 0, 0],
+		];
+		const vertexData = [
+			vertices,
+			uvs,
+			normals,
+		];
+		const webglVertexData = [
+			[], // Positions
+			[], // UVs
+			[], // Normals
+		];
 
 		for (let i = 0; i < lines.length; i++) {
-			const line = lines[i];
+			const line = lines[i].trim();
 
 			if (!line.length) {
 				// Blank line
@@ -50,19 +118,26 @@ export class OBJLoader extends Loader {
 				continue;
 			}
 
-			const [, keyword] = exec;
+			const keyword = exec[1];
 
-			if (!(keyword in OBJLoader.#KEYWORDS)) {
-				console.warn("Unknown keyword:", keyword, "at line", i + 1);
+			if (!(keyword in OBJLoader.#KEYWORDS_HANDLERS)) {
+				// console.warn(`Unhandled keyword "${keyword}" at line`, i + 1);
 
 				continue;
 			}
 
-			const keywordHandler = OBJLoader.#KEYWORDS[keyword];
-			const unparsedArguments = line.split(/\s+/).slice(1);
-			const buffer = [];
+			const keywordHandler = OBJLoader.#KEYWORDS_HANDLERS[keyword];
+			const lineSplits = line.split(/\s+/).slice(1);
 
-			keywordHandler(buffer, unparsedArguments);
+			keywordHandler(lineSplits, {vertices, indices, uvs, normals, vertexData, webglVertexData});
 		}
+
+		const vertexBuffer = new Float32Array(vertices);
+		const indexBuffer = new Uint32Array(indices);
+
+		return {
+			vertices: vertexBuffer,
+			indices: indexBuffer,
+		};
 	}
 }
