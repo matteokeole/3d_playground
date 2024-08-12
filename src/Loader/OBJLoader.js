@@ -1,5 +1,11 @@
 import {Loader} from "./Loader.js";
 
+/**
+ * @typedef {Object} OBJ
+ * @property {Float32Array} vertices
+ * @property {Uint32Array} indices
+ */
+
 export class OBJLoader extends Loader {
 	/**
 	 * @type {Record.<String, *>}
@@ -64,18 +70,10 @@ export class OBJLoader extends Loader {
 	}
 
 	/**
-	 * Loads static scene description from a JSON file.
-	 * 
-	 * @param {String} path Scene file path
-	 * @returns {Promise.<Object>}
-	 * @throws {Error} The request failed
+	 * @param {String} url
 	 */
-	async load(path) {
-		const response = await fetch(path);
-
-		if (!response.ok) {
-			throw new Error(`Could not fetch the scene file: request failed with status ${response.status}.`);
-		}
+	async load(url) {
+		const response = await super.load(url);
 
 		const text = await response.text();
 		const lines = text.split("\n");
@@ -135,9 +133,14 @@ export class OBJLoader extends Loader {
 		const vertexBuffer = new Float32Array(vertices);
 		const indexBuffer = new Uint32Array(indices);
 
-		return {
+		/**
+		 * @type {OBJ}
+		 */
+		const obj = {
 			vertices: vertexBuffer,
 			indices: indexBuffer,
 		};
+
+		return obj;
 	}
 }

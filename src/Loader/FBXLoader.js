@@ -2,8 +2,7 @@ import {Loader} from "./Loader.js";
 
 export class FBXLoader extends Loader {
 	/**
-	 * @type {Loader["load"]}
-	 * @returns {Promise.<Object>}
+	 * @param {String} url
 	 */
 	async load(url) {
 		const response = await super.load(url);
