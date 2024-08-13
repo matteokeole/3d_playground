@@ -18,7 +18,11 @@
 /**
  * @typedef {Object} FBXProperty
  * @property {char} TypeCode
- * @property {int32_t|FBXRawPropertyData|FBXStringPropertyData} Data
+ * @property {FBXPropertyData} Data
+ */
+
+/**
+ * @typedef {double|int32_t|FBXRawPropertyData|FBXStringPropertyData} FBXPropertyData
  */
 
 /**

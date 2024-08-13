@@ -11,5 +11,9 @@
  */
 
 /**
+ * @typedef {Number} double
+ */
+
+/**
  * @typedef {String} char
  */

@@ -13,10 +13,10 @@ export class FBXBinaryLoader extends Loader {
 	static #PROPERTY_TYPE_HANDLERS = {
 		// Primitive types
 		"C": null,
-		"D": null,
+		"D": FBXBinaryLoader.#handleDPropertyData,
 		"F": null,
 		"I": FBXBinaryLoader.#handleIPropertyData,
-		"L": null,
+		"L": FBXBinaryLoader.#handleLPropertyData,
 		"Y": null,
 		// Array types
 		"b": null,
@@ -29,8 +29,8 @@ export class FBXBinaryLoader extends Loader {
 		"S": FBXBinaryLoader.#handleSPropertyData,
 	};
 
-	static #MAX_ROOT_NODE_RECORDS = 2;
-	static #MAX_NODE_RECORDS = 5;
+	static #MAX_ROOT_NODE_RECORDS = 5;
+	static #MAX_NODE_RECORDS = 14;
 
 	/**
 	 * @param {ArrayBuffer} arrayBuffer
@@ -104,9 +104,9 @@ export class FBXBinaryLoader extends Loader {
 		let Property = null;
 
 		for (let i = 0; i < NumProperties; i++) {
-			Property = FBXBinaryLoader.#parsePropertyRecord(dataView, propertyStartOffset);
+			Property = FBXBinaryLoader.#parsePropertyRecord(dataView, propertyStartOffset, Node.Name);
 
-			propertyStartOffset += (Property?.Data?.Length ?? 0) + 1 * Uint32Array.BYTES_PER_ELEMENT;
+			propertyStartOffset += FBXBinaryLoader.#getPropertyLength(Property);
 
 			Node.Properties.push(Property);
 		}
@@ -120,7 +120,7 @@ export class FBXBinaryLoader extends Loader {
 		if (Node.EndOffset - nestedListStartOffset > 0) {
 			// Parse nested list
 			for (let i = 0; i < FBXBinaryLoader.#MAX_NODE_RECORDS; i++) {
-				// console.log("Parsing sub node starting at", nestedListStartOffset);
+				// console.log("Parsing sub-node starting at", nestedListStartOffset);
 
 				const SubNode = FBXBinaryLoader.#parseNodeRecord(dataView, nestedListStartOffset);
 
@@ -144,8 +144,11 @@ export class FBXBinaryLoader extends Loader {
 	/**
 	 * @param {DataView} dataView
 	 * @param {Number} offset
+	 * @param {String} nodeName
 	 */
-	static #parsePropertyRecord(dataView, offset) {
+	static #parsePropertyRecord(dataView, offset, nodeName) {
+		// console.log("Parsing property starting at", offset);
+
 		const TypeCode = String.fromCharCode(dataView.getUint8(offset));
 
 		/**
@@ -159,7 +162,7 @@ export class FBXBinaryLoader extends Loader {
 		const handler = FBXBinaryLoader.#PROPERTY_TYPE_HANDLERS[TypeCode];
 
 		if (!handler) {
-			console.warn(`Unhandled property '${TypeCode}'.`);
+			console.warn(`Unhandled property '${TypeCode}' in node '${nodeName}'.`);
 
 			return Property;
 		}
@@ -175,8 +178,28 @@ export class FBXBinaryLoader extends Loader {
 	 * @param {DataView} dataView
 	 * @param {Number} offset
 	 */
+	static #handleDPropertyData(dataView, offset) {
+		const Data = dataView.getFloat64(offset, true);
+
+		return Data;
+	}
+
+	/**
+	 * @param {DataView} dataView
+	 * @param {Number} offset
+	 */
 	static #handleIPropertyData(dataView, offset) {
 		const Data = dataView.getInt32(offset, true);
+
+		return Data;
+	}
+
+	/**
+	 * @param {DataView} dataView
+	 * @param {Number} offset
+	 */
+	static #handleLPropertyData(dataView, offset) {
+		const Data = dataView.getBigInt64(offset, true);
 
 		return Data;
 	}
@@ -220,6 +243,53 @@ export class FBXBinaryLoader extends Loader {
 		};
 
 		return StringPropertyData;
+	}
+
+	/**
+	 * @param {FBXProperty} Property
+	 */
+	static #getPropertyLength(Property) {
+		/**
+		 * Start with the type code length
+		 */
+		let propertyLength = 1 * Uint8Array.BYTES_PER_ELEMENT;
+
+		switch (Property.TypeCode) {
+			case "D":
+				propertyLength += 1 * Float64Array.BYTES_PER_ELEMENT;
+
+				break;
+			case "I":
+				propertyLength += 1 * Int32Array.BYTES_PER_ELEMENT;
+
+				break;
+			case "L":
+				propertyLength += 1 * BigInt64Array.BYTES_PER_ELEMENT;
+
+				break;
+			case "R":
+				/**
+				 * @type {FBXRawPropertyData}
+				 */
+				// @ts-ignore
+				const RawData = Property.Data;
+
+				propertyLength += 1 * Uint32Array.BYTES_PER_ELEMENT + RawData.Length;
+
+				break;
+			case "S":
+				/**
+				 * @type {FBXStringPropertyData}
+				 */
+				// @ts-ignore
+				const StringData = Property.Data;
+
+				propertyLength += 1 * Uint32Array.BYTES_PER_ELEMENT + StringData.Length;
+
+				break;
+		}
+
+		return propertyLength;
 	}
 
 	/**
