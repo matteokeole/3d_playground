@@ -2,7 +2,7 @@ import {getEnvironment} from "./index.js";
 import {Test} from "./Test/index.js";
 
 const environment = await getEnvironment();
-const response = await import(`../test/${environment.testClass}.js`);
+const response = await import(`../Test/${environment.testClass}.js`);
 const testClass = response[environment.testClass];
 const test = new testClass();
 

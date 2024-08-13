@@ -3,10 +3,11 @@ import {Matrix4, Vector2, Vector3} from "../math/index.js";
 /**
  * @typedef {Object} GeometryDescriptor
  * @property {Float32Array} vertices
- * @property {Uint32Array} indices
+ * @property {Int32Array|Uint32Array} indices
  * @property {Float32Array} normals
  * @property {Float32Array} tangents
  * @property {Float32Array} uvs
+ * @property {bool} [unsignedIndices]
  */
 
 /**
@@ -106,6 +107,28 @@ export class Geometry {
 		return uv;
 	}
 
+	/**
+	 * @param {uint32_t} vertexCount
+	 * @param {Int32Array} signedIndices
+	 */
+	static #generateUnsignedIndices(vertexCount, signedIndices) {
+		const unsignedIndices = new Uint32Array(signedIndices.length);
+
+		for (let i = 0; i < signedIndices.length; i++) {
+			const signedIndex = signedIndices[i];
+
+			if (signedIndex >= 0) {
+				continue;
+			}
+
+			const unsignedIndex = vertexCount - signedIndex;
+
+			unsignedIndices[i] = unsignedIndex;
+		}
+
+		return unsignedIndices;
+	}
+
 	_vertices;
 	_indices;
 	_normals;
@@ -117,10 +140,15 @@ export class Geometry {
 	 */
 	constructor(descriptor) {
 		this._vertices = descriptor.vertices;
-		this._indices = descriptor.indices;
 		this._normals = descriptor.normals;
 		this._tangents = descriptor.tangents;
 		this._uvs = descriptor.uvs;
+
+		if (descriptor.indices instanceof Int32Array) {
+			this._indices = Geometry.#generateUnsignedIndices(this._vertices.length, descriptor.indices);
+		} else {
+			this._indices = descriptor.indices;
+		}
 	}
 
 	getVertices() {

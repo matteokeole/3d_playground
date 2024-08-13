@@ -6,7 +6,6 @@ import {Loader} from "./Loader.js";
 export class FBXBinaryLoader extends Loader {
 	static #MAGIC_STRING = "Kaydara FBX Binary  \x00\x1a\x00";
 	static #MAGIC = Uint8Array.from(FBXBinaryLoader.#MAGIC_STRING.split(""), character => character.charCodeAt(0));
-
 	static #PROPERTY_TYPE_HANDLERS = {
 		// Primitive types
 		"C": FBXBinaryLoader.#handleCPropertyData,
@@ -25,7 +24,6 @@ export class FBXBinaryLoader extends Loader {
 		"R": FBXBinaryLoader.#handleRPropertyData,
 		"S": FBXBinaryLoader.#handleSPropertyData,
 	};
-
 	static #ARRAY_PROPERTY_TYPE_HANDLERS = {
 		"b": null,
 		"d": FBXBinaryLoader.#handleDArrayPropertyData,
@@ -33,7 +31,6 @@ export class FBXBinaryLoader extends Loader {
 		"i": FBXBinaryLoader.#handleIArrayPropertyData,
 		"l": null,
 	};
-
 	static #MAX_ROOT_NODE_RECORDS = 9;
 	static #MAX_NODE_RECORDS = 32;
 
@@ -55,7 +52,7 @@ export class FBXBinaryLoader extends Loader {
 
 		const version = dataView.getUint32(23, true);
 
-		return version / 1000;
+		return version;
 	}
 
 	/**
@@ -63,6 +60,10 @@ export class FBXBinaryLoader extends Loader {
 	 */
 	static #isMagicValid(dataView) {
 		const magic = new Uint8Array(dataView.buffer);
+
+		if (magic.length < FBXBinaryLoader.#MAGIC.length) {
+			return false;
+		}
 
 		for (let i = 0; i < FBXBinaryLoader.#MAGIC.length; i++) {
 			if (magic[i] !== FBXBinaryLoader.#MAGIC[i]) {
@@ -76,20 +77,27 @@ export class FBXBinaryLoader extends Loader {
 	/**
 	 * @param {DataView} dataView
 	 * @param {Number} nodeStartOffset
+	 * @param {bool} isVersion7500OrAbove
 	 */
-	static async #parseNodeRecord(dataView, nodeStartOffset) {
-		const EndOffset = dataView.getUint32(nodeStartOffset, true);
+	static async #parseNodeRecord(dataView, nodeStartOffset, isVersion7500OrAbove) {
+		const EndOffset = isVersion7500OrAbove ?
+			dataView.getUint32(nodeStartOffset, true) :
+			dataView.getUint32(nodeStartOffset, true);
 
 		if (EndOffset === 0) {
 			return null;
 		}
 
-		const NumProperties = dataView.getUint32(nodeStartOffset + 1 * Uint32Array.BYTES_PER_ELEMENT, true);
-		const PropertyListLen = dataView.getUint32(nodeStartOffset + 2 * Uint32Array.BYTES_PER_ELEMENT, true);
-		const NameLen = dataView.getUint8(nodeStartOffset + 3 * Uint32Array.BYTES_PER_ELEMENT);
+		const bytesPerElement = isVersion7500OrAbove ?
+			BigUint64Array.BYTES_PER_ELEMENT :
+			Uint32Array.BYTES_PER_ELEMENT;
+
+		const NumProperties = dataView.getUint32(nodeStartOffset + 1 * bytesPerElement, true);
+		const PropertyListLen = dataView.getUint32(nodeStartOffset + 2 * bytesPerElement, true);
+		const NameLen = dataView.getUint8(nodeStartOffset + 3 * bytesPerElement);
 		const Name = FBXBinaryLoader.#toString(dataView.buffer.slice(
-			nodeStartOffset + 3 * Uint32Array.BYTES_PER_ELEMENT + 1 * Uint8Array.BYTES_PER_ELEMENT,
-			nodeStartOffset + 3 * Uint32Array.BYTES_PER_ELEMENT + 1 * Uint8Array.BYTES_PER_ELEMENT + NameLen,
+			nodeStartOffset + 3 * bytesPerElement + 1 * Uint8Array.BYTES_PER_ELEMENT,
+			nodeStartOffset + 3 * bytesPerElement + 1 * Uint8Array.BYTES_PER_ELEMENT + NameLen,
 		));
 
 		/**
@@ -105,7 +113,7 @@ export class FBXBinaryLoader extends Loader {
 			NestedList: [],
 		};
 
-		let propertyStartOffset = nodeStartOffset + 3 * Uint32Array.BYTES_PER_ELEMENT + 1 * Uint8Array.BYTES_PER_ELEMENT + NameLen;
+		let propertyStartOffset = nodeStartOffset + 3 * bytesPerElement + 1 * Uint8Array.BYTES_PER_ELEMENT + NameLen;
 		let Property = null;
 
 		for (let i = 0; i < NumProperties; i++) {
@@ -117,17 +125,14 @@ export class FBXBinaryLoader extends Loader {
 		}
 
 		let nestedListStartOffset = nodeStartOffset
-			+ 3 * Uint32Array.BYTES_PER_ELEMENT
+			+ 3 * bytesPerElement
 			+ 1 * Uint8Array.BYTES_PER_ELEMENT
 			+ NameLen
 			+ PropertyListLen;
 
 		if (Node.EndOffset - nestedListStartOffset > 0) {
-			// Parse nested list
 			for (let i = 0; i < FBXBinaryLoader.#MAX_NODE_RECORDS; i++) {
-				// console.log("Parsing sub-node starting at", nestedListStartOffset);
-
-				const SubNode = await FBXBinaryLoader.#parseNodeRecord(dataView, nestedListStartOffset);
+				const SubNode = await FBXBinaryLoader.#parseNodeRecord(dataView, nestedListStartOffset, isVersion7500OrAbove);
 
 				if (!SubNode) {
 					break;
@@ -152,8 +157,6 @@ export class FBXBinaryLoader extends Loader {
 	 * @param {String} nodeName
 	 */
 	static async #parsePropertyRecord(dataView, offset, nodeName) {
-		// console.log("Parsing property starting at", offset);
-
 		const TypeCode = String.fromCharCode(dataView.getUint8(offset));
 
 		/**
@@ -250,7 +253,7 @@ export class FBXBinaryLoader extends Loader {
 		if (Encoding === 0) {
 			const Contents = handler(dataView.buffer.slice(
 				offset + 3 * Uint32Array.BYTES_PER_ELEMENT,
-				offset + 3 * Uint32Array.BYTES_PER_ELEMENT + ArrayLength,
+				offset + 3 * Uint32Array.BYTES_PER_ELEMENT + ArrayLength * FBXBinaryLoader.#getBytesPerElement(TypeCode),
 			));
 
 			Data.Contents = Contents;
@@ -288,12 +291,6 @@ export class FBXBinaryLoader extends Loader {
 	 * @param {ArrayBuffer} arrayBuffer
 	 */
 	static #handleIArrayPropertyData(arrayBuffer) {
-		if (!Number.isInteger(arrayBuffer.byteLength / Int32Array.BYTES_PER_ELEMENT)) {
-			console.warn("Could not create an Int32Array from the array buffer: length mismatch");
-
-			return null;
-		}
-
 		return new Int32Array(arrayBuffer);
 	}
 
@@ -336,6 +333,22 @@ export class FBXBinaryLoader extends Loader {
 		};
 
 		return StringPropertyData;
+	}
+
+	/**
+	 * @param {char} TypeCode
+	 */
+	static #getBytesPerElement(TypeCode) {
+		switch (TypeCode) {
+			case "d":
+				return Float64Array.BYTES_PER_ELEMENT;
+			case "i":
+				return Int32Array.BYTES_PER_ELEMENT;
+			default:
+				console.warn(`getBytesPerElement: Unhandled array type code '${TypeCode}'.`);
+		}
+
+		return 0;
 	}
 
 	/**
@@ -420,19 +433,20 @@ export class FBXBinaryLoader extends Loader {
 		const dataView = new DataView(arrayBuffer);
 
 		const Version = FBXBinaryLoader.#parseHeader(dataView);
+		const isVersion7500OrAbove = Version >= 7500;
 
 		/**
 		 * @type {FBXFile}
 		 */
 		const File = {
 			Header: {
-				Version,
+				Version: Version / 1000,
 			},
 			Nodes: [],
 		};
 
 		for (let i = 0, nodeStartOffset = 27; i < FBXBinaryLoader.#MAX_ROOT_NODE_RECORDS; i++) {
-			const Node = await FBXBinaryLoader.#parseNodeRecord(dataView, nodeStartOffset);
+			const Node = await FBXBinaryLoader.#parseNodeRecord(dataView, nodeStartOffset, isVersion7500OrAbove);
 
 			if (!Node) {
 				break;

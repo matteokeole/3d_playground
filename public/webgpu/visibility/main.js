@@ -5,7 +5,7 @@ import {listen} from "./input.js";
 import {Instance} from "./Instance.js";
 import {Renderer} from "./Renderer.js";
 
-import {createCamera, createScene} from "./scenes/obj.js";
+import {createCamera, createScene} from "./scenes/fbx.js";
 
 export default async function() {
 	const canvas = document.createElement("canvas");
