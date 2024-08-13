@@ -1,5 +1,17 @@
 /**
+ * @typedef {Boolean} bool
+ */
+
+/**
+ * @typedef {String} char
+ */
+
+/**
  * @typedef {Number} uint8_t
+ */
+
+/**
+ * @typedef {Number} int16_t
  */
 
 /**
@@ -11,9 +23,13 @@
  */
 
 /**
- * @typedef {Number} double
+ * @typedef {BigInt} int64_t
  */
 
 /**
- * @typedef {String} char
+ * @typedef {Number} float
+ */
+
+/**
+ * @typedef {Number} double
  */

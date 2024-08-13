@@ -7,7 +7,9 @@ export class FBXBinaryLoaderTest extends Test {
 		const fbxBinaryLoader = new FBXBinaryLoader();
 
 		const file = await fbxBinaryLoader.load(url);
+		const vertices = file.Nodes[8].NestedList[0].NestedList[2].Properties[0].Data.Contents;
+		const indices = file.Nodes[8].NestedList[0].NestedList[3].Properties[0].Data.Contents;
 
-		console.log(file);
+		console.log(file, vertices, indices);
 	}
 }

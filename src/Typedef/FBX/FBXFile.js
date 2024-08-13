@@ -1,7 +1,12 @@
 /**
- * @typedef {Object} FBXFile Unofficial name
- * @property {uint32_t} Version Unofficial name
- * @property {FBXNode[]} Nodes Unofficial name
+ * @typedef {Object} FBXFile
+ * @property {FBXHeader} Header
+ * @property {FBXNode[]} Nodes
+ */
+
+/**
+ * @typedef {Object} FBXHeader
+ * @property {uint32_t} Version
  */
 
 /**
@@ -22,7 +27,15 @@
  */
 
 /**
- * @typedef {double|int32_t|FBXRawPropertyData|FBXStringPropertyData} FBXPropertyData
+ * @typedef {bool|int16_t|int32_t|int64_t|float|double|FBXArrayPropertyData|FBXRawPropertyData|FBXStringPropertyData} FBXPropertyData
+ */
+
+/**
+ * @typedef {Object} FBXArrayPropertyData
+ * @property {uint32_t} ArrayLength
+ * @property {uint32_t} Encoding
+ * @property {uint32_t} CompressedLength
+ * @property {Uint8Array|Int32Array|BigInt64Array|Float32Array|Float64Array} Contents Booleans are stored in Uint8Array
  */
 
 /**
