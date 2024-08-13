@@ -1,9 +1,9 @@
 /**
- * @typedef {Number} byte
+ * @typedef {Number} uint8_t
  */
 
 /**
- * @typedef {Number} uint8_t
+ * @typedef {Number} int32_t
  */
 
 /**

@@ -1,57 +1,36 @@
 import {Loader} from "./Loader.js";
 
+/**
+ * @see {@link https://code.blender.org/2013/08/fbx-binary-file-format-specification}
+ */
 export class FBXBinaryLoader extends Loader {
 	static #MAGIC_STRING = "Kaydara FBX Binary  \x00\x1a\x00";
 	static #MAGIC = Uint8Array.from(FBXBinaryLoader.#MAGIC_STRING.split(""), character => character.charCodeAt(0));
 
 	/**
-	 * @type {Record.<Number, String>}
-	 */
-	static #PROPERTY_TYPE_CODES = {
-		// Primitive types
-		67: "C",
-		68: "D",
-		70: "F",
-		73: "I",
-		76: "L",
-		89: "Y",
-		// Array types
-		98: "b",
-		100: "d",
-		102: "f",
-		105: "i",
-		108: "l",
-		// Special types
-		82: "R",
-		83: "S",
-	};
-
-	/**
-	 * @type {Record.<Number, ?Function>}
+	 * @type {Record.<String, ?Function>}
 	 */
 	static #PROPERTY_TYPE_HANDLERS = {
 		// Primitive types
-		67: null,
-		68: null,
-		70: null,
-		73: null,
-		76: null,
-		89: null,
+		"C": null,
+		"D": null,
+		"F": null,
+		"I": FBXBinaryLoader.#handleIPropertyData,
+		"L": null,
+		"Y": null,
 		// Array types
-		98: null,
-		100: null,
-		102: null,
-		105: null,
-		108: null,
+		"b": null,
+		"d": null,
+		"f": null,
+		"i": null,
+		"l": null,
 		// Special types
-		82: FBXBinaryLoader.#handleBinaryProperty,
-		83: FBXBinaryLoader.#handleStringProperty,
+		"R": FBXBinaryLoader.#handleRPropertyData,
+		"S": FBXBinaryLoader.#handleSPropertyData,
 	};
 
-	/**
-	 * Max iteration count
-	 */
-	static #MAX_ROOT_NODE_RECORDS = 64;
+	static #MAX_ROOT_NODE_RECORDS = 2;
+	static #MAX_NODE_RECORDS = 5;
 
 	/**
 	 * @param {ArrayBuffer} arrayBuffer
@@ -61,25 +40,25 @@ export class FBXBinaryLoader extends Loader {
 	}
 
 	/**
-	 * @param {ArrayBuffer} arrayBuffer
 	 * @param {DataView} dataView
+	 * @throws {Error} The file magic is invalid
 	 */
-	static #parseHeader(arrayBuffer, dataView) {
-		const magic = new Uint8Array(arrayBuffer);
-
-		if (!this.#isMagicValid(magic)) {
-			throw new Error("Invalid binary FBX file");
+	static #parseHeader(dataView) {
+		if (!this.#isMagicValid(dataView)) {
+			throw new Error("Invalid binary FBX file.");
 		}
 
 		const version = dataView.getUint32(23, true);
 
-		console.log("FBX version:", version / 1000);
+		return version / 1000;
 	}
 
 	/**
-	 * @param {Uint8Array} magic
+	 * @param {DataView} dataView
 	 */
-	static #isMagicValid(magic) {
+	static #isMagicValid(dataView) {
+		const magic = new Uint8Array(dataView.buffer);
+
 		for (let i = 0; i < FBXBinaryLoader.#MAGIC.length; i++) {
 			if (magic[i] !== FBXBinaryLoader.#MAGIC[i]) {
 				return false;
@@ -91,103 +70,156 @@ export class FBXBinaryLoader extends Loader {
 
 	/**
 	 * @param {DataView} dataView
-	 * @param {Number} offset
+	 * @param {Number} nodeStartOffset
 	 */
-	static #parseNodeRecord(dataView, offset) {
-		const EndOffset = dataView.getUint32(0, true);
+	static #parseNodeRecord(dataView, nodeStartOffset) {
+		const EndOffset = dataView.getUint32(nodeStartOffset, true);
 
 		if (EndOffset === 0) {
-			return EndOffset;
+			return null;
 		}
 
-		console.info("Parsing node record...");
+		const NumProperties = dataView.getUint32(nodeStartOffset + 1 * Uint32Array.BYTES_PER_ELEMENT, true);
+		const PropertyListLen = dataView.getUint32(nodeStartOffset + 2 * Uint32Array.BYTES_PER_ELEMENT, true);
+		const NameLen = dataView.getUint8(nodeStartOffset + 3 * Uint32Array.BYTES_PER_ELEMENT);
+		const Name = FBXBinaryLoader.#toString(dataView.buffer.slice(
+			nodeStartOffset + 3 * Uint32Array.BYTES_PER_ELEMENT + 1 * Uint8Array.BYTES_PER_ELEMENT,
+			nodeStartOffset + 3 * Uint32Array.BYTES_PER_ELEMENT + 1 * Uint8Array.BYTES_PER_ELEMENT + NameLen,
+		));
 
-		const NumProperties = dataView.getUint32(1 * Uint32Array.BYTES_PER_ELEMENT, true);
-		const PropertyListLen = dataView.getUint32(2 * Uint32Array.BYTES_PER_ELEMENT, true);
-		const NameLen = dataView.getUint8(3 * Uint32Array.BYTES_PER_ELEMENT);
-
-		const Name = FBXBinaryLoader.#toString(dataView.buffer.slice(offset + 3 * Uint32Array.BYTES_PER_ELEMENT + 1 * Uint8Array.BYTES_PER_ELEMENT, offset + 3 * Uint32Array.BYTES_PER_ELEMENT + 1 * Uint8Array.BYTES_PER_ELEMENT + NameLen));
-
-		console.table({
+		/**
+		 * @type {FBXNode}
+		 */
+		const Node = {
 			EndOffset,
 			NumProperties,
 			PropertyListLen,
 			NameLen,
 			Name,
-		});
+			Properties: [],
+			NestedList: [],
+		};
 
-		let propertyOffset = 3 * Uint32Array.BYTES_PER_ELEMENT + 1 * Uint8Array.BYTES_PER_ELEMENT + NameLen;
+		let propertyStartOffset = nodeStartOffset + 3 * Uint32Array.BYTES_PER_ELEMENT + 1 * Uint8Array.BYTES_PER_ELEMENT + NameLen;
+		let Property = null;
 
 		for (let i = 0; i < NumProperties; i++) {
-			propertyOffset = FBXBinaryLoader.#parsePropertyRecord(dataView, propertyOffset, offset);
+			Property = FBXBinaryLoader.#parsePropertyRecord(dataView, propertyStartOffset);
+
+			propertyStartOffset += (Property?.Data?.Length ?? 0) + 1 * Uint32Array.BYTES_PER_ELEMENT;
+
+			Node.Properties.push(Property);
 		}
 
-		return EndOffset;
+		let nestedListStartOffset = nodeStartOffset
+			+ 3 * Uint32Array.BYTES_PER_ELEMENT
+			+ 1 * Uint8Array.BYTES_PER_ELEMENT
+			+ NameLen
+			+ PropertyListLen;
+
+		if (Node.EndOffset - nestedListStartOffset > 0) {
+			// Parse nested list
+			for (let i = 0; i < FBXBinaryLoader.#MAX_NODE_RECORDS; i++) {
+				// console.log("Parsing sub node starting at", nestedListStartOffset);
+
+				const SubNode = FBXBinaryLoader.#parseNodeRecord(dataView, nestedListStartOffset);
+
+				if (!SubNode) {
+					break;
+				}
+
+				Node.NestedList.push(SubNode);
+
+				nestedListStartOffset = SubNode.EndOffset;
+
+				if (Node.EndOffset - nestedListStartOffset <= 0) {
+					break;
+				}
+			}
+		}
+
+		return Node;
 	}
 
 	/**
 	 * @param {DataView} dataView
 	 * @param {Number} offset
-	 * @param {Number} nodeOffset
 	 */
-	static #parsePropertyRecord(dataView, offset, nodeOffset) {
-		console.info("Parsing property record...");
+	static #parsePropertyRecord(dataView, offset) {
+		const TypeCode = String.fromCharCode(dataView.getUint8(offset));
 
-		const TypeCode = dataView.getUint8(offset);
-
-		console.table({
-			TypeCode: FBXBinaryLoader.#PROPERTY_TYPE_CODES[TypeCode],
-		});
+		/**
+		 * @type {FBXProperty}
+		 */
+		const Property = {
+			TypeCode,
+			Data: null,
+		};
 
 		const handler = FBXBinaryLoader.#PROPERTY_TYPE_HANDLERS[TypeCode];
 
 		if (!handler) {
-			console.warn("Could not handle property with type code", TypeCode);
+			console.warn(`Unhandled property '${TypeCode}'.`);
 
-			return;
+			return Property;
 		}
 
-		const length = handler(dataView, offset + 1 * Uint8Array.BYTES_PER_ELEMENT, nodeOffset);
+		const Data = handler(dataView, offset + 1 * Uint8Array.BYTES_PER_ELEMENT);
 
-		return offset + length;
+		Property.Data = Data;
+
+		return Property;
 	}
 
 	/**
 	 * @param {DataView} dataView
 	 * @param {Number} offset
-	 * @param {Number} nodeOffset
 	 */
-	static #handleBinaryProperty(dataView, offset, nodeOffset) {
-		console.info("Handling binary property...");
+	static #handleIPropertyData(dataView, offset) {
+		const Data = dataView.getInt32(offset, true);
 
-		const Length = dataView.getUint32(offset, true);
-		const Data = dataView.buffer.slice(nodeOffset + offset + Uint32Array.BYTES_PER_ELEMENT, nodeOffset + offset + Length);
-
-		console.table({
-			Length,
-			Data,
-		});
-
-		return 1 * Uint32Array.BYTES_PER_ELEMENT + Length;
+		return Data;
 	}
 
 	/**
 	 * @param {DataView} dataView
 	 * @param {Number} offset
-	 * @param {Number} nodeOffset
 	 */
-	static #handleStringProperty(dataView, offset, nodeOffset) {
-		console.info("Handling string property...");
-
+	static #handleRPropertyData(dataView, offset) {
 		const Length = dataView.getUint32(offset, true);
-		const Data = FBXBinaryLoader.#toString(dataView.buffer.slice(nodeOffset + offset + Uint32Array.BYTES_PER_ELEMENT, nodeOffset + offset + Length));
+		const Data = new Uint8Array(dataView.buffer.slice(
+			offset + 1 * Uint32Array.BYTES_PER_ELEMENT,
+			offset + 1 * Uint32Array.BYTES_PER_ELEMENT + Length,
+		));
 
-		console.table({
+		const RawPropertyData = {
 			Length,
 			Data,
-		});
+		};
 
-		return 1 * Uint32Array.BYTES_PER_ELEMENT + Length;
+		return RawPropertyData;
+	}
+
+	/**
+	 * @param {DataView} dataView
+	 * @param {Number} offset
+	 */
+	static #handleSPropertyData(dataView, offset) {
+		const Length = dataView.getUint32(offset, true);
+		const Data = FBXBinaryLoader.#toString(dataView.buffer.slice(
+			offset + 1 * Uint32Array.BYTES_PER_ELEMENT,
+			offset + 1 * Uint32Array.BYTES_PER_ELEMENT + Length,
+		));
+
+		/**
+		 * @type {FBXStringPropertyData}
+		 */
+		const StringPropertyData = {
+			Length,
+			Data,
+		};
+
+		return StringPropertyData;
 	}
 
 	/**
@@ -196,20 +228,30 @@ export class FBXBinaryLoader extends Loader {
 	async load(url) {
 		const response = await super.load(url);
 		const arrayBuffer = await response.arrayBuffer();
-		const headerDataView = new DataView(arrayBuffer);
+		const dataView = new DataView(arrayBuffer);
 
-		FBXBinaryLoader.#parseHeader(arrayBuffer, headerDataView);
+		const Version = FBXBinaryLoader.#parseHeader(dataView);
 
-		for (let i = 0, EndOffset = 27; i < FBXBinaryLoader.#MAX_ROOT_NODE_RECORDS; i++) {
-			const dataView = new DataView(arrayBuffer, EndOffset);
+		/**
+		 * @type {FBXFile}
+		 */
+		const File = {
+			Version,
+			Nodes: [],
+		};
 
-			EndOffset = FBXBinaryLoader.#parseNodeRecord(dataView, EndOffset);
+		for (let i = 0, nodeStartOffset = 27; i < FBXBinaryLoader.#MAX_ROOT_NODE_RECORDS; i++) {
+			const Node = FBXBinaryLoader.#parseNodeRecord(dataView, nodeStartOffset);
 
-			if (EndOffset === 0) {
-				console.info(`${i} root node records parsed.`);
-
+			if (!Node) {
 				break;
 			}
+
+			File.Nodes.push(Node);
+
+			nodeStartOffset = Node.EndOffset;
 		}
+
+		return File;
 	}
 }

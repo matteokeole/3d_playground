@@ -1,34 +1,34 @@
 /**
  * @typedef {Object} FBXFile Unofficial name
- * @property {uint32_t} version Unofficial name
- * @property {NodeRecord[]} nodes Unofficial name
+ * @property {uint32_t} Version Unofficial name
+ * @property {FBXNode[]} Nodes Unofficial name
  */
 
 /**
- * @typedef {Object} NodeRecord Unofficial name
+ * @typedef {Object} FBXNode
  * @property {uint32_t} EndOffset
  * @property {uint32_t} NumProperties
  * @property {uint32_t} PropertyListLen
  * @property {uint8_t} NameLen
  * @property {char} Name
- * @property {PropertyRecord[]} Properties Unofficial name
- * @property {uint8_t[]} NULL-record
+ * @property {FBXProperty[]} Properties
+ * @property {FBXNode[]} NestedList
 */
 
 /**
- * @typedef {Object} PropertyRecord Unofficial name
+ * @typedef {Object} FBXProperty
  * @property {char} TypeCode
- * @property {RawPropertyRecordData|StringPropertyRecordData} Data
+ * @property {int32_t|FBXRawPropertyData|FBXStringPropertyData} Data
  */
 
 /**
- * @typedef {Object} RawPropertyRecordData Unofficial name
+ * @typedef {Object} FBXRawPropertyData
  * @property {uint32_t} Length
- * @property {byte} Data
+ * @property {uint8_t[]} Data
  */
 
 /**
- * @typedef {Object} StringPropertyRecordData Unofficial name
+ * @typedef {Object} FBXStringPropertyData
  * @property {uint32_t} Length
  * @property {char} Data
  */

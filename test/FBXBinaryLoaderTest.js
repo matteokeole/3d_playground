@@ -6,6 +6,8 @@ export class FBXBinaryLoaderTest extends Test {
 		const url = "assets/models/fbx/cube.bin.fbx";
 		const fbxBinaryLoader = new FBXBinaryLoader();
 
-		await fbxBinaryLoader.load(url);
+		const file = await fbxBinaryLoader.load(url);
+
+		console.log(file);
 	}
 }
