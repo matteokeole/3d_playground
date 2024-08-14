@@ -18,6 +18,14 @@ export class BinaryReader {
 		this.#byteOffset = 0;
 	}
 
+	getByteOffset() {
+		return this.#byteOffset;
+	}
+
+	getByteLength() {
+		return this.#dataView.byteLength;
+	}
+
 	readInt8() {
 		const value = this.#dataView.getInt8(this.#byteOffset);
 
