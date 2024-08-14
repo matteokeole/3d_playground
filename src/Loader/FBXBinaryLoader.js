@@ -6,13 +6,7 @@ import {BinaryReader} from "../Reader/index.js";
  */
 
 /**
- * @typedef {(reader: BinaryReader, byteLength: Number) => any} ArrayPropertyHandler
- */
-
-/**
- * @typedef {Object} ArrayPropertyObject
- * @property {Number} byteLength
- * @property {ArrayPropertyHandler} handler
+ * @typedef {(reader: BinaryReader, length: Number) => any} ArrayPropertyHandler
  */
 
 /**
@@ -45,11 +39,11 @@ export class FBXBinaryLoader extends Loader {
 		Y(reader) {
 			return reader.readInt16();
 		},
-		b: reader => FBXBinaryLoader.#handleArrayProperty(reader, "b"),
-		d: reader => FBXBinaryLoader.#handleArrayProperty(reader, "d"),
-		f: reader => FBXBinaryLoader.#handleArrayProperty(reader, "f"),
-		i: reader => FBXBinaryLoader.#handleArrayProperty(reader, "i"),
-		l: reader => FBXBinaryLoader.#handleArrayProperty(reader, "l"),
+		b: reader => FBXBinaryLoader.#parseArrayPropertyData(reader, "b"),
+		d: reader => FBXBinaryLoader.#parseArrayPropertyData(reader, "d"),
+		f: reader => FBXBinaryLoader.#parseArrayPropertyData(reader, "f"),
+		i: reader => FBXBinaryLoader.#parseArrayPropertyData(reader, "i"),
+		l: reader => FBXBinaryLoader.#parseArrayPropertyData(reader, "l"),
 		R(reader) {
 			/**
 			 * @type {FBXRawPropertyData}
@@ -74,38 +68,23 @@ export class FBXBinaryLoader extends Loader {
 		},
 	};
 	/**
-	 * @type {Record.<String, ArrayPropertyObject>}
+	 * @type {Record.<String, ArrayPropertyHandler>}
 	 */
-	static #ARRAY_PROPERTY_OBJECT = {
-		b: {
-			byteLength: Uint8Array.BYTES_PER_ELEMENT,
-			handler(reader, byteLength) {
-				return reader.readBoolArray(byteLength);
-			},
+	static #ARRAY_PROPERTY_HANDLERS = {
+		b(reader, length) {
+			return reader.readBoolArray(length * Uint8Array.BYTES_PER_ELEMENT);
 		},
-		d: {
-			byteLength: Float64Array.BYTES_PER_ELEMENT,
-			handler(reader, byteLength) {
-				return reader.readFloat64Array(byteLength);
-			},
+		d(reader, length) {
+			return reader.readFloat64Array(length * Float64Array.BYTES_PER_ELEMENT);
 		},
-		f: {
-			byteLength: Float32Array.BYTES_PER_ELEMENT,
-			handler(reader, byteLength) {
-				return reader.readFloat32Array(byteLength);
-			},
+		f(reader, length) {
+			return reader.readFloat32Array(length * Float32Array.BYTES_PER_ELEMENT);
 		},
-		i: {
-			byteLength: Int32Array.BYTES_PER_ELEMENT,
-			handler(reader, byteLength) {
-				return reader.readInt32Array(byteLength);
-			},
+		i(reader, length) {
+			return reader.readInt32Array(length * Int32Array.BYTES_PER_ELEMENT);
 		},
-		l: {
-			byteLength: BigInt64Array.BYTES_PER_ELEMENT,
-			handler(reader, byteLength) {
-				return reader.readBigInt64Array(byteLength);
-			},
+		l(reader, length) {
+			return reader.readBigInt64Array(length * BigInt64Array.BYTES_PER_ELEMENT);
 		},
 	};
 
@@ -130,25 +109,6 @@ export class FBXBinaryLoader extends Loader {
 
 	/**
 	 * @param {BinaryReader} reader
-	 */
-	static #isMagicValid(reader) {
-		if (reader.getByteLength() < FBXBinaryLoader.#MAGIC.byteLength) {
-			return false;
-		}
-
-		const magic = reader.readUint8Array(FBXBinaryLoader.#MAGIC.length);
-
-		for (let i = 0; i < FBXBinaryLoader.#MAGIC.length; i++) {
-			if (magic[i] !== FBXBinaryLoader.#MAGIC[i]) {
-				return false;
-			}
-		}
-
-		return true;
-	}
-
-	/**
-	 * @param {BinaryReader} reader
 	 * @param {bool} isVersion7500OrAbove
 	 */
 	static #parseNode(reader, isVersion7500OrAbove) {
@@ -157,14 +117,15 @@ export class FBXBinaryLoader extends Loader {
 		 */
 		const Node = {};
 
-		Node.EndOffset = reader.readUint32();
+		Node.EndOffset = isVersion7500OrAbove ? Number(reader.readBigUint64()) : reader.readUint32();
 
 		if (Node.EndOffset === 0) {
 			return null;
 		}
 
-		Node.NumProperties = reader.readUint32();
-		Node.PropertyListLen = reader.readUint32();
+		Node.NumProperties = isVersion7500OrAbove ? Number(reader.readBigUint64()) : reader.readUint32();
+		Node.PropertyListLen = isVersion7500OrAbove ? Number(reader.readBigUint64()) : reader.readUint32();
+
 		Node.NameLen = reader.readUint8();
 		Node.Name = reader.readString(Node.NameLen);
 		Node.PropertyList = [];
@@ -189,7 +150,7 @@ export class FBXBinaryLoader extends Loader {
 			}
 		}
 
-		if (reader.getByteOffset() !== Node.EndOffset) {
+		if (!isVersion7500OrAbove && reader.getByteOffset() !== Node.EndOffset) {
 			reader.advance(9 * Uint8Array.BYTES_PER_ELEMENT);
 		}
 
@@ -224,7 +185,7 @@ export class FBXBinaryLoader extends Loader {
 	 * @param {BinaryReader} reader
 	 * @param {char} TypeCode
 	 */
-	static #handleArrayProperty(reader, TypeCode) {
+	static #parseArrayPropertyData(reader, TypeCode) {
 		/**
 		 * @type {FBXArrayPropertyData}
 		 */
@@ -234,16 +195,16 @@ export class FBXBinaryLoader extends Loader {
 		Data.Encoding = reader.readUint32();
 		Data.CompressedLength = reader.readUint32();
 
-		const arrayPropertyObject = FBXBinaryLoader.#ARRAY_PROPERTY_OBJECT[TypeCode];
+		const arrayPropertyHandler = FBXBinaryLoader.#ARRAY_PROPERTY_HANDLERS[TypeCode];
 
-		if (!arrayPropertyObject) {
+		if (!arrayPropertyHandler) {
 			console.warn(`Unhandled array property type '${TypeCode}'.`);
 
 			return Data;
 		}
 
 		if (Data.Encoding === 0) {
-			Data.Contents = arrayPropertyObject.handler(reader, Data.ArrayLength * arrayPropertyObject.byteLength);
+			Data.Contents = arrayPropertyHandler(reader, Data.ArrayLength);
 
 			return Data;
 		}
@@ -259,7 +220,7 @@ export class FBXBinaryLoader extends Loader {
 					arrayBuffer,
 					isLittleEndian: true,
 				});
-				const Contents = arrayPropertyObject.handler(reader, Data.ArrayLength);
+				const Contents = arrayPropertyHandler(reader, Data.ArrayLength);
 
 				Data.Contents = Contents;
 
@@ -268,6 +229,25 @@ export class FBXBinaryLoader extends Loader {
 		}
 
 		throw new Error(`Unhandled encoding value ${Data.Encoding}.`);
+	}
+
+	/**
+	 * @param {BinaryReader} reader
+	 */
+	static #isMagicValid(reader) {
+		if (reader.getByteLength() < FBXBinaryLoader.#MAGIC.byteLength) {
+			return false;
+		}
+
+		const magic = reader.readUint8Array(FBXBinaryLoader.#MAGIC.length);
+
+		for (let i = 0; i < FBXBinaryLoader.#MAGIC.length; i++) {
+			if (magic[i] !== FBXBinaryLoader.#MAGIC[i]) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	/**

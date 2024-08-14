@@ -11,9 +11,9 @@
 
 /**
  * @typedef {Object} FBXNode
- * @property {uint32_t} EndOffset
- * @property {uint32_t} NumProperties
- * @property {uint32_t} PropertyListLen
+ * @property {uint32_t|uint64_t} EndOffset
+ * @property {uint32_t|uint64_t} NumProperties
+ * @property {uint32_t|uint64_t} PropertyListLen
  * @property {uint8_t} NameLen
  * @property {char} Name
  * @property {FBXProperty[]} PropertyList

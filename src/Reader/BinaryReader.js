@@ -34,10 +34,10 @@ export class BinaryReader {
 	}
 
 	/**
-	 * @param {Number} byteLength
+	 * @param {Number|BigInt} byteLength
 	 */
 	advance(byteLength) {
-		this.#byteOffset += byteLength;
+		this.#byteOffset += Number(byteLength);
 	}
 
 	readInt8() {
