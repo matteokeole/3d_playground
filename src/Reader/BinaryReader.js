@@ -4,9 +4,6 @@
  * @property {Boolean} isLittleEndian
  */
 
-/**
- * @todo Check if read____Array methods can be refactored by advancing of `byteLength` bytes
- */
 export class BinaryReader {
 	#dataView;
 	#isLittleEndian;
@@ -140,11 +137,8 @@ export class BinaryReader {
 	 */
 	readInt8Array(byteLength) {
 		const arrayBuffer = this.#readArrayBuffer(byteLength);
-		const array = new Int8Array(arrayBuffer);
 
-		this.#byteOffset += array.byteLength;
-
-		return array;
+		return new Int8Array(arrayBuffer);
 	}
 
 	/**
@@ -152,11 +146,8 @@ export class BinaryReader {
 	 */
 	readUint8Array(byteLength) {
 		const arrayBuffer = this.#readArrayBuffer(byteLength);
-		const array = new Uint8Array(arrayBuffer);
 
-		this.#byteOffset += array.byteLength;
-
-		return array;
+		return new Uint8Array(arrayBuffer);
 	}
 
 	/**
@@ -164,11 +155,8 @@ export class BinaryReader {
 	 */
 	readInt16Array(byteLength) {
 		const arrayBuffer = this.#readArrayBuffer(byteLength);
-		const array = new Int16Array(arrayBuffer);
 
-		this.#byteOffset += array.byteLength;
-
-		return array;
+		return new Int16Array(arrayBuffer);
 	}
 
 	/**
@@ -176,11 +164,8 @@ export class BinaryReader {
 	 */
 	readUint16Array(byteLength) {
 		const arrayBuffer = this.#readArrayBuffer(byteLength);
-		const array = new Uint16Array(arrayBuffer);
 
-		this.#byteOffset += array.byteLength;
-
-		return array;
+		return new Uint16Array(arrayBuffer);
 	}
 
 	/**
@@ -188,11 +173,8 @@ export class BinaryReader {
 	 */
 	readInt32Array(byteLength) {
 		const arrayBuffer = this.#readArrayBuffer(byteLength);
-		const array = new Int32Array(arrayBuffer);
 
-		this.#byteOffset += array.byteLength;
-
-		return array;
+		return new Int32Array(arrayBuffer);
 	}
 
 	/**
@@ -200,11 +182,8 @@ export class BinaryReader {
 	 */
 	readUint32Array(byteLength) {
 		const arrayBuffer = this.#readArrayBuffer(byteLength);
-		const array = new Uint32Array(arrayBuffer);
 
-		this.#byteOffset += array.byteLength;
-
-		return array;
+		return new Uint32Array(arrayBuffer);
 	}
 
 	/**
@@ -212,11 +191,8 @@ export class BinaryReader {
 	 */
 	readBigInt64Array(byteLength) {
 		const arrayBuffer = this.#readArrayBuffer(byteLength);
-		const array = new BigInt64Array(arrayBuffer);
 
-		this.#byteOffset += array.byteLength;
-
-		return array;
+		return new BigInt64Array(arrayBuffer);
 	}
 
 	/**
@@ -224,11 +200,8 @@ export class BinaryReader {
 	 */
 	readBigUint64Array(byteLength) {
 		const arrayBuffer = this.#readArrayBuffer(byteLength);
-		const array = new BigUint64Array(arrayBuffer);
 
-		this.#byteOffset += array.byteLength;
-
-		return array;
+		return new BigUint64Array(arrayBuffer);
 	}
 
 	/**
@@ -236,11 +209,8 @@ export class BinaryReader {
 	 */
 	readFloat32Array(byteLength) {
 		const arrayBuffer = this.#readArrayBuffer(byteLength);
-		const array = new Float32Array(arrayBuffer);
 
-		this.#byteOffset += array.byteLength;
-
-		return array;
+		return new Float32Array(arrayBuffer);
 	}
 
 	/**
@@ -248,11 +218,8 @@ export class BinaryReader {
 	 */
 	readFloat64Array(byteLength) {
 		const arrayBuffer = this.#readArrayBuffer(byteLength);
-		const array = new Float64Array(arrayBuffer);
 
-		this.#byteOffset += array.byteLength;
-
-		return array;
+		return new Float64Array(arrayBuffer);
 	}
 
 	/**
@@ -278,6 +245,8 @@ export class BinaryReader {
 	 */
 	#readArrayBuffer(byteLength) {
 		const arrayBuffer = this.#dataView.buffer.slice(this.#byteOffset, this.#byteOffset + byteLength);
+
+		this.#byteOffset += byteLength;
 
 		return arrayBuffer;
 	}

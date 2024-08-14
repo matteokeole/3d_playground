@@ -9,8 +9,8 @@ import {SENSITIVITY} from "../../../hl2/main.js";
 export async function createScene() {
 	const fbxBinaryLoader = new FBXBinaryLoader();
 	const fbxFile = await fbxBinaryLoader.load("assets/models/fbx/cube.bin.fbx");
-	const vertices = fbxFile.Nodes[8].NestedList[0].NestedList[2].Properties[0].Data.Contents;
-	const indices = fbxFile.Nodes[8].NestedList[0].NestedList[3].Properties[0].Data.Contents;
+	const vertices = fbxFile.NodeList[8].NestedList[0].NestedList[2].Properties[0].Data.Contents;
+	const indices = fbxFile.NodeList[8].NestedList[0].NestedList[3].Properties[0].Data.Contents;
 	const geometry = new Geometry({
 		vertices: new Float32Array(vertices),
 		// indices,

@@ -1,7 +1,7 @@
 /**
  * @typedef {Object} FBXFile
  * @property {FBXHeader} Header
- * @property {FBXNode[]} Nodes
+ * @property {FBXNode[]} NodeList
  */
 
 /**
@@ -16,7 +16,7 @@
  * @property {uint32_t} PropertyListLen
  * @property {uint8_t} NameLen
  * @property {char} Name
- * @property {FBXProperty[]} Properties
+ * @property {FBXProperty[]} PropertyList
  * @property {FBXNode[]} NestedList
 */
 
@@ -27,7 +27,7 @@
  */
 
 /**
- * @typedef {bool|int16_t|int32_t|int64_t|float|double|FBXArrayPropertyData|FBXRawPropertyData|FBXStringPropertyData} FBXPropertyData
+ * @typedef {int16_t|int32_t|int64_t|float|double|bool|FBXArrayPropertyData|FBXRawPropertyData|FBXStringPropertyData} FBXPropertyData
  */
 
 /**
@@ -41,11 +41,11 @@
 /**
  * @typedef {Object} FBXRawPropertyData
  * @property {uint32_t} Length
- * @property {uint8_t[]} Data
+ * @property {Uint8Array} Data
  */
 
 /**
  * @typedef {Object} FBXStringPropertyData
  * @property {uint32_t} Length
- * @property {char} Data
+ * @property {String} Data
  */

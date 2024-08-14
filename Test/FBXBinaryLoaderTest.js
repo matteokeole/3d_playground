@@ -6,9 +6,10 @@ export class FBXBinaryLoaderTest extends Test {
 		const url = "Test/Asset/FBX/Binary/cube.fbx";
 		const fbxBinaryLoader = new FBXBinaryLoader();
 		const fbxFile = await fbxBinaryLoader.load(url);
-		const vertices = fbxFile.Nodes[8].NestedList[0].NestedList[2].Properties[0].Data.Contents;
-		const indices = fbxFile.Nodes[8].NestedList[0].NestedList[3].Properties[0].Data.Contents;
+		// const vertices = fbxFile.NodeList[8].NestedList[0].NestedList[2].Properties[0].Data.Contents;
+		// const indices = fbxFile.NodeList[8].NestedList[0].NestedList[3].Properties[0].Data.Contents;
+		// const json = JSON.stringify(fbxFile, (_, a) => typeof a === "bigint" ? a.toString() : a);
 
-		console.log(fbxFile, vertices, indices);
+		console.log(fbxFile);
 	}
 }

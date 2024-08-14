@@ -2,70 +2,141 @@ import {Loader} from "./Loader.js";
 import {BinaryReader} from "../Reader/index.js";
 
 /**
+ * @typedef {(reader: BinaryReader) => any} PropertyHandler
+ */
+
+/**
+ * @typedef {(reader: BinaryReader, byteLength: Number) => any} ArrayPropertyHandler
+ */
+
+/**
+ * @typedef {Object} ArrayPropertyObject
+ * @property {Number} byteLength
+ * @property {ArrayPropertyHandler} handler
+ */
+
+/**
  * @see {@link https://code.blender.org/2013/08/fbx-binary-file-format-specification}
  */
 export class FBXBinaryLoader extends Loader {
+	static #MAX_ROOT_NODE_ITERATIONS = 16;
+	static #MAX_CHILD_NODE_ITERATIONS = 128;
 	static #MAGIC_STRING = "Kaydara FBX Binary  \x00\x1a\x00";
-	static #MAGIC = Uint8Array.from(FBXBinaryLoader.#MAGIC_STRING.split(""), character => character.charCodeAt(0));
-	static #PROPERTY_TYPE_HANDLERS = {
-		// Primitive types
-		"C": FBXBinaryLoader.#handleCPropertyData,
-		"D": FBXBinaryLoader.#handleDPropertyData,
-		"F": null,
-		"I": FBXBinaryLoader.#handleIPropertyData,
-		"L": FBXBinaryLoader.#handleLPropertyData,
-		"Y": null,
-		// Array types
-		"b": null,
-		"d": (arrayBuffer, binaryReader, offset) => FBXBinaryLoader.#handleArrayPropertyData(arrayBuffer, binaryReader, offset, "d"),
-		"f": null,
-		"i": (arrayBuffer, binaryReader, offset) => FBXBinaryLoader.#handleArrayPropertyData(arrayBuffer, binaryReader, offset, "i"),
-		"l": null,
-		// Special types
-		"R": FBXBinaryLoader.#handleRPropertyData,
-		"S": FBXBinaryLoader.#handleSPropertyData,
-	};
-	static #ARRAY_PROPERTY_TYPE_HANDLERS = {
-		"b": null,
-		"d": FBXBinaryLoader.#handleDArrayPropertyData,
-		"f": null,
-		"i": FBXBinaryLoader.#handleIArrayPropertyData,
-		"l": null,
-	};
-	static #MAX_ROOT_NODE_RECORDS = 9;
-	static #MAX_NODE_RECORDS = 32;
-
+	static #MAGIC = Uint8Array.from(FBXBinaryLoader.#MAGIC_STRING.split(""), c => c.charCodeAt(0));
 	/**
-	 * @param {ArrayBuffer} arrayBuffer
-	 * @param {BinaryReader} binaryReader
+	 * @type {Record.<String, PropertyHandler>}
 	 */
-	static #toString(arrayBuffer, binaryReader) {
-		return String.fromCharCode(...new Uint8Array(arrayBuffer));
-	}
+	static #PROPERTY_HANDLERS = {
+		C(reader) {
+			return reader.readBool();
+		},
+		D(reader) {
+			return reader.readFloat64();
+		},
+		F(reader) {
+			return reader.readFloat32();
+		},
+		I(reader) {
+			return reader.readInt32();
+		},
+		L(reader) {
+			return reader.readBigInt64();
+		},
+		Y(reader) {
+			return reader.readInt16();
+		},
+		b: reader => FBXBinaryLoader.#handleArrayProperty(reader, "b"),
+		d: reader => FBXBinaryLoader.#handleArrayProperty(reader, "d"),
+		f: reader => FBXBinaryLoader.#handleArrayProperty(reader, "f"),
+		i: reader => FBXBinaryLoader.#handleArrayProperty(reader, "i"),
+		l: reader => FBXBinaryLoader.#handleArrayProperty(reader, "l"),
+		R(reader) {
+			/**
+			 * @type {FBXRawPropertyData}
+			 */
+			const PropertyData = {};
+
+			PropertyData.Length = reader.readUint32();
+			PropertyData.Data = reader.readUint8Array(PropertyData.Length);
+
+			return PropertyData;
+		},
+		S(reader) {
+			/**
+			 * @type {FBXStringPropertyData}
+			 */
+			const PropertyData = {};
+
+			PropertyData.Length = reader.readUint32();
+			PropertyData.Data = reader.readString(PropertyData.Length);
+
+			return PropertyData;
+		},
+	};
+	/**
+	 * @type {Record.<String, ArrayPropertyObject>}
+	 */
+	static #ARRAY_PROPERTY_OBJECT = {
+		b: {
+			byteLength: Uint8Array.BYTES_PER_ELEMENT,
+			handler(reader, byteLength) {
+				return reader.readBoolArray(byteLength);
+			},
+		},
+		d: {
+			byteLength: Float64Array.BYTES_PER_ELEMENT,
+			handler(reader, byteLength) {
+				return reader.readFloat64Array(byteLength);
+			},
+		},
+		f: {
+			byteLength: Float32Array.BYTES_PER_ELEMENT,
+			handler(reader, byteLength) {
+				return reader.readFloat32Array(byteLength);
+			},
+		},
+		i: {
+			byteLength: Int32Array.BYTES_PER_ELEMENT,
+			handler(reader, byteLength) {
+				return reader.readInt32Array(byteLength);
+			},
+		},
+		l: {
+			byteLength: BigInt64Array.BYTES_PER_ELEMENT,
+			handler(reader, byteLength) {
+				return reader.readBigInt64Array(byteLength);
+			},
+		},
+	};
 
 	/**
-	 * @param {BinaryReader} binaryReader
+	 * @param {BinaryReader} reader
 	 * @throws {Error} The file magic is invalid
 	 */
-	static #parseHeader(binaryReader) {
-		if (!this.#isMagicValid(binaryReader)) {
+	static #parseHeader(reader) {
+		if (!this.#isMagicValid(reader)) {
 			throw new Error("Invalid binary FBX file.");
 		}
 
-		const version = binaryReader.readUint32(23);
+		/**
+		 * @type {FBXHeader}
+		 */
+		const Header = {};
 
-		return version;
+		Header.Version = reader.readUint32();
+
+		return Header;
 	}
 
 	/**
-	 * @param {BinaryReader} binaryReader
+	 * @param {BinaryReader} reader
 	 */
-	static #isMagicValid(binaryReader) {
-		if (binaryReader.getByteLength() < FBXBinaryLoader.#MAGIC.byteLength) {
+	static #isMagicValid(reader) {
+		if (reader.getByteLength() < FBXBinaryLoader.#MAGIC.byteLength) {
 			return false;
 		}
 
-		const magic = binaryReader.readUint8Array(FBXBinaryLoader.#MAGIC.length);
+		const magic = reader.readUint8Array(FBXBinaryLoader.#MAGIC.length);
 
 		for (let i = 0; i < FBXBinaryLoader.#MAGIC.length; i++) {
 			if (magic[i] !== FBXBinaryLoader.#MAGIC[i]) {
@@ -77,364 +148,126 @@ export class FBXBinaryLoader extends Loader {
 	}
 
 	/**
-	 * @param {DataView} dataView
-	 * @param {BinaryReader} binaryReader
-	 * @param {Number} nodeStartOffset
+	 * @param {BinaryReader} reader
 	 * @param {bool} isVersion7500OrAbove
 	 */
-	static async #parseNodeRecord(dataView, binaryReader, nodeStartOffset, isVersion7500OrAbove) {
-		const EndOffset = isVersion7500OrAbove ?
-			dataView.getUint32(nodeStartOffset, true) :
-			dataView.getUint32(nodeStartOffset, true);
-
-		if (EndOffset === 0) {
-			return null;
-		}
-
-		const bytesPerElement = isVersion7500OrAbove ?
-			BigUint64Array.BYTES_PER_ELEMENT :
-			Uint32Array.BYTES_PER_ELEMENT;
-
-		const NumProperties = dataView.getUint32(nodeStartOffset + 1 * bytesPerElement, true);
-		const PropertyListLen = dataView.getUint32(nodeStartOffset + 2 * bytesPerElement, true);
-		const NameLen = dataView.getUint8(nodeStartOffset + 3 * bytesPerElement);
-		const Name = FBXBinaryLoader.#toString(dataView.buffer.slice(
-			nodeStartOffset + 3 * bytesPerElement + 1 * Uint8Array.BYTES_PER_ELEMENT,
-			nodeStartOffset + 3 * bytesPerElement + 1 * Uint8Array.BYTES_PER_ELEMENT + NameLen,
-		), binaryReader);
-
+	static #parseNode(reader, isVersion7500OrAbove) {
 		/**
 		 * @type {FBXNode}
 		 */
-		const Node = {
-			EndOffset,
-			NumProperties,
-			PropertyListLen,
-			NameLen,
-			Name,
-			Properties: [],
-			NestedList: [],
-		};
+		const Node = {};
 
-		let propertyStartOffset = nodeStartOffset + 3 * bytesPerElement + 1 * Uint8Array.BYTES_PER_ELEMENT + NameLen;
-		let Property = null;
+		Node.EndOffset = reader.readUint32();
 
-		for (let i = 0; i < NumProperties; i++) {
-			Property = await FBXBinaryLoader.#parsePropertyRecord(dataView, binaryReader, propertyStartOffset, Node.Name);
-
-			propertyStartOffset += FBXBinaryLoader.#getPropertyLength(Property);
-
-			Node.Properties.push(Property);
+		if (Node.EndOffset === 0) {
+			return null;
 		}
 
-		let nestedListStartOffset = nodeStartOffset
-			+ 3 * bytesPerElement
-			+ 1 * Uint8Array.BYTES_PER_ELEMENT
-			+ NameLen
-			+ PropertyListLen;
+		Node.NumProperties = reader.readUint32();
+		Node.PropertyListLen = reader.readUint32();
+		Node.NameLen = reader.readUint8();
+		Node.Name = reader.readString(Node.NameLen);
+		Node.PropertyList = [];
 
-		if (Node.EndOffset - nestedListStartOffset > 0) {
-			for (let i = 0; i < FBXBinaryLoader.#MAX_NODE_RECORDS; i++) {
-				const SubNode = await FBXBinaryLoader.#parseNodeRecord(dataView, binaryReader, nestedListStartOffset, isVersion7500OrAbove);
+		for (let i = 0; i < Node.NumProperties; i++) {
+			const Property = FBXBinaryLoader.#parseProperty(reader);
 
-				if (!SubNode) {
+			Node.PropertyList.push(Property);
+		}
+
+		Node.NestedList = [];
+
+		if (reader.getByteOffset() !== Node.EndOffset) {
+			for (let i = 0; i < FBXBinaryLoader.#MAX_CHILD_NODE_ITERATIONS; i++) {
+				const ChildNode = FBXBinaryLoader.#parseNode(reader, isVersion7500OrAbove);
+
+				if (!ChildNode) {
 					break;
 				}
 
-				Node.NestedList.push(SubNode);
-
-				nestedListStartOffset = SubNode.EndOffset;
-
-				if (Node.EndOffset - nestedListStartOffset <= 0) {
-					break;
-				}
+				Node.NestedList.push(ChildNode);
 			}
+		}
+
+		if (reader.getByteOffset() !== Node.EndOffset) {
+			reader.advance(9 * Uint8Array.BYTES_PER_ELEMENT);
 		}
 
 		return Node;
 	}
 
 	/**
-	 * @param {DataView} dataView
-	 * @param {BinaryReader} binaryReader
-	 * @param {Number} offset
-	 * @param {String} nodeName
+	 * @param {BinaryReader} reader
 	 */
-	static async #parsePropertyRecord(dataView, binaryReader, offset, nodeName) {
-		const TypeCode = String.fromCharCode(dataView.getUint8(offset));
-
+	static #parseProperty(reader) {
 		/**
 		 * @type {FBXProperty}
 		 */
-		const Property = {
-			TypeCode,
-			Data: null,
-		};
+		const Property = {};
 
-		const handler = FBXBinaryLoader.#PROPERTY_TYPE_HANDLERS[TypeCode];
+		Property.TypeCode = reader.readChar();
 
-		if (!handler) {
-			console.warn(`Unhandled property '${TypeCode}' in node '${nodeName}'.`);
+		const propertyHandler = FBXBinaryLoader.#PROPERTY_HANDLERS[Property.TypeCode];
+
+		if (!propertyHandler) {
+			console.warn(`Unhandled property type '${Property.TypeCode}'.`);
 
 			return Property;
 		}
 
-		const Data = await handler(dataView, binaryReader, offset + 1 * Uint8Array.BYTES_PER_ELEMENT);
-
-		Property.Data = Data;
+		Property.Data = propertyHandler(reader);
 
 		return Property;
 	}
 
 	/**
-	 * @param {DataView} dataView
-	 * @param {BinaryReader} binaryReader
-	 * @param {Number} offset
-	 */
-	static async #handleCPropertyData(dataView, binaryReader, offset) {
-		const Data = dataView.getUint8(offset);
-
-		return Boolean(Data);
-	}
-
-	/**
-	 * @param {DataView} dataView
-	 * @param {BinaryReader} binaryReader
-	 * @param {Number} offset
-	 */
-	static async #handleDPropertyData(dataView, binaryReader, offset) {
-		const Data = dataView.getFloat64(offset, true);
-
-		return Data;
-	}
-
-	/**
-	 * @param {DataView} dataView
-	 * @param {BinaryReader} binaryReader
-	 * @param {Number} offset
-	 */
-	static async #handleIPropertyData(dataView, binaryReader, offset) {
-		const Data = dataView.getInt32(offset, true);
-
-		return Data;
-	}
-
-	/**
-	 * @param {DataView} dataView
-	 * @param {BinaryReader} binaryReader
-	 * @param {Number} offset
-	 */
-	static async #handleLPropertyData(dataView, binaryReader, offset) {
-		const Data = dataView.getBigInt64(offset, true);
-
-		return Data;
-	}
-
-	/**
-	 * @param {DataView} dataView
-	 * @param {BinaryReader} binaryReader
-	 * @param {Number} offset
+	 * @param {BinaryReader} reader
 	 * @param {char} TypeCode
 	 */
-	static async #handleArrayPropertyData(dataView, binaryReader, offset, TypeCode) {
-		const ArrayLength = dataView.getUint32(offset, true);
-		const Encoding = dataView.getUint32(offset + 1 * Uint32Array.BYTES_PER_ELEMENT, true);
-		const CompressedLength = dataView.getUint32(offset + 2 * Uint32Array.BYTES_PER_ELEMENT, true);
-
+	static #handleArrayProperty(reader, TypeCode) {
 		/**
 		 * @type {FBXArrayPropertyData}
 		 */
-		const Data = {
-			ArrayLength,
-			Encoding,
-			CompressedLength,
-			Contents: null,
-		};
+		const Data = {};
 
-		const handler = FBXBinaryLoader.#ARRAY_PROPERTY_TYPE_HANDLERS[TypeCode];
+		Data.ArrayLength = reader.readUint32();
+		Data.Encoding = reader.readUint32();
+		Data.CompressedLength = reader.readUint32();
 
-		if (!handler) {
-			console.warn(`Could not find array handler for property '${TypeCode}'.`);
+		const arrayPropertyObject = FBXBinaryLoader.#ARRAY_PROPERTY_OBJECT[TypeCode];
 
-			return Data;
-		}
-
-		if (Encoding === 0) {
-			const Contents = handler(dataView.buffer.slice(
-				offset + 3 * Uint32Array.BYTES_PER_ELEMENT,
-				offset + 3 * Uint32Array.BYTES_PER_ELEMENT + ArrayLength * FBXBinaryLoader.#getBytesPerElement(TypeCode),
-			), binaryReader);
-
-			Data.Contents = Contents;
+		if (!arrayPropertyObject) {
+			console.warn(`Unhandled array property type '${TypeCode}'.`);
 
 			return Data;
 		}
 
-		if (Encoding === 1) {
-			const input = new Uint8Array(dataView.buffer.slice(
-				offset + 3 * Uint32Array.BYTES_PER_ELEMENT,
-				offset + 3 * Uint32Array.BYTES_PER_ELEMENT + CompressedLength,
-			));
+		if (Data.Encoding === 0) {
+			Data.Contents = arrayPropertyObject.handler(reader, Data.ArrayLength * arrayPropertyObject.byteLength);
 
-			const readableStream = new Response(input).body.pipeThrough(new DecompressionStream("deflate"));
+			return Data;
+		}
+
+		if (Data.Encoding === 1) {
+			const compressedArray = reader.readUint8Array(Data.CompressedLength);
+			const readableStream = new Response(compressedArray).body.pipeThrough(new DecompressionStream("deflate"));
 			const response = new Response(readableStream);
-			const arrayBuffer = await response.arrayBuffer();
-			const Contents = handler(arrayBuffer, binaryReader);
 
-			Data.Contents = Contents;
+			return new Promise(async function(resolve) {
+				const arrayBuffer = await response.arrayBuffer();
+				const reader = new BinaryReader({
+					arrayBuffer,
+					isLittleEndian: true,
+				});
+				const Contents = arrayPropertyObject.handler(reader, Data.ArrayLength);
 
-			return Data;
+				Data.Contents = Contents;
+
+				return resolve(Data);
+			});
 		}
 
-		throw new Error(`Unhandled encoding value ${Encoding}.`);
-	}
-
-	/**
-	 * @param {ArrayBuffer} arrayBuffer
-	 * @param {BinaryReader} binaryReader
-	 */
-	static #handleDArrayPropertyData(arrayBuffer, binaryReader) {
-		return new Float64Array(arrayBuffer);
-	}
-
-	/**
-	 * @param {ArrayBuffer} arrayBuffer
-	 * @param {BinaryReader} binaryReader
-	 */
-	static #handleIArrayPropertyData(arrayBuffer, binaryReader) {
-		return new Int32Array(arrayBuffer);
-	}
-
-	/**
-	 * @param {DataView} dataView
-	 * @param {BinaryReader} binaryReader
-	 * @param {Number} offset
-	 */
-	static #handleRPropertyData(dataView, binaryReader, offset) {
-		const Length = dataView.getUint32(offset, true);
-		const Data = new Uint8Array(dataView.buffer.slice(
-			offset + 1 * Uint32Array.BYTES_PER_ELEMENT,
-			offset + 1 * Uint32Array.BYTES_PER_ELEMENT + Length,
-		));
-
-		const RawPropertyData = {
-			Length,
-			Data,
-		};
-
-		return RawPropertyData;
-	}
-
-	/**
-	 * @param {DataView} dataView
-	 * @param {BinaryReader} binaryReader
-	 * @param {Number} offset
-	 */
-	static #handleSPropertyData(dataView, binaryReader, offset) {
-		const Length = dataView.getUint32(offset, true);
-		const Data = FBXBinaryLoader.#toString(dataView.buffer.slice(
-			offset + 1 * Uint32Array.BYTES_PER_ELEMENT,
-			offset + 1 * Uint32Array.BYTES_PER_ELEMENT + Length,
-		), binaryReader);
-
-		/**
-		 * @type {FBXStringPropertyData}
-		 */
-		const StringPropertyData = {
-			Length,
-			Data,
-		};
-
-		return StringPropertyData;
-	}
-
-	/**
-	 * @param {char} TypeCode
-	 */
-	static #getBytesPerElement(TypeCode) {
-		switch (TypeCode) {
-			case "d":
-				return Float64Array.BYTES_PER_ELEMENT;
-			case "i":
-				return Int32Array.BYTES_PER_ELEMENT;
-			default:
-				console.warn(`getBytesPerElement: Unhandled array type code '${TypeCode}'.`);
-		}
-
-		return 0;
-	}
-
-	/**
-	 * @param {FBXProperty} Property
-	 */
-	static #getPropertyLength(Property) {
-		/**
-		 * Start with the type code length
-		 */
-		let propertyLength = 1 * Uint8Array.BYTES_PER_ELEMENT;
-
-		switch (Property.TypeCode) {
-			case "C":
-				propertyLength += 1 * Uint8Array.BYTES_PER_ELEMENT;
-
-				break;
-			case "D":
-				propertyLength += 1 * Float64Array.BYTES_PER_ELEMENT;
-
-				break;
-			case "I":
-				propertyLength += 1 * Int32Array.BYTES_PER_ELEMENT;
-
-				break;
-			case "L":
-				propertyLength += 1 * BigInt64Array.BYTES_PER_ELEMENT;
-
-				break;
-			case "d":
-				/**
-				 * @type {FBXArrayPropertyData}
-				 */
-				// @ts-ignore
-				const DArrayData = Property.Data;
-
-				propertyLength += 3 * Uint32Array.BYTES_PER_ELEMENT + DArrayData.ArrayLength * Float64Array.BYTES_PER_ELEMENT;
-
-				break;
-			case "i":
-				/**
-				 * @type {FBXArrayPropertyData}
-				 */
-				// @ts-ignore
-				const IArrayData = Property.Data;
-
-				propertyLength += 3 * Uint32Array.BYTES_PER_ELEMENT + IArrayData.ArrayLength * Int32Array.BYTES_PER_ELEMENT;
-
-				break;
-			case "R":
-				/**
-				 * @type {FBXRawPropertyData}
-				 */
-				// @ts-ignore
-				const RawData = Property.Data;
-
-				propertyLength += 1 * Uint32Array.BYTES_PER_ELEMENT + RawData.Length;
-
-				break;
-			case "S":
-				/**
-				 * @type {FBXStringPropertyData}
-				 */
-				// @ts-ignore
-				const StringData = Property.Data;
-
-				propertyLength += 1 * Uint32Array.BYTES_PER_ELEMENT + StringData.Length;
-
-				break;
-			default:
-				console.warn(`getPropertyLength: Unhandled property '${Property.TypeCode}'.`);
-		}
-
-		return propertyLength;
+		throw new Error(`Unhandled encoding value ${Data.Encoding}.`);
 	}
 
 	/**
@@ -443,35 +276,30 @@ export class FBXBinaryLoader extends Loader {
 	async load(url) {
 		const response = await super.load(url);
 		const arrayBuffer = await response.arrayBuffer();
-		const binaryReader = new BinaryReader({
+		const reader = new BinaryReader({
 			arrayBuffer,
 			isLittleEndian: true,
 		});
-		const dataView = new DataView(arrayBuffer);
 
-		const Version = FBXBinaryLoader.#parseHeader(binaryReader);
-		const isVersion7500OrAbove = Version >= 7500;
+		const Header = FBXBinaryLoader.#parseHeader(reader);
+		const isVersion7500OrAbove = Header.Version >= 7500;
 
 		/**
 		 * @type {FBXFile}
 		 */
-		const File = {
-			Header: {
-				Version: Version / 1000,
-			},
-			Nodes: [],
-		};
+		const File = {};
 
-		for (let i = 0, nodeStartOffset = 27; i < FBXBinaryLoader.#MAX_ROOT_NODE_RECORDS; i++) {
-			const Node = await FBXBinaryLoader.#parseNodeRecord(dataView, binaryReader, nodeStartOffset, isVersion7500OrAbove);
+		File.Header = Header;
+		File.NodeList = [];
+
+		for (let i = 0; i < FBXBinaryLoader.#MAX_ROOT_NODE_ITERATIONS; i++) {
+			const Node = FBXBinaryLoader.#parseNode(reader, isVersion7500OrAbove);
 
 			if (!Node) {
 				break;
 			}
 
-			File.Nodes.push(Node);
-
-			nodeStartOffset = Node.EndOffset;
+			File.NodeList.push(Node);
 		}
 
 		return File;
