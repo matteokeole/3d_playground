@@ -231,18 +231,12 @@ export class BinaryReader {
 	}
 
 	/**
-	 * @todo Measure performance compared to readUint8Array + map
-	 * 
 	 * @param {Number} length
 	 */
 	readBoolArray(length) {
-		const array = [];
+		const array = this.readUint8Array(length);
 
-		for (let i = 0; i < length; i++) {
-			array.push(this.readBool());
-		}
-
-		return array;
+		return [...array].map(Boolean);
 	}
 
 	/**
