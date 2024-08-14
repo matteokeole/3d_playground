@@ -44,30 +44,28 @@ export class FBXBinaryLoader extends Loader {
 	}
 
 	/**
-	 * @param {DataView} dataView
 	 * @param {BinaryReader} binaryReader
 	 * @throws {Error} The file magic is invalid
 	 */
-	static #parseHeader(dataView, binaryReader) {
-		if (!this.#isMagicValid(dataView, binaryReader)) {
+	static #parseHeader(binaryReader) {
+		if (!this.#isMagicValid(binaryReader)) {
 			throw new Error("Invalid binary FBX file.");
 		}
 
-		const version = dataView.getUint32(23, true);
+		const version = binaryReader.readUint32(23);
 
 		return version;
 	}
 
 	/**
-	 * @param {DataView} dataView
 	 * @param {BinaryReader} binaryReader
 	 */
-	static #isMagicValid(dataView, binaryReader) {
-		const magic = new Uint8Array(dataView.buffer);
-
-		if (magic.length < FBXBinaryLoader.#MAGIC.length) {
+	static #isMagicValid(binaryReader) {
+		if (binaryReader.getByteLength() < FBXBinaryLoader.#MAGIC.byteLength) {
 			return false;
 		}
+
+		const magic = binaryReader.readUint8Array(FBXBinaryLoader.#MAGIC.length);
 
 		for (let i = 0; i < FBXBinaryLoader.#MAGIC.length; i++) {
 			if (magic[i] !== FBXBinaryLoader.#MAGIC[i]) {
@@ -451,7 +449,7 @@ export class FBXBinaryLoader extends Loader {
 		});
 		const dataView = new DataView(arrayBuffer);
 
-		const Version = FBXBinaryLoader.#parseHeader(dataView, binaryReader);
+		const Version = FBXBinaryLoader.#parseHeader(binaryReader);
 		const isVersion7500OrAbove = Version >= 7500;
 
 		/**
