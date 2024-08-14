@@ -1,4 +1,5 @@
 import {Loader} from "./Loader.js";
+import {BinaryReader} from "../Reader/index.js";
 
 /**
  * @see {@link https://code.blender.org/2013/08/fbx-binary-file-format-specification}
@@ -16,9 +17,9 @@ export class FBXBinaryLoader extends Loader {
 		"Y": null,
 		// Array types
 		"b": null,
-		"d": (arrayBuffer, offset) => FBXBinaryLoader.#handleArrayPropertyData(arrayBuffer, offset, "d"),
+		"d": (arrayBuffer, binaryReader, offset) => FBXBinaryLoader.#handleArrayPropertyData(arrayBuffer, binaryReader, offset, "d"),
 		"f": null,
-		"i": (arrayBuffer, offset) => FBXBinaryLoader.#handleArrayPropertyData(arrayBuffer, offset, "i"),
+		"i": (arrayBuffer, binaryReader, offset) => FBXBinaryLoader.#handleArrayPropertyData(arrayBuffer, binaryReader, offset, "i"),
 		"l": null,
 		// Special types
 		"R": FBXBinaryLoader.#handleRPropertyData,
@@ -36,17 +37,19 @@ export class FBXBinaryLoader extends Loader {
 
 	/**
 	 * @param {ArrayBuffer} arrayBuffer
+	 * @param {BinaryReader} binaryReader
 	 */
-	static #toString(arrayBuffer) {
+	static #toString(arrayBuffer, binaryReader) {
 		return String.fromCharCode(...new Uint8Array(arrayBuffer));
 	}
 
 	/**
 	 * @param {DataView} dataView
+	 * @param {BinaryReader} binaryReader
 	 * @throws {Error} The file magic is invalid
 	 */
-	static #parseHeader(dataView) {
-		if (!this.#isMagicValid(dataView)) {
+	static #parseHeader(dataView, binaryReader) {
+		if (!this.#isMagicValid(dataView, binaryReader)) {
 			throw new Error("Invalid binary FBX file.");
 		}
 
@@ -57,8 +60,9 @@ export class FBXBinaryLoader extends Loader {
 
 	/**
 	 * @param {DataView} dataView
+	 * @param {BinaryReader} binaryReader
 	 */
-	static #isMagicValid(dataView) {
+	static #isMagicValid(dataView, binaryReader) {
 		const magic = new Uint8Array(dataView.buffer);
 
 		if (magic.length < FBXBinaryLoader.#MAGIC.length) {
@@ -76,10 +80,11 @@ export class FBXBinaryLoader extends Loader {
 
 	/**
 	 * @param {DataView} dataView
+	 * @param {BinaryReader} binaryReader
 	 * @param {Number} nodeStartOffset
 	 * @param {bool} isVersion7500OrAbove
 	 */
-	static async #parseNodeRecord(dataView, nodeStartOffset, isVersion7500OrAbove) {
+	static async #parseNodeRecord(dataView, binaryReader, nodeStartOffset, isVersion7500OrAbove) {
 		const EndOffset = isVersion7500OrAbove ?
 			dataView.getUint32(nodeStartOffset, true) :
 			dataView.getUint32(nodeStartOffset, true);
@@ -98,7 +103,7 @@ export class FBXBinaryLoader extends Loader {
 		const Name = FBXBinaryLoader.#toString(dataView.buffer.slice(
 			nodeStartOffset + 3 * bytesPerElement + 1 * Uint8Array.BYTES_PER_ELEMENT,
 			nodeStartOffset + 3 * bytesPerElement + 1 * Uint8Array.BYTES_PER_ELEMENT + NameLen,
-		));
+		), binaryReader);
 
 		/**
 		 * @type {FBXNode}
@@ -117,7 +122,7 @@ export class FBXBinaryLoader extends Loader {
 		let Property = null;
 
 		for (let i = 0; i < NumProperties; i++) {
-			Property = await FBXBinaryLoader.#parsePropertyRecord(dataView, propertyStartOffset, Node.Name);
+			Property = await FBXBinaryLoader.#parsePropertyRecord(dataView, binaryReader, propertyStartOffset, Node.Name);
 
 			propertyStartOffset += FBXBinaryLoader.#getPropertyLength(Property);
 
@@ -132,7 +137,7 @@ export class FBXBinaryLoader extends Loader {
 
 		if (Node.EndOffset - nestedListStartOffset > 0) {
 			for (let i = 0; i < FBXBinaryLoader.#MAX_NODE_RECORDS; i++) {
-				const SubNode = await FBXBinaryLoader.#parseNodeRecord(dataView, nestedListStartOffset, isVersion7500OrAbove);
+				const SubNode = await FBXBinaryLoader.#parseNodeRecord(dataView, binaryReader, nestedListStartOffset, isVersion7500OrAbove);
 
 				if (!SubNode) {
 					break;
@@ -153,10 +158,11 @@ export class FBXBinaryLoader extends Loader {
 
 	/**
 	 * @param {DataView} dataView
+	 * @param {BinaryReader} binaryReader
 	 * @param {Number} offset
 	 * @param {String} nodeName
 	 */
-	static async #parsePropertyRecord(dataView, offset, nodeName) {
+	static async #parsePropertyRecord(dataView, binaryReader, offset, nodeName) {
 		const TypeCode = String.fromCharCode(dataView.getUint8(offset));
 
 		/**
@@ -175,7 +181,7 @@ export class FBXBinaryLoader extends Loader {
 			return Property;
 		}
 
-		const Data = await handler(dataView, offset + 1 * Uint8Array.BYTES_PER_ELEMENT);
+		const Data = await handler(dataView, binaryReader, offset + 1 * Uint8Array.BYTES_PER_ELEMENT);
 
 		Property.Data = Data;
 
@@ -184,9 +190,10 @@ export class FBXBinaryLoader extends Loader {
 
 	/**
 	 * @param {DataView} dataView
+	 * @param {BinaryReader} binaryReader
 	 * @param {Number} offset
 	 */
-	static async #handleCPropertyData(dataView, offset) {
+	static async #handleCPropertyData(dataView, binaryReader, offset) {
 		const Data = dataView.getUint8(offset);
 
 		return Boolean(Data);
@@ -194,9 +201,10 @@ export class FBXBinaryLoader extends Loader {
 
 	/**
 	 * @param {DataView} dataView
+	 * @param {BinaryReader} binaryReader
 	 * @param {Number} offset
 	 */
-	static async #handleDPropertyData(dataView, offset) {
+	static async #handleDPropertyData(dataView, binaryReader, offset) {
 		const Data = dataView.getFloat64(offset, true);
 
 		return Data;
@@ -204,9 +212,10 @@ export class FBXBinaryLoader extends Loader {
 
 	/**
 	 * @param {DataView} dataView
+	 * @param {BinaryReader} binaryReader
 	 * @param {Number} offset
 	 */
-	static async #handleIPropertyData(dataView, offset) {
+	static async #handleIPropertyData(dataView, binaryReader, offset) {
 		const Data = dataView.getInt32(offset, true);
 
 		return Data;
@@ -214,9 +223,10 @@ export class FBXBinaryLoader extends Loader {
 
 	/**
 	 * @param {DataView} dataView
+	 * @param {BinaryReader} binaryReader
 	 * @param {Number} offset
 	 */
-	static async #handleLPropertyData(dataView, offset) {
+	static async #handleLPropertyData(dataView, binaryReader, offset) {
 		const Data = dataView.getBigInt64(offset, true);
 
 		return Data;
@@ -224,10 +234,11 @@ export class FBXBinaryLoader extends Loader {
 
 	/**
 	 * @param {DataView} dataView
+	 * @param {BinaryReader} binaryReader
 	 * @param {Number} offset
 	 * @param {char} TypeCode
 	 */
-	static async #handleArrayPropertyData(dataView, offset, TypeCode) {
+	static async #handleArrayPropertyData(dataView, binaryReader, offset, TypeCode) {
 		const ArrayLength = dataView.getUint32(offset, true);
 		const Encoding = dataView.getUint32(offset + 1 * Uint32Array.BYTES_PER_ELEMENT, true);
 		const CompressedLength = dataView.getUint32(offset + 2 * Uint32Array.BYTES_PER_ELEMENT, true);
@@ -254,7 +265,7 @@ export class FBXBinaryLoader extends Loader {
 			const Contents = handler(dataView.buffer.slice(
 				offset + 3 * Uint32Array.BYTES_PER_ELEMENT,
 				offset + 3 * Uint32Array.BYTES_PER_ELEMENT + ArrayLength * FBXBinaryLoader.#getBytesPerElement(TypeCode),
-			));
+			), binaryReader);
 
 			Data.Contents = Contents;
 
@@ -270,7 +281,7 @@ export class FBXBinaryLoader extends Loader {
 			const readableStream = new Response(input).body.pipeThrough(new DecompressionStream("deflate"));
 			const response = new Response(readableStream);
 			const arrayBuffer = await response.arrayBuffer();
-			const Contents = handler(arrayBuffer);
+			const Contents = handler(arrayBuffer, binaryReader);
 
 			Data.Contents = Contents;
 
@@ -282,23 +293,26 @@ export class FBXBinaryLoader extends Loader {
 
 	/**
 	 * @param {ArrayBuffer} arrayBuffer
+	 * @param {BinaryReader} binaryReader
 	 */
-	static #handleDArrayPropertyData(arrayBuffer) {
+	static #handleDArrayPropertyData(arrayBuffer, binaryReader) {
 		return new Float64Array(arrayBuffer);
 	}
 
 	/**
 	 * @param {ArrayBuffer} arrayBuffer
+	 * @param {BinaryReader} binaryReader
 	 */
-	static #handleIArrayPropertyData(arrayBuffer) {
+	static #handleIArrayPropertyData(arrayBuffer, binaryReader) {
 		return new Int32Array(arrayBuffer);
 	}
 
 	/**
 	 * @param {DataView} dataView
+	 * @param {BinaryReader} binaryReader
 	 * @param {Number} offset
 	 */
-	static #handleRPropertyData(dataView, offset) {
+	static #handleRPropertyData(dataView, binaryReader, offset) {
 		const Length = dataView.getUint32(offset, true);
 		const Data = new Uint8Array(dataView.buffer.slice(
 			offset + 1 * Uint32Array.BYTES_PER_ELEMENT,
@@ -315,14 +329,15 @@ export class FBXBinaryLoader extends Loader {
 
 	/**
 	 * @param {DataView} dataView
+	 * @param {BinaryReader} binaryReader
 	 * @param {Number} offset
 	 */
-	static #handleSPropertyData(dataView, offset) {
+	static #handleSPropertyData(dataView, binaryReader, offset) {
 		const Length = dataView.getUint32(offset, true);
 		const Data = FBXBinaryLoader.#toString(dataView.buffer.slice(
 			offset + 1 * Uint32Array.BYTES_PER_ELEMENT,
 			offset + 1 * Uint32Array.BYTES_PER_ELEMENT + Length,
-		));
+		), binaryReader);
 
 		/**
 		 * @type {FBXStringPropertyData}
@@ -430,9 +445,13 @@ export class FBXBinaryLoader extends Loader {
 	async load(url) {
 		const response = await super.load(url);
 		const arrayBuffer = await response.arrayBuffer();
+		const binaryReader = new BinaryReader({
+			arrayBuffer,
+			isLittleEndian: true,
+		});
 		const dataView = new DataView(arrayBuffer);
 
-		const Version = FBXBinaryLoader.#parseHeader(dataView);
+		const Version = FBXBinaryLoader.#parseHeader(dataView, binaryReader);
 		const isVersion7500OrAbove = Version >= 7500;
 
 		/**
@@ -446,7 +465,7 @@ export class FBXBinaryLoader extends Loader {
 		};
 
 		for (let i = 0, nodeStartOffset = 27; i < FBXBinaryLoader.#MAX_ROOT_NODE_RECORDS; i++) {
-			const Node = await FBXBinaryLoader.#parseNodeRecord(dataView, nodeStartOffset, isVersion7500OrAbove);
+			const Node = await FBXBinaryLoader.#parseNodeRecord(dataView, binaryReader, nodeStartOffset, isVersion7500OrAbove);
 
 			if (!Node) {
 				break;
