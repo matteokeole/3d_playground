@@ -1,5 +1,5 @@
 export {CaptureSessionLoader} from "./CaptureSessionLoader.js";
-export {FBXBinaryLoader} from "./FBXBinaryLoader.js";
+export {FileLoader} from "./FileLoader.js";
 export {ImageBitmapLoader} from "./ImageBitmapLoader.js";
 export {Loader} from "./Loader.js";
 export {OBJLoader} from "./OBJLoader.js";

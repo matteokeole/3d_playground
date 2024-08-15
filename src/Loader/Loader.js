@@ -3,16 +3,11 @@
  */
 export class Loader {
 	/**
+	 * @abstract
 	 * @param {String} url
-	 * @throws {Error} The response was not successful
+	 * @returns {Promise.<*>}
 	 */
 	async load(url) {
-		const response = await fetch(url);
-
-		if (!response.ok) {
-			throw new Error(`Could not fetch URL ${url}: Request failed with status ${response.status}.`);
-		}
-
-		return response;
+		throw new Error("Not implemented");
 	}
 }

@@ -1,22 +1,19 @@
 import {Frame, Session} from "../Capture/index.js";
 import {Matrix4, PI, Vector3} from "../math/index.js";
 import {Loader} from "./Loader.js";
+import {FileLoader} from "./index.js";
 
 export class CaptureSessionLoader extends Loader {
 	/**
 	 * Loads and returns a Capture session from a JSON file.
 	 * 
-	 * @param {String} path JSON file path
+	 * @param {String} url
 	 * @returns {Promise.<Session>}
 	 * @throws {Error} if the file request fails
 	 */
-	async load(path) {
-		const response = await fetch(path);
-
-		if (!response.ok) {
-			throw new Error(`Could not fetch the file: request failed with status ${response.status}.`);
-		}
-
+	async load(url) {
+		const fileLoader = new FileLoader();
+		const response = await fileLoader.load(url);
 		const json = await response.json();
 		const frames = [];
 		// const previousPosition = new Vector3();

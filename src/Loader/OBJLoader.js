@@ -1,4 +1,5 @@
 import {Loader} from "./Loader.js";
+import {FileLoader} from "./index.js";
 
 /**
  * @typedef {Object} OBJ
@@ -73,8 +74,8 @@ export class OBJLoader extends Loader {
 	 * @param {String} url
 	 */
 	async load(url) {
-		const response = await super.load(url);
-
+		const fileLoader = new FileLoader();
+		const response = await fileLoader.load(url);
 		const text = await response.text();
 		const lines = text.split("\n");
 		const lineExpression = /(\w*)(?: )*(.*)/;

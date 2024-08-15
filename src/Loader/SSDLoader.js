@@ -1,5 +1,6 @@
 import {Mesh} from "../../public/hl2/Mesh.js";
 import {Loader} from "./Loader.js";
+import {FileLoader} from "./index.js";
 
 export class SSDLoader extends Loader {
 	/**
@@ -23,12 +24,13 @@ export class SSDLoader extends Loader {
 	/**
 	 * Loads static scene description from a JSON file.
 	 * 
-	 * @param {String} path Scene file path
+	 * @param {String} url
 	 * @returns {Promise.<Mesh[]>}
 	 * @throws {Error} if the request fails
 	 */
-	async load(path) {
-		const response = await fetch(path);
+	async load(url) {
+		const fileLoader = new FileLoader();
+		const response = await fileLoader.load(url);
 
 		if (!response.ok) {
 			throw new Error(`Could not fetch the scene file: request failed with status ${response.status}.`);
