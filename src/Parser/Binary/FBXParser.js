@@ -1,5 +1,5 @@
-import {Loader} from "./Loader.js";
-import {BinaryReader} from "../Reader/index.js";
+import {BinaryReader} from "../../Reader/index.js";
+import {Parser} from "../Parser.js";
 
 /**
  * @typedef {(reader: BinaryReader) => any} PropertyHandler
@@ -12,11 +12,11 @@ import {BinaryReader} from "../Reader/index.js";
 /**
  * @see {@link https://code.blender.org/2013/08/fbx-binary-file-format-specification}
  */
-export class FBXBinaryLoader extends Loader {
+export class FBXParser extends Parser {
 	static #MAX_ROOT_NODE_ITERATIONS = 16;
 	static #MAX_CHILD_NODE_ITERATIONS = 128;
 	static #MAGIC_STRING = "Kaydara FBX Binary  \x00\x1a\x00";
-	static #MAGIC = Uint8Array.from(FBXBinaryLoader.#MAGIC_STRING.split(""), c => c.charCodeAt(0));
+	static #MAGIC = Uint8Array.from(FBXParser.#MAGIC_STRING.split(""), c => c.charCodeAt(0));
 	/**
 	 * @type {Record.<String, PropertyHandler>}
 	 */
@@ -39,11 +39,11 @@ export class FBXBinaryLoader extends Loader {
 		Y(reader) {
 			return reader.readInt16();
 		},
-		b: reader => FBXBinaryLoader.#parseArrayPropertyData(reader, "b"),
-		d: reader => FBXBinaryLoader.#parseArrayPropertyData(reader, "d"),
-		f: reader => FBXBinaryLoader.#parseArrayPropertyData(reader, "f"),
-		i: reader => FBXBinaryLoader.#parseArrayPropertyData(reader, "i"),
-		l: reader => FBXBinaryLoader.#parseArrayPropertyData(reader, "l"),
+		b: reader => FBXParser.#parseArrayPropertyData(reader, "b"),
+		d: reader => FBXParser.#parseArrayPropertyData(reader, "d"),
+		f: reader => FBXParser.#parseArrayPropertyData(reader, "f"),
+		i: reader => FBXParser.#parseArrayPropertyData(reader, "i"),
+		l: reader => FBXParser.#parseArrayPropertyData(reader, "l"),
 		R(reader) {
 			/**
 			 * @type {FBXRawPropertyData}
@@ -109,29 +109,29 @@ export class FBXBinaryLoader extends Loader {
 
 	/**
 	 * @param {BinaryReader} reader
-	 * @param {bool} isVersion7500OrAbove
+	 * @param {bool} isVersionGeq7500
 	 */
-	static #parseNode(reader, isVersion7500OrAbove) {
+	static #parseNode(reader, isVersionGeq7500) {
 		/**
 		 * @type {FBXNode}
 		 */
 		const Node = {};
 
-		Node.EndOffset = isVersion7500OrAbove ? Number(reader.readBigUint64()) : reader.readUint32();
+		Node.EndOffset = isVersionGeq7500 ? Number(reader.readBigUint64()) : reader.readUint32();
 
 		if (Node.EndOffset === 0) {
 			return null;
 		}
 
-		Node.NumProperties = isVersion7500OrAbove ? Number(reader.readBigUint64()) : reader.readUint32();
-		Node.PropertyListLen = isVersion7500OrAbove ? Number(reader.readBigUint64()) : reader.readUint32();
+		Node.NumProperties = isVersionGeq7500 ? Number(reader.readBigUint64()) : reader.readUint32();
+		Node.PropertyListLen = isVersionGeq7500 ? Number(reader.readBigUint64()) : reader.readUint32();
 
 		Node.NameLen = reader.readUint8();
 		Node.Name = reader.readString(Node.NameLen);
 		Node.PropertyList = [];
 
 		for (let i = 0; i < Node.NumProperties; i++) {
-			const Property = FBXBinaryLoader.#parseProperty(reader);
+			const Property = FBXParser.#parseProperty(reader);
 
 			Node.PropertyList.push(Property);
 		}
@@ -139,8 +139,8 @@ export class FBXBinaryLoader extends Loader {
 		Node.NestedList = [];
 
 		if (reader.getByteOffset() !== Node.EndOffset) {
-			for (let i = 0; i < FBXBinaryLoader.#MAX_CHILD_NODE_ITERATIONS; i++) {
-				const ChildNode = FBXBinaryLoader.#parseNode(reader, isVersion7500OrAbove);
+			for (let i = 0; i < FBXParser.#MAX_CHILD_NODE_ITERATIONS; i++) {
+				const ChildNode = FBXParser.#parseNode(reader, isVersionGeq7500);
 
 				if (!ChildNode) {
 					break;
@@ -150,7 +150,7 @@ export class FBXBinaryLoader extends Loader {
 			}
 		}
 
-		if (!isVersion7500OrAbove && reader.getByteOffset() !== Node.EndOffset) {
+		if (!isVersionGeq7500 && reader.getByteOffset() !== Node.EndOffset) {
 			reader.advance(9 * Uint8Array.BYTES_PER_ELEMENT);
 		}
 
@@ -168,7 +168,7 @@ export class FBXBinaryLoader extends Loader {
 
 		Property.TypeCode = reader.readChar();
 
-		const propertyHandler = FBXBinaryLoader.#PROPERTY_HANDLERS[Property.TypeCode];
+		const propertyHandler = FBXParser.#PROPERTY_HANDLERS[Property.TypeCode];
 
 		if (!propertyHandler) {
 			console.warn(`Unhandled property type '${Property.TypeCode}'.`);
@@ -195,7 +195,7 @@ export class FBXBinaryLoader extends Loader {
 		Data.Encoding = reader.readUint32();
 		Data.CompressedLength = reader.readUint32();
 
-		const arrayPropertyHandler = FBXBinaryLoader.#ARRAY_PROPERTY_HANDLERS[TypeCode];
+		const arrayPropertyHandler = FBXParser.#ARRAY_PROPERTY_HANDLERS[TypeCode];
 
 		if (!arrayPropertyHandler) {
 			console.warn(`Unhandled array property type '${TypeCode}'.`);
@@ -235,14 +235,14 @@ export class FBXBinaryLoader extends Loader {
 	 * @param {BinaryReader} reader
 	 */
 	static #isMagicValid(reader) {
-		if (reader.getByteLength() < FBXBinaryLoader.#MAGIC.byteLength) {
+		if (reader.getByteLength() < FBXParser.#MAGIC.byteLength) {
 			return false;
 		}
 
-		const magic = reader.readUint8Array(FBXBinaryLoader.#MAGIC.length);
+		const magic = reader.readUint8Array(FBXParser.#MAGIC.length);
 
-		for (let i = 0; i < FBXBinaryLoader.#MAGIC.length; i++) {
-			if (magic[i] !== FBXBinaryLoader.#MAGIC[i]) {
+		for (let i = 0; i < FBXParser.#MAGIC.length; i++) {
+			if (magic[i] !== FBXParser.#MAGIC[i]) {
 				return false;
 			}
 		}
@@ -251,29 +251,26 @@ export class FBXBinaryLoader extends Loader {
 	}
 
 	/**
-	 * @param {String} url
+	 * @param {ArrayBuffer} arrayBuffer
 	 */
-	async load(url) {
-		const response = await super.load(url);
-		const arrayBuffer = await response.arrayBuffer();
+	parse(arrayBuffer) {
 		const reader = new BinaryReader({
 			arrayBuffer,
 			isLittleEndian: true,
 		});
-
-		const Header = FBXBinaryLoader.#parseHeader(reader);
-		const isVersion7500OrAbove = Header.Version >= 7500;
 
 		/**
 		 * @type {FBXFile}
 		 */
 		const File = {};
 
-		File.Header = Header;
+		File.Header = FBXParser.#parseHeader(reader);
 		File.NodeList = [];
 
-		for (let i = 0; i < FBXBinaryLoader.#MAX_ROOT_NODE_ITERATIONS; i++) {
-			const Node = FBXBinaryLoader.#parseNode(reader, isVersion7500OrAbove);
+		const isVersionGeq7500 = File.Header.Version >= 7500;
+
+		for (let i = 0; i < FBXParser.#MAX_ROOT_NODE_ITERATIONS; i++) {
+			const Node = FBXParser.#parseNode(reader, isVersionGeq7500);
 
 			if (!Node) {
 				break;

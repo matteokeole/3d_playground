@@ -1,4 +1,4 @@
-import {Loader} from "./Loader/index.js";
+import {FileLoader} from "./Loader/index.js";
 
 /**
  * @typedef {Object} Environment
@@ -9,7 +9,7 @@ import {Loader} from "./Loader/index.js";
  * @todo EnvironmentLoader?
  */
 export async function getEnvironment() {
-	const loader = new Loader();
+	const loader = new FileLoader();
 	const response = await loader.load(".env.local.json");
 
 	/**

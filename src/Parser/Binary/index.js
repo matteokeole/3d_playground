@@ -1,0 +1,1 @@
+export {FBXParser} from "./FBXParser.js";
