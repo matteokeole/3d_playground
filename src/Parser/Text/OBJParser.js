@@ -1,5 +1,4 @@
-import {Loader} from "./Loader.js";
-import {FileLoader} from "./index.js";
+import {Parser} from "../index.js";
 
 /**
  * @typedef {Object} OBJ
@@ -7,7 +6,7 @@ import {FileLoader} from "./index.js";
  * @property {Uint32Array} indices
  */
 
-export class OBJLoader extends Loader {
+export class OBJParser extends Parser {
 	/**
 	 * @type {Record.<String, *>}
 	 */
@@ -34,9 +33,9 @@ export class OBJLoader extends Loader {
 			const triangleCount = parts.length - 2;
 
 			for (let i = 0; i < triangleCount; i++) {
-				OBJLoader.#addVertex(parts[0], indices);
-				OBJLoader.#addVertex(parts[i + 1], indices);
-				OBJLoader.#addVertex(parts[i + 2], indices);
+				OBJParser.#addVertex(parts[0], indices);
+				OBJParser.#addVertex(parts[i + 1], indices);
+				OBJParser.#addVertex(parts[i + 2], indices);
 			}
 		},
 	};
@@ -71,12 +70,9 @@ export class OBJLoader extends Loader {
 	}
 
 	/**
-	 * @param {String} url
+	 * @param {String} text
 	 */
-	async load(url) {
-		const fileLoader = new FileLoader();
-		const response = await fileLoader.load(url);
-		const text = await response.text();
+	parse(text) {
 		const lines = text.split("\n");
 		const lineExpression = /(\w*)(?: )*(.*)/;
 		const vertices = [];
@@ -119,13 +115,13 @@ export class OBJLoader extends Loader {
 
 			const keyword = exec[1];
 
-			if (!(keyword in OBJLoader.#KEYWORDS_HANDLERS)) {
+			if (!(keyword in OBJParser.#KEYWORDS_HANDLERS)) {
 				// console.warn(`Unhandled keyword "${keyword}" at line`, i + 1);
 
 				continue;
 			}
 
-			const keywordHandler = OBJLoader.#KEYWORDS_HANDLERS[keyword];
+			const keywordHandler = OBJParser.#KEYWORDS_HANDLERS[keyword];
 			const lineSplits = line.split(/\s+/).slice(1);
 
 			keywordHandler(lineSplits, {vertices, indices, uvs, normals, vertexData, webglVertexData});
