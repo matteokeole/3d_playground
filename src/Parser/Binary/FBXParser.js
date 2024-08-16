@@ -39,11 +39,11 @@ export class FBXParser extends Parser {
 		Y(reader) {
 			return reader.readInt16();
 		},
-		b: reader => FBXParser.#parseArrayPropertyData(reader, "b"),
-		d: reader => FBXParser.#parseArrayPropertyData(reader, "d"),
-		f: reader => FBXParser.#parseArrayPropertyData(reader, "f"),
-		i: reader => FBXParser.#parseArrayPropertyData(reader, "i"),
-		l: reader => FBXParser.#parseArrayPropertyData(reader, "l"),
+		b: async reader => await FBXParser.#parseArrayPropertyData(reader, "b"),
+		d: async reader => await FBXParser.#parseArrayPropertyData(reader, "d"),
+		f: async reader => await FBXParser.#parseArrayPropertyData(reader, "f"),
+		i: async reader => await FBXParser.#parseArrayPropertyData(reader, "i"),
+		l: async reader => await FBXParser.#parseArrayPropertyData(reader, "l"),
 		R(reader) {
 			/**
 			 * @type {FBXRawPropertyData}
@@ -111,7 +111,7 @@ export class FBXParser extends Parser {
 	 * @param {BinaryReader} reader
 	 * @param {bool} isVersionGeq7500
 	 */
-	static #parseNode(reader, isVersionGeq7500) {
+	static async #parseNode(reader, isVersionGeq7500) {
 		/**
 		 * @type {FBXNode}
 		 */
@@ -131,7 +131,7 @@ export class FBXParser extends Parser {
 		Node.PropertyList = [];
 
 		for (let i = 0; i < Node.NumProperties; i++) {
-			const Property = FBXParser.#parseProperty(reader);
+			const Property = await FBXParser.#parseProperty(reader);
 
 			Node.PropertyList.push(Property);
 		}
@@ -140,7 +140,7 @@ export class FBXParser extends Parser {
 
 		if (reader.getByteOffset() !== Node.EndOffset) {
 			for (let i = 0; i < FBXParser.#MAX_CHILD_NODE_ITERATIONS; i++) {
-				const ChildNode = FBXParser.#parseNode(reader, isVersionGeq7500);
+				const ChildNode = await FBXParser.#parseNode(reader, isVersionGeq7500);
 
 				if (!ChildNode) {
 					break;
@@ -160,7 +160,7 @@ export class FBXParser extends Parser {
 	/**
 	 * @param {BinaryReader} reader
 	 */
-	static #parseProperty(reader) {
+	static async #parseProperty(reader) {
 		/**
 		 * @type {FBXProperty}
 		 */
@@ -176,7 +176,7 @@ export class FBXParser extends Parser {
 			return Property;
 		}
 
-		Property.Data = propertyHandler(reader);
+		Property.Data = await propertyHandler(reader);
 
 		return Property;
 	}
@@ -185,7 +185,7 @@ export class FBXParser extends Parser {
 	 * @param {BinaryReader} reader
 	 * @param {char} TypeCode
 	 */
-	static #parseArrayPropertyData(reader, TypeCode) {
+	static async #parseArrayPropertyData(reader, TypeCode) {
 		/**
 		 * @type {FBXArrayPropertyData}
 		 */
@@ -210,22 +210,19 @@ export class FBXParser extends Parser {
 		}
 
 		if (Data.Encoding === 1) {
-			const compressedArray = reader.readUint8Array(Data.CompressedLength);
-			const readableStream = new Response(compressedArray).body.pipeThrough(new DecompressionStream("deflate"));
+			const compressed = reader.readUint8Array(Data.CompressedLength);
+			const readableStream = new Response(compressed).body.pipeThrough(new DecompressionStream("deflate"));
 			const response = new Response(readableStream);
-
-			return new Promise(async function(resolve) {
-				const arrayBuffer = await response.arrayBuffer();
-				const reader = new BinaryReader({
-					arrayBuffer,
-					isLittleEndian: true,
-				});
-				const Contents = arrayPropertyHandler(reader, Data.ArrayLength);
-
-				Data.Contents = Contents;
-
-				return resolve(Data);
+			const arrayBuffer = await response.arrayBuffer();
+			const compressedReader = new BinaryReader({
+				arrayBuffer,
+				isLittleEndian: true,
 			});
+			const Contents = arrayPropertyHandler(compressedReader, Data.ArrayLength);
+
+			Data.Contents = Contents;
+
+			return Data;
 		}
 
 		throw new Error(`Unhandled encoding value ${Data.Encoding}.`);
@@ -253,32 +250,32 @@ export class FBXParser extends Parser {
 	/**
 	 * @param {ArrayBuffer} arrayBuffer
 	 */
-	parse(arrayBuffer) {
+	async parse(arrayBuffer) {
 		const reader = new BinaryReader({
 			arrayBuffer,
 			isLittleEndian: true,
 		});
 
 		/**
-		 * @type {FBXFile}
+		 * @type {FBXData}
 		 */
-		const File = {};
+		const Data = {};
 
-		File.Header = FBXParser.#parseHeader(reader);
-		File.NodeList = [];
+		Data.Header = FBXParser.#parseHeader(reader);
+		Data.NodeList = [];
 
-		const isVersionGeq7500 = File.Header.Version >= 7500;
+		const isVersionGeq7500 = Data.Header.Version >= 7500;
 
 		for (let i = 0; i < FBXParser.#MAX_ROOT_NODE_ITERATIONS; i++) {
-			const Node = FBXParser.#parseNode(reader, isVersionGeq7500);
+			const Node = await FBXParser.#parseNode(reader, isVersionGeq7500);
 
 			if (!Node) {
 				break;
 			}
 
-			File.NodeList.push(Node);
+			Data.NodeList.push(Node);
 		}
 
-		return File;
+		return Data;
 	}
 }

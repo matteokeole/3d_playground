@@ -1,20 +1,56 @@
 import {PerspectiveCamera} from "../../../../src/Camera/index.js";
 import {Geometry} from "../../../../src/Geometry/index.js";
-import {FBXBinaryLoader} from "../../../../src/Loader/index.js";
+import {BinaryLoader} from "../../../../src/Loader/index.js";
+import {FBXParser} from "../../../../src/Parser/Binary/index.js";
 import {PI, Vector2, Vector3} from "../../../../src/math/index.js";
 import {Mesh} from "../../../../src/Mesh/index.js";
 import {Scene} from "../../../../src/Scene/index.js";
 import {SENSITIVITY} from "../../../hl2/main.js";
 
 export async function createScene() {
-	const fbxBinaryLoader = new FBXBinaryLoader();
-	const fbxFile = await fbxBinaryLoader.load("assets/models/fbx/cube.bin.fbx");
-	const vertices = fbxFile.NodeList[8].NestedList[0].NestedList[2].Properties[0].Data.Contents;
-	const indices = fbxFile.NodeList[8].NestedList[0].NestedList[3].Properties[0].Data.Contents;
+	const binaryLoader = new BinaryLoader();
+	const binary = await binaryLoader.load("Test/Asset/FBX/Binary/sample.fbx");
+
+	const fbxParser = new FBXParser();
+	const fbxData = await fbxParser.parse(binary);
+
+	const vertices = fbxData.NodeList[8].NestedList[0].NestedList[2].PropertyList[0].Data.Contents;
+	const indices = fbxData.NodeList[8].NestedList[0].NestedList[3].PropertyList[0].Data.Contents;
+
+	const triangleIndexing = indices.length / 3 && indices[2] < 0;
+	let triangleIndices;
+
+	if (triangleIndexing) {
+		triangleIndices = new Uint32Array(indices.length);
+
+		// Triangle indexing
+		for (let i = 0; i < indices.length; i++) {
+			let index = indices[i];
+
+			if (index < 0) {
+				index = -index - 1;
+			}
+
+			triangleIndices[i] = index;
+		}
+	} else {
+		// Square indexing
+		triangleIndices = new Uint32Array(indices.length * 2);
+
+		for (let i = 0, j = 0; i < indices.length; i += 4, j += 6) {
+			triangleIndices[j + 0] = indices[i + 0];
+			triangleIndices[j + 1] = indices[i + 1];
+			triangleIndices[j + 2] = indices[i + 2];
+	
+			triangleIndices[j + 3] = indices[i + 0];
+			triangleIndices[j + 4] = indices[i + 2];
+			triangleIndices[j + 5] = -indices[i + 3] - 1;
+		}
+	}
+
 	const geometry = new Geometry({
-		vertices: new Float32Array(vertices),
-		// indices,
-		indices: Uint32Array.of(0, 4, 6, 0, 6, 2, 3, 2, 6, 3, 6, 7, 7, 6, 4, 7, 4, 5, 5, 1, 3, 5, 3, 7, 1, 0, 2, 1, 2, 3, 5, 4, 0, 5, 0, 1),
+		vertices,
+		indices: triangleIndices,
 		normals: new Float32Array(),
 		tangents: new Float32Array(),
 		uvs: new Float32Array(),

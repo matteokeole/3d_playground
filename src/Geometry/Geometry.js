@@ -107,31 +107,6 @@ export class Geometry {
 		return uv;
 	}
 
-	/**
-	 * @todo Decide where to handle this:
-	 * - Here
-	 * - OBJParser
-	 * - Future converter class
-	 * 
-	 * @param {uint32_t} vertexCount
-	 * @param {Int32Array} signedIndices
-	 */
-	static #generateUnsignedIndices(vertexCount, signedIndices) {
-		const unsignedIndices = new Uint32Array(signedIndices.length);
-
-		for (let i = 0; i < signedIndices.length; i++) {
-			let index = signedIndices[i];
-
-			if (index < 0) {
-				index = vertexCount + index;
-			}
-
-			unsignedIndices[i] = index;
-		}
-
-		return unsignedIndices;
-	}
-
 	_vertices;
 	_indices;
 	_normals;
@@ -143,17 +118,10 @@ export class Geometry {
 	 */
 	constructor(descriptor) {
 		this._vertices = descriptor.vertices;
+		this._indices = descriptor.indices;
 		this._normals = descriptor.normals;
 		this._tangents = descriptor.tangents;
 		this._uvs = descriptor.uvs;
-
-		if (descriptor.indices instanceof Int32Array) {
-			console.warn(descriptor.indices);
-			this._indices = Geometry.#generateUnsignedIndices(this._vertices.length, descriptor.indices);
-			console.log(this._vertices.length, this._indices);
-		} else {
-			this._indices = descriptor.indices;
-		}
 	}
 
 	getVertices() {

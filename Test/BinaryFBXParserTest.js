@@ -16,12 +16,8 @@ export class BinaryFBXParserTest extends Test {
 		const arrayBuffer = await binaryLoader.load(url);
 
 		const fbxParser = new FBXParser();
-		const fbxFile = fbxParser.parse(arrayBuffer);
+		const fbxData = await fbxParser.parse(arrayBuffer);
 
-		// const vertices = fbxFile.NodeList[8].NestedList[0].NestedList[2].Properties[0].Data.Contents;
-		// const indices = fbxFile.NodeList[8].NestedList[0].NestedList[3].Properties[0].Data.Contents;
-		const json = JSON.stringify(fbxFile, (_, a) => typeof a === "bigint" ? a.toString() : a);
-
-		console.log(json);
+		debugger;
 	}
 }

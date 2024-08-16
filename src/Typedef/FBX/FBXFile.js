@@ -1,5 +1,5 @@
 /**
- * @typedef {Object} FBXFile
+ * @typedef {Object} FBXData
  * @property {FBXHeader} Header
  * @property {FBXNode[]} NodeList
  */
