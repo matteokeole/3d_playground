@@ -1,9 +1,9 @@
 import {Parser} from "../index.js";
 
 /**
- * @typedef {Object} OBJ
+ * @typedef {Object} OBJData
  * @property {Float32Array} vertices
- * @property {Uint32Array} indices
+ * @property {Int32Array} indices
  */
 
 export class OBJParser extends Parser {
@@ -29,25 +29,32 @@ export class OBJParser extends Parser {
 
 			uvs.push(parsedParts);
 		}, */
-		f(parts, {indices}) {
+		f(parts, {indices, vertices}) {
 			const triangleCount = parts.length - 2;
+			const currentVertexCount = vertices.length / 3;
 
 			for (let i = 0; i < triangleCount; i++) {
-				OBJParser.#addVertex(parts[0], indices);
-				OBJParser.#addVertex(parts[i + 1], indices);
-				OBJParser.#addVertex(parts[i + 2], indices);
+				OBJParser.#addVertex(parts[0], indices, currentVertexCount);
+				OBJParser.#addVertex(parts[i + 1], indices, currentVertexCount);
+				OBJParser.#addVertex(parts[i + 2], indices, currentVertexCount);
 			}
 		},
 	};
 
 	/**
 	 * @param {String} vertexString
+	 * @param {Number[]} indices
+	 * @param {Number} vertexCount
 	 */
-	static #addVertex(vertexString, indices, vertexData, webglVertexData) {
+	static #addVertex(vertexString, indices, vertexCount) {
 		const vertexUvNormalString = vertexString.split("/");
 
 		const indexString = vertexUvNormalString[0];
-		const index = parseInt(indexString) - 1;
+		let index = parseInt(indexString);
+
+		if (index < 0) {
+			index += vertexCount;
+		}
 
 		indices.push(index);
 
@@ -127,17 +134,14 @@ export class OBJParser extends Parser {
 			keywordHandler(lineSplits, {vertices, indices, uvs, normals, vertexData, webglVertexData});
 		}
 
-		const vertexBuffer = new Float32Array(vertices);
-		const indexBuffer = new Uint32Array(indices);
-
 		/**
-		 * @type {OBJ}
+		 * @type {OBJData}
 		 */
-		const obj = {
-			vertices: vertexBuffer,
-			indices: indexBuffer,
-		};
+		const data = {};
 
-		return obj;
+		data.vertices = new Float32Array(vertices);
+		data.indices = new Int32Array(indices);
+
+		return data;
 	}
 }
