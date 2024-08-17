@@ -1,4 +1,5 @@
 import {Loader} from "./Loader.js";
+import {FileLoader} from "./index.js";
 
 /**
  * @typedef {Object} Image
@@ -11,19 +12,15 @@ export class ImageBitmapLoader extends Loader {
 	 * Loads and returns images listed in a JSON file.
 	 * Note: The textures must be in the same directory as the file.
 	 * 
-	 * @param {String} path JSON file path
+	 * @param {String} url
 	 * @returns {Promise.<Image[]>}
 	 * @throws {Error} if the file request fails
 	 */
-	async load(path) {
-		const response = await fetch(path);
-
-		if (!response.ok) {
-			throw new Error(`Could not fetch the file: request failed with status ${response.status}.`);
-		}
-
+	async load(url) {
+		const fileLoader = new FileLoader();
+		const response = await fileLoader.load(url);
 		const json = await response.json();
-		const basePath = path.substring(0, path.lastIndexOf("/") + 1);
+		const basePath = url.substring(0, url.lastIndexOf("/") + 1);
 		const images = [];
 
 		for (let i = 0, length = json.length; i < length; i++) {

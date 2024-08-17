@@ -3,10 +3,11 @@ import {Matrix4, Vector2, Vector3} from "../math/index.js";
 /**
  * @typedef {Object} GeometryDescriptor
  * @property {Float32Array} vertices
- * @property {Uint32Array} indices
+ * @property {Int32Array|Uint32Array} indices
  * @property {Float32Array} normals
  * @property {Float32Array} tangents
  * @property {Float32Array} uvs
+ * @property {bool} [unsignedIndices]
  */
 
 /**

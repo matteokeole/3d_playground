@@ -4,8 +4,10 @@
 export class Loader {
 	/**
 	 * @abstract
-	 * @param {String} path
+	 * @param {String} url
 	 * @returns {Promise.<*>}
 	 */
-	async load(path) {}
+	async load(url) {
+		throw new Error("Not implemented");
+	}
 }

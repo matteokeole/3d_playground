@@ -1,6 +1,12 @@
-import {Loader} from "./Loader.js";
+import {Parser} from "../index.js";
 
-export class OBJLoader extends Loader {
+/**
+ * @typedef {Object} OBJData
+ * @property {Float32Array} vertices
+ * @property {Int32Array} indices
+ */
+
+export class OBJParser extends Parser {
 	/**
 	 * @type {Record.<String, *>}
 	 */
@@ -23,25 +29,32 @@ export class OBJLoader extends Loader {
 
 			uvs.push(parsedParts);
 		}, */
-		f(parts, {indices}) {
+		f(parts, {indices, vertices}) {
 			const triangleCount = parts.length - 2;
+			const currentVertexCount = vertices.length / 3;
 
 			for (let i = 0; i < triangleCount; i++) {
-				OBJLoader.#addVertex(parts[0], indices);
-				OBJLoader.#addVertex(parts[i + 1], indices);
-				OBJLoader.#addVertex(parts[i + 2], indices);
+				OBJParser.#addVertex(parts[0], indices, currentVertexCount);
+				OBJParser.#addVertex(parts[i + 1], indices, currentVertexCount);
+				OBJParser.#addVertex(parts[i + 2], indices, currentVertexCount);
 			}
 		},
 	};
 
 	/**
 	 * @param {String} vertexString
+	 * @param {Number[]} indices
+	 * @param {Number} vertexCount
 	 */
-	static #addVertex(vertexString, indices, vertexData, webglVertexData) {
+	static #addVertex(vertexString, indices, vertexCount) {
 		const vertexUvNormalString = vertexString.split("/");
 
 		const indexString = vertexUvNormalString[0];
-		const index = parseInt(indexString) - 1;
+		let index = parseInt(indexString);
+
+		if (index < 0) {
+			index += vertexCount;
+		}
 
 		indices.push(index);
 
@@ -64,20 +77,9 @@ export class OBJLoader extends Loader {
 	}
 
 	/**
-	 * Loads static scene description from a JSON file.
-	 * 
-	 * @param {String} path Scene file path
-	 * @returns {Promise.<Object>}
-	 * @throws {Error} The request failed
+	 * @param {String} text
 	 */
-	async load(path) {
-		const response = await fetch(path);
-
-		if (!response.ok) {
-			throw new Error(`Could not fetch the scene file: request failed with status ${response.status}.`);
-		}
-
-		const text = await response.text();
+	parse(text) {
 		const lines = text.split("\n");
 		const lineExpression = /(\w*)(?: )*(.*)/;
 		const vertices = [];
@@ -120,24 +122,26 @@ export class OBJLoader extends Loader {
 
 			const keyword = exec[1];
 
-			if (!(keyword in OBJLoader.#KEYWORDS_HANDLERS)) {
+			if (!(keyword in OBJParser.#KEYWORDS_HANDLERS)) {
 				// console.warn(`Unhandled keyword "${keyword}" at line`, i + 1);
 
 				continue;
 			}
 
-			const keywordHandler = OBJLoader.#KEYWORDS_HANDLERS[keyword];
+			const keywordHandler = OBJParser.#KEYWORDS_HANDLERS[keyword];
 			const lineSplits = line.split(/\s+/).slice(1);
 
 			keywordHandler(lineSplits, {vertices, indices, uvs, normals, vertexData, webglVertexData});
 		}
 
-		const vertexBuffer = new Float32Array(vertices);
-		const indexBuffer = new Uint32Array(indices);
+		/**
+		 * @type {OBJData}
+		 */
+		const data = {};
 
-		return {
-			vertices: vertexBuffer,
-			indices: indexBuffer,
-		};
+		data.vertices = new Float32Array(vertices);
+		data.indices = new Int32Array(indices);
+
+		return data;
 	}
 }

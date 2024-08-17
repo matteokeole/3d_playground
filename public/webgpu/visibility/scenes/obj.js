@@ -1,14 +1,20 @@
 import {PerspectiveCamera} from "../../../../src/Camera/index.js";
 import {Geometry} from "../../../../src/Geometry/index.js";
-import {OBJLoader} from "../../../../src/Loader/index.js";
+import {FileLoader} from "../../../../src/Loader/index.js";
 import {PI, Vector2, Vector3} from "../../../../src/math/index.js";
 import {Mesh} from "../../../../src/Mesh/index.js";
+import {OBJParser} from "../../../../src/Parser/Text/index.js";
 import {Scene} from "../../../../src/Scene/index.js";
 import {SENSITIVITY} from "../../../hl2/main.js";
 
 export async function createScene() {
-	const objLoader = new OBJLoader();
-	const obj = await objLoader.load("assets/models/living_room/living_room.obj");
+	const fileLoader = new FileLoader();
+	const response = await fileLoader.load("assets/models/CornellBox/CornellBox-Original.obj");
+	const text = await response.text();
+
+	const objParser = new OBJParser();
+	const obj = objParser.parse(text);
+
 	const geometry = new Geometry({
 		vertices: obj.vertices,
 		indices: obj.indices,
@@ -18,7 +24,7 @@ export async function createScene() {
 	});
 
 	const mesh = new Mesh(geometry, null);
-	mesh.setPosition(new Vector3(0, 0, -3));
+	mesh.setPosition(new Vector3(0, 0, 2));
 	// mesh.setRotation(new Vector3(PI / 2, PI, PI));
 	mesh.setScale(new Vector3().addScalar(1));
 	mesh.updateProjection();
