@@ -65,7 +65,7 @@ export class WebGLRenderer extends Renderer {
 	/**
 	 * @throws {Error} if WebGL2 is not supported
 	 */
-	build() {
+	async build() {
 		this._context = this._canvas.getContext("webgl2");
 
 		if (this._context === null) {
