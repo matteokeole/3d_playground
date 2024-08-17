@@ -1,6 +1,6 @@
 import {Scene} from "../../src/index.js";
 import {Camera} from "../../src/Camera/index.js";
-import {ShaderLoader} from "../../src/Loader/index.js";
+import {TextLoader} from "../../src/Loader/index.js";
 import {WebGPURenderer} from "../../src/Renderer/index.js";
 
 export class Renderer extends WebGPURenderer {
@@ -41,9 +41,9 @@ export class Renderer extends WebGPURenderer {
 	async build() {
 		await super.build();
 
-		const shaderLoader = new ShaderLoader();
-		const vertexShaderSource = await shaderLoader.load("public/hl2-webgpu/shaders/vertex.wgsl");
-		const fragmentShaderSource = await shaderLoader.load("public/hl2-webgpu/shaders/fragment.wgsl");
+		const textLoader = new TextLoader();
+		const vertexShaderSource = await textLoader.load("public/hl2-webgpu/shaders/vertex.wgsl");
+		const fragmentShaderSource = await textLoader.load("public/hl2-webgpu/shaders/fragment.wgsl");
 
 		this.#createBuffers();
 

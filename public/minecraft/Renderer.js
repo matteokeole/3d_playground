@@ -1,6 +1,6 @@
 import {WebGLRenderer} from "../../src/Renderer/index.js";
 import {Matrix4, Vector4} from "../../src/math/index.js";
-import {ShaderLoader} from "../../src/Loader/index.js";
+import {TextLoader} from "../../src/Loader/index.js";
 
 export class Renderer extends WebGLRenderer {
 	/**
@@ -211,20 +211,20 @@ export class Renderer extends WebGLRenderer {
 	}
 
 	async #loadShaders() {
-		const shaderLoader = new ShaderLoader();
+		const textLoader = new TextLoader();
 
-		const quadVertexShaderSource = await shaderLoader.load("assets/shaders/quad.vert");
-		// const gBufferVertexShaderSource = await shaderLoader.load("public/minecraft/shaders/g_buffer.vert");
-		const lightDepthVertexShaderSource = await shaderLoader.load("public/minecraft/shaders/light_depth.vert");
-		// const finalVertexShaderSource = await shaderLoader.load("public/minecraft/shaders/final.vert");
-		const shadowVertexShaderSource = await shaderLoader.load("public/minecraft/shaders/shadow.vert");
+		const quadVertexShaderSource = await textLoader.load("assets/shaders/quad.vert");
+		// const gBufferVertexShaderSource = await textLoader.load("public/minecraft/shaders/g_buffer.vert");
+		const lightDepthVertexShaderSource = await textLoader.load("public/minecraft/shaders/light_depth.vert");
+		// const finalVertexShaderSource = await textLoader.load("public/minecraft/shaders/final.vert");
+		const shadowVertexShaderSource = await textLoader.load("public/minecraft/shaders/shadow.vert");
 
-		const depthFragmentShaderSource = await shaderLoader.load("assets/shaders/depth.frag");
-		const emptyFragmentShaderSource = await shaderLoader.load("assets/shaders/empty.frag");
-		// const textureFragmentShaderSource = await shaderLoader.load("assets/shaders/texture.frag");
-		// const gBufferFragmentShaderSource = await shaderLoader.load("public/minecraft/shaders/g_buffer.frag");
-		// const finalFragmentShaderSource = await shaderLoader.load("public/minecraft/shaders/final.frag");
-		const shadowFragmentShaderSource = await shaderLoader.load("public/minecraft/shaders/shadow.frag");
+		const depthFragmentShaderSource = await textLoader.load("assets/shaders/depth.frag");
+		const emptyFragmentShaderSource = await textLoader.load("assets/shaders/empty.frag");
+		// const textureFragmentShaderSource = await textLoader.load("assets/shaders/texture.frag");
+		// const gBufferFragmentShaderSource = await textLoader.load("public/minecraft/shaders/g_buffer.frag");
+		// const finalFragmentShaderSource = await textLoader.load("public/minecraft/shaders/final.frag");
+		const shadowFragmentShaderSource = await textLoader.load("public/minecraft/shaders/shadow.frag");
 
 		// this._programs.gBuffer = this._createProgram(gBufferVertexShaderSource, gBufferFragmentShaderSource);
 		this._programs.lightDepth = this._createProgram(lightDepthVertexShaderSource, emptyFragmentShaderSource);

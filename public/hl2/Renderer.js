@@ -1,5 +1,5 @@
 import {Scene} from "../../src/index.js";
-import {ShaderLoader} from "../../src/Loader/index.js";
+import {TextLoader} from "../../src/Loader/index.js";
 import {Material} from "../../src/Material/index.js";
 import {Mesh} from "../../src/Mesh/index.js";
 import {WebGLRenderer} from "../../src/Renderer/index.js";
@@ -194,19 +194,19 @@ export class Renderer extends WebGLRenderer {
 	}
 
 	async #loadPrograms() {
-		const shaderLoader = new ShaderLoader();
+		const textLoader = new TextLoader();
 
-		// const quadVertexShaderSource = await shaderLoader.load("assets/shaders/quad.vert");
-		const mainVertexShaderSource = await shaderLoader.load("public/hl2/shaders/main.vert");
-		// const depthVertexShaderSource = await shaderLoader.load("public/hl2/shaders/depth.vert");
-		const crosshairVertexShaderSource = await shaderLoader.load("public/hl2/shaders/crosshair.vert");
-		const debugVertexShaderSource = await shaderLoader.load("public/hl2/shaders/debug.vert");
+		// const quadVertexShaderSource = await textLoader.load("assets/shaders/quad.vert");
+		const mainVertexShaderSource = await textLoader.load("public/hl2/shaders/main.vert");
+		// const depthVertexShaderSource = await textLoader.load("public/hl2/shaders/depth.vert");
+		const crosshairVertexShaderSource = await textLoader.load("public/hl2/shaders/crosshair.vert");
+		const debugVertexShaderSource = await textLoader.load("public/hl2/shaders/debug.vert");
 
-		// const depthFragmentShaderSource = await shaderLoader.load("assets/shaders/depth.frag");
-		// const emptyFragmentShaderSource = await shaderLoader.load("assets/shaders/empty.frag");
-		const mainFragmentShaderSource = await shaderLoader.load("public/hl2/shaders/main.frag");
-		const crosshairFragmentShaderSource = await shaderLoader.load("public/hl2/shaders/crosshair.frag");
-		const debugFragmentShaderSource = await shaderLoader.load("public/hl2/shaders/debug.frag");
+		// const depthFragmentShaderSource = await textLoader.load("assets/shaders/depth.frag");
+		// const emptyFragmentShaderSource = await textLoader.load("assets/shaders/empty.frag");
+		const mainFragmentShaderSource = await textLoader.load("public/hl2/shaders/main.frag");
+		const crosshairFragmentShaderSource = await textLoader.load("public/hl2/shaders/crosshair.frag");
+		const debugFragmentShaderSource = await textLoader.load("public/hl2/shaders/debug.frag");
 
 		this._programs.main = this._createProgram(mainVertexShaderSource, mainFragmentShaderSource);
 		this._programs.crosshair = this._createProgram(crosshairVertexShaderSource, crosshairFragmentShaderSource);
