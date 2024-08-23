@@ -74,7 +74,7 @@ export class Renderer {
 	/**
 	 * @abstract
 	 */
-	build() {}
+	async build() {}
 
 	/**
 	 * @abstract
