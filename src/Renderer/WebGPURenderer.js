@@ -1,6 +1,6 @@
-import {Scene} from "../index.js";
-import {Camera} from "../Camera/index.js";
 import {Renderer} from "./Renderer.js";
+import {Camera} from "../Camera/index.js";
+import {WebGPURenderShader} from "../Platform/WebGPU/Shader/index.js";
 
 export class WebGPURenderer extends Renderer {
 	static _INDIRECT_BUFFER_SIZE = 4;
@@ -115,5 +115,20 @@ export class WebGPURenderer extends Renderer {
 	resize() {
 		this._canvas.width = this._viewport[2];
 		this._canvas.height = this._viewport[3];
+	}
+
+	/**
+	 * @type {Renderer["loadShader"]}
+	 */
+	async loadShader(name, url) {
+		const textLoader = this.getTextLoader();
+		const source = await textLoader.load(url);
+		const shader = new WebGPURenderShader(this._device, source);
+
+		if (name in this._shaders) {
+			throw new Error(`The shader "${name}" is already defined in the shader map.`);
+		}
+
+		this._shaders[name] = shader;
 	}
 }

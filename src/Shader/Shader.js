@@ -1,0 +1,4 @@
+/**
+ * @abstract
+ */
+export class Shader {}

@@ -1,6 +1,7 @@
+import {Renderer} from "./Renderer.js";
 import {Scene, TextureImage} from "../index.js";
 import {Camera} from "../Camera/index.js";
-import {Renderer} from "./Renderer.js";
+import {WebGLShader} from "../Platform/WebGL/Shader/index.js";
 
 export class WebGLRenderer extends Renderer {
 	/**
@@ -173,5 +174,20 @@ export class WebGLRenderer extends Renderer {
 		this._context.compileShader(shader);
 
 		return shader;
+	}
+
+	/**
+	 * @type {Renderer["loadShader"]}
+	 */
+	async loadShader(name, url) {
+		const textLoader = this.getTextLoader();
+		const source = await textLoader.load(url);
+		const shader = new WebGLShader(this._context, source);
+
+		if (name in this._shaders) {
+			throw new Error(`The shader "${name}" is already defined in the shader map.`);
+		}
+
+		this._shaders[name] = shader;
 	}
 }
