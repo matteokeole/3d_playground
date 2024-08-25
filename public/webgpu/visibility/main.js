@@ -19,6 +19,17 @@ export default async function() {
 
 	await instance.build();
 
+	await renderer.loadShader(
+		"visibility",
+		"public/webgpu/visibility/shaders/visibility.vert.wgsl",
+		"public/webgpu/visibility/shaders/visibility.frag.wgsl",
+	);
+	await renderer.loadShader(
+		"base",
+		"public/webgpu/visibility/shaders/base.vert.wgsl",
+		"public/webgpu/visibility/shaders/base.frag.wgsl",
+	);
+
 	const viewport = new Vector2(innerWidth, innerHeight);
 	renderer.setViewport(new Vector4(0, 0, viewport[0], viewport[1]));
 	renderer.resize();

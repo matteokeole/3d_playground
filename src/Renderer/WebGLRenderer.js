@@ -59,6 +59,14 @@ export class WebGLRenderer extends Renderer {
 		this._images = {};
 	}
 
+	/**
+	 * @param {String} name
+	 * @returns {WebGLShader}
+	 */
+	getShader(name) {
+		return super.getShader(name);
+	}
+
 	getImages() {
 		return this._images;
 	}
@@ -177,12 +185,83 @@ export class WebGLRenderer extends Renderer {
 	}
 
 	/**
-	 * @type {Renderer["loadShader"]}
+	 * @overload
+	 * @param {String} name
+	 * @param {String} sourceUrl
+	 * 
+	 * @overload
+	 * @param {String} name
+	 * @param {String} vertexSourceUrl
+	 * @param {String} fragmentSourceUrl
+	 * 
+	 * @overload
+	 * @param {String} name
+	 * @param {String} commonSourceUrl
+	 * @param {String} vertexSourceUrl
+	 * @param {String} fragmentSourceUrl
 	 */
-	async loadShader(name, url) {
+	async loadShader() {
+		const ARGUMENT_COUNT_TO_LOAD_SHADER_OVERLOAD = {
+			2: this.#loadShaderFromSource,
+			3: this.#loadShaderFromSeparatedSources,
+			4: this.#loadShaderFromCommonAndSeparatedSources,
+		};
+
+		if (!(arguments.length in ARGUMENT_COUNT_TO_LOAD_SHADER_OVERLOAD)) {
+			throw new Error(`Expected 2 to 4 arguments, but received ${arguments.length} instead.`);
+		}
+
+		const overload = ARGUMENT_COUNT_TO_LOAD_SHADER_OVERLOAD[arguments.length];
+
+		return await overload.call(this, ...arguments);
+	}
+
+	/**
+	 * @param {String} name
+	 * @param {String} sourceUrl
+	 */
+	async #loadShaderFromSource(name, sourceUrl) {
 		const textLoader = this.getTextLoader();
-		const source = await textLoader.load(url);
-		const shader = new WebGLShader(this._context, source);
+		const source = await textLoader.load(sourceUrl);
+		const shader = WebGLShader.fromSource(this._context, source);
+
+		if (name in this._shaders) {
+			throw new Error(`The shader "${name}" is already defined in the shader map.`);
+		}
+
+		this._shaders[name] = shader;
+	}
+
+	/**
+	 * @param {String} name
+	 * @param {String} vertexSourceUrl
+	 * @param {String} fragmentSourceUrl
+	 */
+	async #loadShaderFromSeparatedSources(name, vertexSourceUrl, fragmentSourceUrl) {
+		const textLoader = this.getTextLoader();
+		const vertexSource = await textLoader.load(vertexSourceUrl);
+		const fragmentSource = await textLoader.load(fragmentSourceUrl);
+		const shader = WebGLShader.fromSeparatedSources(this._context, vertexSource, fragmentSource);
+
+		if (name in this._shaders) {
+			throw new Error(`The shader "${name}" is already defined in the shader map.`);
+		}
+
+		this._shaders[name] = shader;
+	}
+
+	/**
+	 * @param {String} name
+	 * @param {String} commonSourceUrl
+	 * @param {String} vertexSourceUrl
+	 * @param {String} fragmentSourceUrl
+	 */
+	async #loadShaderFromCommonAndSeparatedSources(name, commonSourceUrl, vertexSourceUrl, fragmentSourceUrl) {
+		const textLoader = this.getTextLoader();
+		const commonSource = await textLoader.load(commonSourceUrl);
+		const vertexSource = await textLoader.load(vertexSourceUrl);
+		const fragmentSource = await textLoader.load(fragmentSourceUrl);
+		const shader = WebGLShader.fromCommonAndSeparatedSources(this._context, commonSource, vertexSource, fragmentSource);
 
 		if (name in this._shaders) {
 			throw new Error(`The shader "${name}" is already defined in the shader map.`);

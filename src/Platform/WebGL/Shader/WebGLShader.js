@@ -6,6 +6,49 @@ export class WebGLShader extends Shader {
 	static #VERTEX_SHADER_IDENTIFIER = "VERTEX_SHADER";
 	static #FRAGMENT_SHADER_IDENTIFIER = "FRAGMENT_SHADER";
 
+	/**
+	 * @param {WebGL2RenderingContext} context
+	 * @param {String} source
+	 */
+	static fromSource(context, source) {
+		const execArray = WebGLShader.#VERSION_DIRECTIVE_REGEXP.exec(source);
+		const versionDirective = execArray[1];
+		const postVersionDirectiveSource = execArray[2];
+		const vertexSource = `${versionDirective}\n#define ${WebGLShader.#VERTEX_SHADER_IDENTIFIER}${postVersionDirectiveSource}`;
+		const fragmentSource = `${versionDirective}\n#define ${WebGLShader.#FRAGMENT_SHADER_IDENTIFIER}${postVersionDirectiveSource}`;
+
+		return new WebGLShader(context, vertexSource, fragmentSource);
+	}
+
+	/**
+	 * @param {WebGL2RenderingContext} context
+	 * @param {String} vertexSource
+	 * @param {String} fragmentSource
+	 */
+	static fromSeparatedSources(context, vertexSource, fragmentSource) {
+		return new WebGLShader(context, vertexSource, fragmentSource);
+	}
+
+	/**
+	 * @param {WebGL2RenderingContext} context
+	 * @param {String} commonSource
+	 * @param {String} vertexSource
+	 * @param {String} fragmentSource
+	 */
+	static fromCommonAndSeparatedSources(context, commonSource, vertexSource, fragmentSource) {
+		const vertexExecArray = WebGLShader.#VERSION_DIRECTIVE_REGEXP.exec(vertexSource);
+		const vertexVersionDirective = vertexExecArray[1];
+		const postVersionDirectiveVertexSource = vertexExecArray[2];
+		const commonVertexSource = `${vertexVersionDirective}${commonSource}${postVersionDirectiveVertexSource}`;
+
+		const fragmentExecArray = WebGLShader.#VERSION_DIRECTIVE_REGEXP.exec(fragmentSource);
+		const fragmentVersionDirective = fragmentExecArray[1];
+		const postVersionDirectiveFragmentSource = fragmentExecArray[2];
+		const commonFragmentSource = `${fragmentVersionDirective}${commonSource}${postVersionDirectiveFragmentSource}`;
+
+		return new WebGLShader(context, commonVertexSource, commonFragmentSource);
+	}
+
 	#context;
 	#vertexShader;
 	#fragmentShader;
@@ -14,20 +57,15 @@ export class WebGLShader extends Shader {
 
 	/**
 	 * @param {WebGL2RenderingContext} context
-	 * @param {String} source
+	 * @param {String} vertexSource
+	 * @param {String} fragmentSource
 	 */
-	constructor(context, source) {
+	constructor(context, vertexSource, fragmentSource) {
 		super();
 
-		const execArray = WebGLShader.#VERSION_DIRECTIVE_REGEXP.exec(source);
-		const versionDirective = execArray[1];
-		const postVersionDirectiveSource = execArray[2];
-		const vertexShaderSource = `${versionDirective}\n#define ${WebGLShader.#VERTEX_SHADER_IDENTIFIER}${postVersionDirectiveSource}`;
-		const fragmentShaderSource = `${versionDirective}\n#define ${WebGLShader.#FRAGMENT_SHADER_IDENTIFIER}${postVersionDirectiveSource}`;
-
 		this.#context = context;
-		this.#vertexShader = this.#createShader(this.#context.VERTEX_SHADER, vertexShaderSource);
-		this.#fragmentShader = this.#createShader(this.#context.FRAGMENT_SHADER, fragmentShaderSource);
+		this.#vertexShader = this.#createShader(this.#context.VERTEX_SHADER, vertexSource);
+		this.#fragmentShader = this.#createShader(this.#context.FRAGMENT_SHADER, fragmentSource);
 		this.#program = this.#createProgram(this.#vertexShader, this.#fragmentShader);
 		this.#isFirstBind = true;
 	}

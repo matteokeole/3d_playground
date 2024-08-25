@@ -25,11 +25,6 @@ export class Renderer extends WebGPURenderer {
 		this.#meshBindGroups = new Map();
 	}
 
-	async build() {
-		await super.build();
-		await this.#loadShaderModules();
-	}
-
 	/**
 	 * @param {Scene} scene
 	 */
@@ -42,7 +37,7 @@ export class Renderer extends WebGPURenderer {
 		this._buffers.indexStorage = this.#createIndexStorageBuffer();
 		this._buffers.geometryStorage = this.#createGeometryStorageBuffer();
 
-		this._buffers.indirect = this.#createGeometryIndirectBuffer();
+			this._buffers.indirect = this.#createGeometryIndirectBuffer();
 
 		this._buffers.visibility = this.#createVisibilityBuffer();
 		this._buffers.depth = this.#createDepthBuffer();
@@ -53,7 +48,7 @@ export class Renderer extends WebGPURenderer {
 
 		this._renderPipelines.visibility = this.#createVisibilityRenderPipeline();
 		this._renderPipelines.base = this.#createBaseRenderPipeline();
-		this._computePipelines.clear = this.#createClearComputePipeline();
+		// this._computePipelines.clear = this.#createClearComputePipeline();
 	}
 
 	render() {
@@ -95,39 +90,18 @@ export class Renderer extends WebGPURenderer {
 		this._device.queue.writeBuffer(buffer, bufferOffset, data);
 	}
 
-	async #loadShaderModules() {
-		const textLoader = new TextLoader();
-
-		// Visibility
-		const visibilityVertexShaderSource = await textLoader.load("public/webgpu/visibility/shaders/visibility.vert.wgsl");
-		const visibilityFragmentShaderSource = await textLoader.load("public/webgpu/visibility/shaders/visibility.frag.wgsl");
-
-		// Base
-		const baseVertexShaderSource = await textLoader.load("public/webgpu/visibility/shaders/base.vert.wgsl");
-		const baseFragmentShaderSource = await textLoader.load("public/webgpu/visibility/shaders/base.frag.wgsl");
-
-		// Clear
-		const clearComputeShaderSource = await textLoader.load("public/webgpu/visibility/shaders/clear.comp.wgsl");
-
-		this._shaderModules.visibilityVertex = this.#createShaderModule("Visibility vertex shader", visibilityVertexShaderSource);
-		this._shaderModules.visibilityFragment = this.#createShaderModule("Visibility fragment shader", visibilityFragmentShaderSource);
-		this._shaderModules.baseVertex = this.#createShaderModule("Base vertex shader", baseVertexShaderSource);
-		this._shaderModules.baseFragment = this.#createShaderModule("Base fragment shader", baseFragmentShaderSource);
-		this._shaderModules.clearCompute = this.#createShaderModule("Clear compute shader", clearComputeShaderSource);
-	}
-
 	/**
 	 * @param {String} label
 	 * @param {String} code
 	 */
-	#createShaderModule(label, code) {
+	/* #createShaderModule(label, code) {
 		const shaderModule = this._device.createShaderModule({
 			label,
 			code,
 		});
 
 		return shaderModule;
-	}
+	} */
 
 	#createVisibilityRenderPipeline() {
 		this._bindGroupLayouts.view = this.#createViewBindGroupLayout();
@@ -157,7 +131,7 @@ export class Renderer extends WebGPURenderer {
 		const visibilityRenderPipeline = this._device.createRenderPipeline({
 			layout: visibilityPipelineLayout,
 			vertex: {
-				module: this._shaderModules.visibilityVertex,
+				module: this.getShader("visibility").getVertexShaderModule(),
 				entryPoint: "main",
 			},
 			primitive: {
@@ -171,7 +145,7 @@ export class Renderer extends WebGPURenderer {
 				depthCompare: "less",
 			},
 			fragment: {
-				module: this._shaderModules.visibilityFragment,
+				module: this.getShader("visibility").getFragmentShaderModule(),
 				entryPoint: "main",
 				targets: [
 					{
@@ -194,7 +168,7 @@ export class Renderer extends WebGPURenderer {
 		const baseRenderPipeline = this._device.createRenderPipeline({
 			layout: basePipelineLayout,
 			vertex: {
-				module: this._shaderModules.baseVertex,
+				module: this.getShader("base").getVertexShaderModule(),
 				entryPoint: "main",
 			},
 			primitive: {
@@ -203,7 +177,7 @@ export class Renderer extends WebGPURenderer {
 				cullMode: "back",
 			},
 			fragment: {
-				module: this._shaderModules.baseFragment,
+				module: this.getShader("base").getFragmentShaderModule(),
 				entryPoint: "main",
 				targets: [
 					{
@@ -228,7 +202,7 @@ export class Renderer extends WebGPURenderer {
 		return baseRenderPipeline;
 	}
 
-	#createClearComputePipeline() {
+	/* #createClearComputePipeline() {
 		this._bindGroupLayouts.clear = this.#createClearBindGroupLayout();
 
 		this._bindGroups.clear = this.#createClearBindGroup();
@@ -244,7 +218,7 @@ export class Renderer extends WebGPURenderer {
 		});
 
 		return clearComputePipeline;
-	}
+	} */
 
 	#createViewUniformBuffer() {
 		const viewUniformBuffer = this._device.createBuffer({
@@ -542,7 +516,7 @@ export class Renderer extends WebGPURenderer {
 		return meshBindGroupLayout;
 	}
 
-	#createClearBindGroupLayout() {
+	/* #createClearBindGroupLayout() {
 		const clearBindGroupLayout = this._device.createBindGroupLayout({
 			label: "Clear",
 			entries: [
@@ -580,7 +554,7 @@ export class Renderer extends WebGPURenderer {
 		});
 
 		return clearBindGroupLayout;
-	}
+	} */
 
 	#createViewBindGroup() {
 		const viewBindGroup = this._device.createBindGroup({
@@ -708,7 +682,7 @@ export class Renderer extends WebGPURenderer {
 		return meshBindGroup;
 	}
 
-	#createClearBindGroup() {
+	/* #createClearBindGroup() {
 		const clearBindGroup = this._device.createBindGroup({
 			label: "Clear",
 			layout: this._bindGroupLayouts.clear,
@@ -737,7 +711,7 @@ export class Renderer extends WebGPURenderer {
 		});
 
 		return clearBindGroup;
-	}
+	} */
 
 	#createVisibilityPipelineLayout() {
 		const visibilityPipelineLayout = this._device.createPipelineLayout({
@@ -765,7 +739,7 @@ export class Renderer extends WebGPURenderer {
 		return basePipelineLayout;
 	}
 
-	#createClearComputePipelineLayout() {
+	/* #createClearComputePipelineLayout() {
 		const clearComputePipelineLayout = this._device.createPipelineLayout({
 			label: "Clear compute",
 			bindGroupLayouts: [
@@ -775,7 +749,7 @@ export class Renderer extends WebGPURenderer {
 		});
 
 		return clearComputePipelineLayout;
-	}
+	} */
 
 	#createDepthTexture() {
 		const depthTexture = this._device.createTexture({
@@ -916,7 +890,7 @@ export class Renderer extends WebGPURenderer {
 	/**
 	 * @param {GPUCommandEncoder} commandEncoder
 	 */
-	#computeClearPass(commandEncoder) {
+	/* #computeClearPass(commandEncoder) {
 		const computePass = commandEncoder.beginComputePass();
 		computePass.setPipeline(this._computePipelines.clear);
 		computePass.setBindGroup(0, this._bindGroups.view);
@@ -927,5 +901,5 @@ export class Renderer extends WebGPURenderer {
 
 		computePass.dispatchWorkgroups(x, y, 1);
 		computePass.end();
-	}
+	} */
 }

@@ -99,10 +99,23 @@ export class Renderer {
 
 	/**
 	 * @abstract
+	 * 
+	 * @overload
 	 * @param {String} name
-	 * @param {String} url
+	 * @param {String} sourceUrl
+	 * 
+	 * @overload
+	 * @param {String} name
+	 * @param {String} vertexSourceUrl
+	 * @param {String} fragmentSourceUrl
+	 * 
+	 * @overload
+	 * @param {String} name
+	 * @param {String} commonSourceUrl
+	 * @param {String} vertexSourceUrl
+	 * @param {String} fragmentSourceUrl
 	 */
-	async loadShader(name, url) {
+	async loadShader() {
 		throw new NotImplementedError();
 	}
 
