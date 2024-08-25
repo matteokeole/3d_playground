@@ -21,6 +21,7 @@ export default async function() {
 
 	await renderer.loadShader(
 		"visibility",
+		"public/webgpu/visibility/shaders/visibility.wgsl",
 		"public/webgpu/visibility/shaders/visibility.vert.wgsl",
 		"public/webgpu/visibility/shaders/visibility.frag.wgsl",
 	);
