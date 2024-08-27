@@ -1,13 +1,13 @@
-import {PerspectiveCamera} from "../../../src/Camera/index.js";
-import {PolytopeGeometry} from "../../../src/Geometry/index.js";
-import {PI, Vector2, Vector3, Vector4} from "../../../src/math/index.js";
-import {Mesh} from "../../../src/Mesh/index.js";
-import {Scene} from "../../../src/Scene/index.js";
-import {SENSITIVITY} from "../../hl2/main.js";
-import {FRAMES_PER_SECOND} from "../../index.js";
-import {listen} from "./input.js";
-import {Instance} from "./Instance.js";
-import {Renderer} from "./Renderer.js";
+import {PerspectiveCamera} from "../../../../src/Camera/index.js";
+import {PolytopeGeometry} from "../../../../src/Geometry/index.js";
+import {PI, Vector2, Vector3, Vector4} from "../../../../src/math/index.js";
+import {Mesh} from "../../../../src/Mesh/index.js";
+import {Scene} from "../../../../src/Scene/index.js";
+import {SENSITIVITY} from "../../../hl2/main.js";
+import {FRAMES_PER_SECOND} from "../../../index.js";
+import {listen} from "../input.js";
+import {Instance} from "../Instance.js";
+import {Renderer} from "../Renderer.js";
 
 export default async function() {
 	const canvas = document.createElement("canvas");
@@ -26,9 +26,9 @@ export default async function() {
 		"public/webgpu/visibility/shaders/visibility.frag.wgsl",
 	);
 	await renderer.loadShader(
-		"base",
-		"public/webgpu/visibility/shaders/base.vert.wgsl",
-		"public/webgpu/visibility/shaders/base.frag.wgsl",
+		"material",
+		"public/webgpu/visibility/CornellBox/Shader/base.vert.wgsl",
+		"public/webgpu/visibility/CornellBox/Shader/base.frag.wgsl",
 	);
 
 	const viewport = new Vector2(innerWidth, innerHeight);

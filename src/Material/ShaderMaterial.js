@@ -1,12 +1,13 @@
+import {Shader} from "../Shader/index.js";
 import {Material} from "./Material.js";
 
 /**
  * @typedef {Object} ShaderMaterialDescriptor
- * @property {String} shaderFilename
+ * @property {Shader} shader
  */
 
 export class ShaderMaterial extends Material {
-	#shaderFilename;
+	#shader;
 
 	/**
 	 * @param {ShaderMaterialDescriptor} descriptor
@@ -14,10 +15,10 @@ export class ShaderMaterial extends Material {
 	constructor(descriptor) {
 		super();
 
-		this.#shaderFilename = descriptor.shaderFilename;
+		this.#shader = descriptor.shader;
 	}
 
-	getShaderFilename() {
-		return this.#shaderFilename;
+	getShader() {
+		return this.#shader;
 	}
 }

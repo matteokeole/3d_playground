@@ -23,7 +23,7 @@ export default async function() {
 		"public/webgpu/visibility/shaders/visibility.frag.wgsl",
 	);
 	await renderer.loadShader(
-		"base",
+		"material",
 		"public/webgpu/visibility/shaders/base.vert.wgsl",
 		"public/webgpu/visibility/shaders/base.frag.wgsl",
 	);

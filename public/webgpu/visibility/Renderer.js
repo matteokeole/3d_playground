@@ -1,5 +1,4 @@
 import {Geometry} from "../../../src/Geometry/Geometry.js";
-import {TextLoader} from "../../../src/Loader/index.js";
 import {Mesh} from "../../../src/Mesh/index.js";
 import {WebGPURenderer} from "../../../src/Renderer/index.js";
 import {Scene} from "../../../src/Scene/index.js";
@@ -47,7 +46,7 @@ export class Renderer extends WebGPURenderer {
 		this._textures.visibility = this.#createVisibilityTexture();
 
 		this._renderPipelines.visibility = this.#createVisibilityRenderPipeline();
-		this._renderPipelines.base = this.#createBaseRenderPipeline();
+		this._renderPipelines.material = this.#createMaterialRenderPipeline();
 		// this._computePipelines.clear = this.#createClearComputePipeline();
 	}
 
@@ -58,7 +57,7 @@ export class Renderer extends WebGPURenderer {
 		const commandEncoder = this._device.createCommandEncoder();
 
 		this.#renderVisibilityPass(commandEncoder);
-		this.#renderBasePass(commandEncoder);
+		this.#renderMaterialPass(commandEncoder);
 		// this.#computeClearPass(commandEncoder);
 
 		const commandBuffer = commandEncoder.finish();
@@ -158,17 +157,17 @@ export class Renderer extends WebGPURenderer {
 		return visibilityRenderPipeline;
 	}
 
-	#createBaseRenderPipeline() {
-		this._bindGroupLayouts.baseVisibility = this.#createBaseVisibilityBindGroupLayout();
+	#createMaterialRenderPipeline() {
+		this._bindGroupLayouts.materialVisibility = this.#createMaterialVisibilityBindGroupLayout();
 
-		this._bindGroups.baseVisibility = this.#createBaseVisibilityBindGroup();
+		this._bindGroups.materialVisibility = this.#createMaterialVisibilityBindGroup();
 
-		const basePipelineLayout = this.#createBasePipelineLayout();
+		const materialPipelineLayout = this.#createMaterialPipelineLayout();
 
-		const baseRenderPipeline = this._device.createRenderPipeline({
-			layout: basePipelineLayout,
+		const materialRenderPipeline = this._device.createRenderPipeline({
+			layout: materialPipelineLayout,
 			vertex: {
-				module: this.getShader("base").getVertexShaderModule(),
+				module: this.getShader("material").getVertexShaderModule(),
 				entryPoint: "main",
 			},
 			primitive: {
@@ -177,7 +176,7 @@ export class Renderer extends WebGPURenderer {
 				cullMode: "back",
 			},
 			fragment: {
-				module: this.getShader("base").getFragmentShaderModule(),
+				module: this.getShader("material").getFragmentShaderModule(),
 				entryPoint: "main",
 				targets: [
 					{
@@ -199,7 +198,7 @@ export class Renderer extends WebGPURenderer {
 			},
 		});
 
-		return baseRenderPipeline;
+		return materialRenderPipeline;
 	}
 
 	/* #createClearComputePipeline() {
@@ -460,9 +459,9 @@ export class Renderer extends WebGPURenderer {
 		return visibilityBindGroupLayout;
 	}
 
-	#createBaseVisibilityBindGroupLayout() {
-		const baseVisibilityBindGroupLayout = this._device.createBindGroupLayout({
-			label: "Base visibility bind group layout",
+	#createMaterialVisibilityBindGroupLayout() {
+		const materialVisibilityBindGroupLayout = this._device.createBindGroupLayout({
+			label: "Material visibility bind group layout",
 			entries: [
 				{
 					binding: 0,
@@ -496,7 +495,7 @@ export class Renderer extends WebGPURenderer {
 			],
 		});
 
-		return baseVisibilityBindGroupLayout;
+		return materialVisibilityBindGroupLayout;
 	}
 
 	#createMeshBindGroupLayout() {
@@ -631,10 +630,10 @@ export class Renderer extends WebGPURenderer {
 		return visibilityBindGroup;
 	}
 
-	#createBaseVisibilityBindGroup() {
-		const baseVisibilityBindGroup = this._device.createBindGroup({
-			label: "Base visibility",
-			layout: this._bindGroupLayouts.baseVisibility,
+	#createMaterialVisibilityBindGroup() {
+		const materialVisibilityBindGroup = this._device.createBindGroup({
+			label: "Material visibility",
+			layout: this._bindGroupLayouts.materialVisibility,
 			entries: [
 				{
 					binding: 0,
@@ -659,7 +658,7 @@ export class Renderer extends WebGPURenderer {
 			],
 		});
 
-		return baseVisibilityBindGroup;
+		return materialVisibilityBindGroup;
 	}
 
 	/**
@@ -727,16 +726,16 @@ export class Renderer extends WebGPURenderer {
 		return visibilityPipelineLayout;
 	}
 
-	#createBasePipelineLayout() {
-		const basePipelineLayout = this._device.createPipelineLayout({
-			label: "Base render",
+	#createMaterialPipelineLayout() {
+		const materialPipelineLayout = this._device.createPipelineLayout({
+			label: "Material render",
 			bindGroupLayouts: [
 				this._bindGroupLayouts.view,
-				this._bindGroupLayouts.baseVisibility,
+				this._bindGroupLayouts.materialVisibility,
 			],
 		});
 
-		return basePipelineLayout;
+		return materialPipelineLayout;
 	}
 
 	/* #createClearComputePipelineLayout() {
@@ -870,7 +869,7 @@ export class Renderer extends WebGPURenderer {
 	/**
 	 * @param {GPUCommandEncoder} commandEncoder
 	 */
-	#renderBasePass(commandEncoder) {
+	#renderMaterialPass(commandEncoder) {
 		const renderPass = commandEncoder.beginRenderPass({
 			colorAttachments: [
 				{
@@ -880,9 +879,9 @@ export class Renderer extends WebGPURenderer {
 				},
 			],
 		});
-		renderPass.setPipeline(this._renderPipelines.base);
+		renderPass.setPipeline(this._renderPipelines.material);
 		renderPass.setBindGroup(0, this._bindGroups.view);
-		renderPass.setBindGroup(1, this._bindGroups.baseVisibility);
+		renderPass.setBindGroup(1, this._bindGroups.materialVisibility);
 		renderPass.draw(6);
 		renderPass.end();
 	}
