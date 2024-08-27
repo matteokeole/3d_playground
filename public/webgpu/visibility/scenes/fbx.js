@@ -1,5 +1,5 @@
 import {PerspectiveCamera} from "../../../../src/Camera/index.js";
-import {Geometry} from "../../../../src/Geometry/index.js";
+import {PolytopeGeometry} from "../../../../src/Geometry/index.js";
 import {BinaryLoader} from "../../../../src/Loader/index.js";
 import {FBXParser} from "../../../../src/Parser/Binary/index.js";
 import {PI, Vector2, Vector3} from "../../../../src/math/index.js";
@@ -48,15 +48,12 @@ export async function createScene() {
 		}
 	}
 
-	const geometry = new Geometry({
+	const geometry = new PolytopeGeometry({
 		vertices,
 		indices: triangleIndices,
-		normals: new Float32Array(),
-		tangents: new Float32Array(),
-		uvs: new Float32Array(),
 	});
-
 	const mesh = new Mesh(geometry, null);
+
 	mesh.setPosition(new Vector3(0, 0, 2));
 	mesh.setRotation(new Vector3(-PI / 2, 0, PI / 2));
 	mesh.setScale(new Vector3().addScalar(1));

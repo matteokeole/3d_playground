@@ -5,7 +5,7 @@ import {Vector3} from "../../../src/math/index.js";
 import {Mesh} from "../../../src/Mesh/Mesh.js";
 import {keys} from "./input.js";
 
-const VELOCITY = 0.002;
+const VELOCITY = 0.2;
 
 export class Instance extends _Instance {
 	/**
