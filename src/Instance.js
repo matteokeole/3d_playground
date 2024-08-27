@@ -54,7 +54,7 @@ export class Instance {
 		this.#frameInterval = 1000 / this.#framesPerSecond;
 		this.#timeSinceLastFrame = -this.#frameInterval;
 		this.#animationFrameRequestId = null;
-		this.#debugger = descriptor.debugger ?? null;
+		this.#debugger = new Debugger();
 	}
 
 	getDebugger() {
