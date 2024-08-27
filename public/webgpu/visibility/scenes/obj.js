@@ -7,9 +7,20 @@ import {OBJParser} from "../../../../src/Parser/Text/index.js";
 import {Scene} from "../../../../src/Scene/index.js";
 import {SENSITIVITY} from "../../../hl2/main.js";
 
+/**
+ * Unusable OBJ:
+ * - assets/models/CornellBox/CornellBox-Empty-CO.obj
+ * - assets/models/CornellBox/CornellBox-Empty-RG.obj
+ * - assets/models/CornellBox/CornellBox-Empty-Squashed.obj
+ * - assets/models/CornellBox/CornellBox-Empty-White.obj
+ * - assets/models/CornellBox/CornellBox-Glossy-Floor.obj
+ * - assets/models/CornellBox/CornellBox-Glossy.obj
+ * - assets/models/CornellBox/CornellBox-Mirror.obj
+ * - assets/models/CornellBox/CornellBox-Original.obj
+ */
 export async function createScene() {
 	const fileLoader = new FileLoader();
-	const response = await fileLoader.load("assets/models/CornellBox/CornellBox-Original.obj");
+	const response = await fileLoader.load("assets/models/CornellBox/CornellBox-Water.obj");
 	const text = await response.text();
 
 	const objParser = new OBJParser();
