@@ -28,8 +28,8 @@ export class WebGPUShader extends Shader {
 	 * @param {String} fragmentSource
 	 */
 	static fromCommonAndSeparatedSources(device, commonSource, vertexSource, fragmentSource) {
-		const commonVertexSource = `${commonSource}${vertexSource}`;
-		const commonFragmentSource = `${commonSource}${fragmentSource}`;
+		const commonVertexSource = `${commonSource}\n${vertexSource}`;
+		const commonFragmentSource = `${commonSource}\n${fragmentSource}`;
 
 		return new WebGPUShader(device, commonVertexSource, commonFragmentSource);
 	}
