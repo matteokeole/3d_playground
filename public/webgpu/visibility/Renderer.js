@@ -36,7 +36,7 @@ export class Renderer extends WebGPURenderer {
 		this._buffers.indexStorage = this.#createIndexStorageBuffer();
 		this._buffers.geometryStorage = this.#createGeometryStorageBuffer();
 
-			this._buffers.indirect = this.#createGeometryIndirectBuffer();
+		this._buffers.indirect = this.#createGeometryIndirectBuffer();
 
 		this._buffers.visibility = this.#createVisibilityBuffer();
 		this._buffers.depth = this.#createDepthBuffer();

@@ -1,0 +1,1 @@
+export {WebGPUShaderMaterial} from "./WebGPUShaderMaterial.js";
