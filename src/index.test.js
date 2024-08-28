@@ -12,6 +12,9 @@ if (!(test instanceof Test)) {
 
 try {
 	await test.execute();
+
+	console.info(`${environment.testClass} completed with success.`);
 } catch (error) {
-	console.error(`${environment.testClass} failed: ${error.stack}`);
+	console.error(error);
+	console.info(`${environment.testClass} completed with failure.`);
 }

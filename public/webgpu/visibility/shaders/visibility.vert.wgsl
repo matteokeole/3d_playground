@@ -27,7 +27,6 @@ fn fetchVertex(index: u32) -> vec3f {
 	let x: f32 = vertexBuffer[vertexIndex + 0];
 	let y: f32 = vertexBuffer[vertexIndex + 1];
 	let z: f32 = vertexBuffer[vertexIndex + 2];
-	let vertex: vec3f = vec3f(x, y, z);
 
-	return vertex;
+	return vec3f(x, y, z);
 }

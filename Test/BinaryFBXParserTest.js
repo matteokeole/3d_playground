@@ -10,7 +10,7 @@ export class BinaryFBXParserTest extends Test {
 	 * - table.fbx (7.4): 209kB
 	 */
 	async execute() {
-		const url = "Test/Asset/FBX/Binary/cube.fbx";
+		const url = "Test/Asset/Model/FBX/Binary/cube.fbx";
 
 		const binaryLoader = new BinaryLoader();
 		const arrayBuffer = await binaryLoader.load(url);

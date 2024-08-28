@@ -89,19 +89,6 @@ export class Renderer extends WebGPURenderer {
 		this._device.queue.writeBuffer(buffer, bufferOffset, data);
 	}
 
-	/**
-	 * @param {String} label
-	 * @param {String} code
-	 */
-	/* #createShaderModule(label, code) {
-		const shaderModule = this._device.createShaderModule({
-			label,
-			code,
-		});
-
-		return shaderModule;
-	} */
-
 	#createVisibilityRenderPipeline() {
 		this._bindGroupLayouts.view = this.#createViewBindGroupLayout();
 		this._bindGroupLayouts.geometry = this.#createGeometryBindGroupLayout();
@@ -239,7 +226,7 @@ export class Renderer extends WebGPURenderer {
 
 		const vertexStorageBuffer = this._device.createBuffer({
 			label: "Vertex buffer",
-			size: vertexCount * Float32Array.BYTES_PER_ELEMENT,
+			size: vertexCount * Float32Array.BYTES_PER_ELEMENT, // Why not * 3?
 			usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
 			mappedAtCreation: true,
 		});

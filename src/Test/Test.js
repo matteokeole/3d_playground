@@ -1,3 +1,5 @@
+import {AssertionError} from "../Error/index.js";
+
 /**
  * @abstract
  */
@@ -7,6 +9,18 @@ export class Test {
 	 */
 	async execute() {
 		throw new Error("Not implemented");
+	}
+
+	/**
+	 * @param {Boolean} condition
+	 * @param {String} [message]
+	 */
+	assert(condition, message) {
+		if (condition) {
+			return;
+		}
+
+		throw new AssertionError(message);
 	}
 
 	createTestCanvas() {

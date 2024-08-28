@@ -3,6 +3,7 @@
 @group(1) @binding(1) var<storage> indexBuffer: array<u32>;
 @group(1) @binding(2) var<storage> geometry: Geometry;
 @group(2) @binding(0) var<storage> instances: array<Instance>;
+// @group() @binding() var<storage> materials: array<Material>;
 
 struct View {
 	viewport: vec4u,
@@ -22,3 +23,15 @@ struct VertexOutput {
 	@location(0) @interpolate(flat) instanceIndex: u32,
 	@location(1) @interpolate(flat) triangleIndex: u32,
 }
+
+struct Scene {
+	meshes: array<Mesh>,
+	// lights: array<Light>,
+}
+
+struct Mesh {
+	clusters: array<Cluster>,
+	materialIndex: u32,
+}
+
+// struct Material {}
