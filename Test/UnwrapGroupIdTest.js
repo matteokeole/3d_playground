@@ -1,7 +1,7 @@
 import {Vector3} from "../src/math/index.js";
-import {Test} from "../src/Test/index.js";
+import {UnitTest} from "../src/Test/index.js";
 
-export class UnwrapGroupIdTest extends Test {
+export class UnwrapGroupIdTest extends UnitTest {
 	async execute() {
 		const WRAPPED_GROUP_STRIDE = 128;
 

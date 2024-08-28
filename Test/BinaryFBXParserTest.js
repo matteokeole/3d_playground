@@ -1,8 +1,8 @@
 import {BinaryLoader} from "../src/Loader/index.js";
 import {FBXParser} from "../src/Parser/Binary/index.js";
-import {Test} from "../src/Test/index.js";
+import {UnitTest} from "../src/Test/index.js";
 
-export class BinaryFBXParserTest extends Test {
+export class BinaryFBXParserTest extends UnitTest {
 	/**
 	 * Tests results:
 	 * - cube.fbx (7.4): 71.5kB

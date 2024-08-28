@@ -7,7 +7,7 @@ const testClass = response[environment.testClass];
 const test = new testClass();
 
 if (!(test instanceof Test)) {
-	throw new Error(`Test class ${environment.testClass} must extend Test in order to be executed.`);
+	throw new Error(`Class ${environment.testClass} does not extend Test.`);
 }
 
 try {

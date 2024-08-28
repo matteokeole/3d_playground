@@ -2,9 +2,9 @@ import {Clusterizer} from "../src/Clusterizer.js";
 import {PolytopeGeometry} from "../src/Geometry/PolytopeGeometry.js";
 import {TextLoader} from "../src/Loader/index.js";
 import {OBJParser} from "../src/Parser/Text/OBJParser.js";
-import {Test} from "../src/Test/index.js";
+import {UnitTest} from "../src/Test/index.js";
 
-export class ClusterizeMeshTest extends Test {
+export class ClusterizeMeshTest extends UnitTest {
 	async execute() {
 		const url = "Test/Asset/Model/OBJ/Bunny.obj";
 
