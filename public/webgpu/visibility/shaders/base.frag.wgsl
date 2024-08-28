@@ -31,7 +31,7 @@ fn main(in: In) -> @location(0) vec4f {
 	}
 	else if (VISUALIZATION_MODE == VISUALIZATION_MODE_INSTANCE) {
 		let visibility: u32 = textureLoad(visibilityTexture, position).r;
-		let instanceIndex: u32 = (visibility >> 7) - 1;
+		let instanceIndex: u32 = visibility >> 7;
 
 		color = intToColor(instanceIndex) * 0.8 + 0.2;
 	}

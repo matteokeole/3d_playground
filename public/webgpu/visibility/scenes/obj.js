@@ -20,7 +20,7 @@ import {SENSITIVITY} from "../../../hl2/main.js";
  */
 export async function createScene() {
 	const fileLoader = new FileLoader();
-	const response = await fileLoader.load("assets/models/CornellBox/CornellBox-Water.obj");
+	const response = await fileLoader.load("assets/models/bunny_high.obj");
 	const text = await response.text();
 
 	const objParser = new OBJParser();
