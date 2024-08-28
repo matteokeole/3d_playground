@@ -3,7 +3,7 @@ import {Parser} from "../index.js";
 /**
  * @typedef {Object} OBJData
  * @property {Float32Array} vertices
- * @property {Int32Array} indices
+ * @property {Uint32Array} indices
  */
 
 export class OBJParser extends Parser {
@@ -42,21 +42,19 @@ export class OBJParser extends Parser {
 	};
 
 	/**
-	 * @param {String} vertexString
+	 * @param {String} faceTriangle
 	 * @param {Number[]} indices
 	 * @param {Number} vertexCount
 	 */
-	static #addVertex(vertexString, indices, vertexCount) {
-		const vertexUvNormalString = vertexString.split("/");
-
-		const indexString = vertexUvNormalString[0];
-		let index = parseInt(indexString);
+	static #addVertex(faceTriangle, indices, vertexCount) {
+		const vertexUvNormalString = faceTriangle.split("/");
+		let index = parseInt(vertexUvNormalString[0]);
 
 		if (index < 0) {
 			index += vertexCount;
 		}
 
-		indices.push(index);
+		indices.push(index - 1);
 
 		/* for (let i = 0; i < vertexUvNormalString.length; i++) {
 			const objectIndexString = vertexUvNormalString[i];
@@ -140,7 +138,7 @@ export class OBJParser extends Parser {
 		const data = {};
 
 		data.vertices = new Float32Array(vertices);
-		data.indices = new Int32Array(indices);
+		data.indices = new Uint32Array(indices);
 
 		return data;
 	}

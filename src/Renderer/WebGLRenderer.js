@@ -1,6 +1,7 @@
+import {Renderer} from "./Renderer.js";
 import {Scene, TextureImage} from "../index.js";
 import {Camera} from "../Camera/index.js";
-import {Renderer} from "./Renderer.js";
+import {WebGLShader} from "../Platform/WebGL/Shader/index.js";
 
 export class WebGLRenderer extends Renderer {
 	/**
@@ -58,6 +59,14 @@ export class WebGLRenderer extends Renderer {
 		this._images = {};
 	}
 
+	/**
+	 * @param {String} name
+	 * @returns {WebGLShader}
+	 */
+	getShader(name) {
+		return super.getShader(name);
+	}
+
 	getImages() {
 		return this._images;
 	}
@@ -65,7 +74,7 @@ export class WebGLRenderer extends Renderer {
 	/**
 	 * @throws {Error} if WebGL2 is not supported
 	 */
-	build() {
+	async build() {
 		this._context = this._canvas.getContext("webgl2");
 
 		if (this._context === null) {
@@ -173,5 +182,91 @@ export class WebGLRenderer extends Renderer {
 		this._context.compileShader(shader);
 
 		return shader;
+	}
+
+	/**
+	 * @overload
+	 * @param {String} name
+	 * @param {String} sourceUrl
+	 * 
+	 * @overload
+	 * @param {String} name
+	 * @param {String} vertexSourceUrl
+	 * @param {String} fragmentSourceUrl
+	 * 
+	 * @overload
+	 * @param {String} name
+	 * @param {String} commonSourceUrl
+	 * @param {String} vertexSourceUrl
+	 * @param {String} fragmentSourceUrl
+	 */
+	async loadShader() {
+		const ARGUMENT_COUNT_TO_LOAD_SHADER_OVERLOAD = {
+			2: this.#loadShaderFromSource,
+			3: this.#loadShaderFromSeparatedSources,
+			4: this.#loadShaderFromCommonAndSeparatedSources,
+		};
+
+		if (!(arguments.length in ARGUMENT_COUNT_TO_LOAD_SHADER_OVERLOAD)) {
+			throw new Error(`Expected 2 to 4 arguments, but received ${arguments.length} instead.`);
+		}
+
+		const overload = ARGUMENT_COUNT_TO_LOAD_SHADER_OVERLOAD[arguments.length];
+
+		return await overload.call(this, ...arguments);
+	}
+
+	/**
+	 * @param {String} name
+	 * @param {String} sourceUrl
+	 */
+	async #loadShaderFromSource(name, sourceUrl) {
+		const textLoader = this.getTextLoader();
+		const source = await textLoader.load(sourceUrl);
+		const shader = WebGLShader.fromSource(this._context, source);
+
+		if (name in this._shaders) {
+			throw new Error(`The shader "${name}" is already defined in the shader map.`);
+		}
+
+		this._shaders[name] = shader;
+	}
+
+	/**
+	 * @param {String} name
+	 * @param {String} vertexSourceUrl
+	 * @param {String} fragmentSourceUrl
+	 */
+	async #loadShaderFromSeparatedSources(name, vertexSourceUrl, fragmentSourceUrl) {
+		const textLoader = this.getTextLoader();
+		const vertexSource = await textLoader.load(vertexSourceUrl);
+		const fragmentSource = await textLoader.load(fragmentSourceUrl);
+		const shader = WebGLShader.fromSeparatedSources(this._context, vertexSource, fragmentSource);
+
+		if (name in this._shaders) {
+			throw new Error(`The shader "${name}" is already defined in the shader map.`);
+		}
+
+		this._shaders[name] = shader;
+	}
+
+	/**
+	 * @param {String} name
+	 * @param {String} commonSourceUrl
+	 * @param {String} vertexSourceUrl
+	 * @param {String} fragmentSourceUrl
+	 */
+	async #loadShaderFromCommonAndSeparatedSources(name, commonSourceUrl, vertexSourceUrl, fragmentSourceUrl) {
+		const textLoader = this.getTextLoader();
+		const commonSource = await textLoader.load(commonSourceUrl);
+		const vertexSource = await textLoader.load(vertexSourceUrl);
+		const fragmentSource = await textLoader.load(fragmentSourceUrl);
+		const shader = WebGLShader.fromCommonAndSeparatedSources(this._context, commonSource, vertexSource, fragmentSource);
+
+		if (name in this._shaders) {
+			throw new Error(`The shader "${name}" is already defined in the shader map.`);
+		}
+
+		this._shaders[name] = shader;
 	}
 }

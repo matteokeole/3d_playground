@@ -1,6 +1,6 @@
-import {Scene} from "../index.js";
-import {Camera} from "../Camera/index.js";
 import {Renderer} from "./Renderer.js";
+import {Camera} from "../Camera/index.js";
+import {WebGPUShader} from "../Platform/WebGPU/Shader/index.js";
 
 export class WebGPURenderer extends Renderer {
 	static _INDIRECT_BUFFER_SIZE = 4;
@@ -19,11 +19,6 @@ export class WebGPURenderer extends Renderer {
 	 * @type {?GPUTextureFormat}
 	 */
 	_preferredCanvasFormat;
-
-	/**
-	 * @type {Record.<String, GPUShaderModule>}
-	 */
-	_shaderModules;
 
 	/**
 	 * @type {Record.<String, GPUComputePipeline>}
@@ -64,13 +59,20 @@ export class WebGPURenderer extends Renderer {
 		this._device = null;
 		this._context = null;
 		this._preferredCanvasFormat = null;
-		this._shaderModules = {};
 		this._computePipelines = {};
 		this._renderPipelines = {};
 		this._bindGroups = {};
 		this._bindGroupLayouts = {};
 		this._buffers = {};
 		this._textures = {};
+	}
+
+	/**
+	 * @param {String} name
+	 * @returns {WebGPUShader}
+	 */
+	getShader(name) {
+		return super.getShader(name);
 	}
 
 	/**
@@ -115,5 +117,91 @@ export class WebGPURenderer extends Renderer {
 	resize() {
 		this._canvas.width = this._viewport[2];
 		this._canvas.height = this._viewport[3];
+	}
+
+	/**
+	 * @overload
+	 * @param {String} name
+	 * @param {String} sourceUrl
+	 * 
+	 * @overload
+	 * @param {String} name
+	 * @param {String} vertexSourceUrl
+	 * @param {String} fragmentSourceUrl
+	 * 
+	 * @overload
+	 * @param {String} name
+	 * @param {String} commonSourceUrl
+	 * @param {String} vertexSourceUrl
+	 * @param {String} fragmentSourceUrl
+	 */
+	async loadShader() {
+		const ARGUMENT_COUNT_TO_LOAD_SHADER_OVERLOAD = {
+			2: this.#loadShaderFromSource,
+			3: this.#loadShaderFromSeparatedSources,
+			4: this.#loadShaderFromCommonAndSeparatedSources,
+		};
+
+		if (!(arguments.length in ARGUMENT_COUNT_TO_LOAD_SHADER_OVERLOAD)) {
+			throw new Error(`Expected 2 to 4 arguments, but received ${arguments.length} instead.`);
+		}
+
+		const overload = ARGUMENT_COUNT_TO_LOAD_SHADER_OVERLOAD[arguments.length];
+
+		return await overload.call(this, ...arguments);
+	}
+
+	/**
+	 * @param {String} name
+	 * @param {String} sourceUrl
+	 */
+	async #loadShaderFromSource(name, sourceUrl) {
+		const textLoader = this.getTextLoader();
+		const source = await textLoader.load(sourceUrl);
+		const shader = WebGPUShader.fromSource(this._device, source);
+
+		if (name in this._shaders) {
+			throw new Error(`The shader "${name}" is already defined in the shader map.`);
+		}
+
+		this._shaders[name] = shader;
+	}
+
+	/**
+	 * @param {String} name
+	 * @param {String} vertexSourceUrl
+	 * @param {String} fragmentSourceUrl
+	 */
+	async #loadShaderFromSeparatedSources(name, vertexSourceUrl, fragmentSourceUrl) {
+		const textLoader = this.getTextLoader();
+		const vertexSource = await textLoader.load(vertexSourceUrl);
+		const fragmentSource = await textLoader.load(fragmentSourceUrl);
+		const shader = WebGPUShader.fromSeparatedSources(this._device, vertexSource, fragmentSource);
+
+		if (name in this._shaders) {
+			throw new Error(`The shader "${name}" is already defined in the shader map.`);
+		}
+
+		this._shaders[name] = shader;
+	}
+
+	/**
+	 * @param {String} name
+	 * @param {String} commonSourceUrl
+	 * @param {String} vertexSourceUrl
+	 * @param {String} fragmentSourceUrl
+	 */
+	async #loadShaderFromCommonAndSeparatedSources(name, commonSourceUrl, vertexSourceUrl, fragmentSourceUrl) {
+		const textLoader = this.getTextLoader();
+		const commonSource = await textLoader.load(commonSourceUrl);
+		const vertexSource = await textLoader.load(vertexSourceUrl);
+		const fragmentSource = await textLoader.load(fragmentSourceUrl);
+		const shader = WebGPUShader.fromCommonAndSeparatedSources(this._device, commonSource, vertexSource, fragmentSource);
+
+		if (name in this._shaders) {
+			throw new Error(`The shader "${name}" is already defined in the shader map.`);
+		}
+
+		this._shaders[name] = shader;
 	}
 }

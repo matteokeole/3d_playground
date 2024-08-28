@@ -1,19 +1,21 @@
-import {Scene} from "../index.js";
 import {Camera} from "../Camera/index.js";
+import {NotImplementedError} from "../Error/index.js";
+import {TextLoader} from "../Loader/index.js";
 import {Vector4} from "../math/index.js";
+import {Shader} from "../Shader/index.js";
 
 /**
  * @abstract
  */
 export class Renderer {
-	/**
-	 * @type {HTMLCanvasElement}
-	 */
-	_canvas;
+	#textLoader;
 
 	/**
-	 * @type {Vector4}
+	 * @type {Record.<String, Shader>}
 	 */
+	_shaders;
+
+	_canvas;
 	_viewport;
 
 	/**
@@ -30,9 +32,28 @@ export class Renderer {
 	 * @param {HTMLCanvasElement} canvas
 	 */
 	constructor(canvas) {
+		this.#textLoader = new TextLoader();
+		this._shaders = {};
+
 		this._canvas = canvas;
 		this._viewport = new Vector4(0, 0, 300, 150);
 		this._scene = null;
+		this._camera = null;
+	}
+
+	getTextLoader() {
+		return this.#textLoader;
+	}
+
+	/**
+	 * @param {String} name
+	 */
+	getShader(name) {
+		if (!(name in this._shaders)) {
+			throw new Error(`Could not access non-existing shader "${name}".`);
+		}
+
+		return this._shaders[name];
 	}
 
 	getCanvas() {
@@ -74,7 +95,29 @@ export class Renderer {
 	/**
 	 * @abstract
 	 */
-	build() {}
+	async build() {}
+
+	/**
+	 * @abstract
+	 * 
+	 * @overload
+	 * @param {String} name
+	 * @param {String} sourceUrl
+	 * 
+	 * @overload
+	 * @param {String} name
+	 * @param {String} vertexSourceUrl
+	 * @param {String} fragmentSourceUrl
+	 * 
+	 * @overload
+	 * @param {String} name
+	 * @param {String} commonSourceUrl
+	 * @param {String} vertexSourceUrl
+	 * @param {String} fragmentSourceUrl
+	 */
+	async loadShader() {
+		throw new NotImplementedError();
+	}
 
 	/**
 	 * @abstract

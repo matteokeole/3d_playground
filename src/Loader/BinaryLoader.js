@@ -4,8 +4,6 @@ import {FileLoader} from "./index.js";
 export class BinaryLoader extends Loader {
 	/**
 	 * @param {String} url
-	 * @returns {Promise.<ArrayBuffer>}
-	 * @throws {Error} if the request fails
 	 */
 	async load(url) {
 		const fileLoader = new FileLoader();

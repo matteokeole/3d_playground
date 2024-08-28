@@ -1,4 +1,3 @@
-import {Debugger} from "../../src/index.js";
 import {ImageBitmapLoader} from "../../src/Loader/index.js";
 import {Vector2, Vector4} from "../../src/math/index.js";
 import {listen} from "../hl2/input.js";
@@ -13,7 +12,6 @@ export const ABSOLUTE_VELOCITY = 150;
 export const VELOCITY = ABSOLUTE_VELOCITY / FRAMES_PER_SECOND;
 export const CAMERA_LERP_FACTOR = .3;
 export const SENSITIVITY = .0012;
-export const debuggerInstance = new Debugger();
 
 export default async function() {
 	const canvas = document.createElement("canvas");
@@ -21,7 +19,6 @@ export default async function() {
 	const instance = new Instance({
 		renderer,
 		framesPerSecond: FRAMES_PER_SECOND,
-		debugger: debuggerInstance,
 	});
 
 	await instance.build();
