@@ -381,14 +381,14 @@ export class Renderer extends WebGPURenderer {
 			entries: [
 				{
 					binding: 0,
-					visibility: GPUShaderStage.VERTEX,
+					visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
 					buffer: {
 						type: "read-only-storage",
 					},
 				},
 				{
 					binding: 1,
-					visibility: GPUShaderStage.VERTEX,
+					visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
 					buffer: {
 						type: "read-only-storage",
 					},
@@ -719,6 +719,7 @@ export class Renderer extends WebGPURenderer {
 			bindGroupLayouts: [
 				this._bindGroupLayouts.view,
 				this._bindGroupLayouts.materialVisibility,
+				this._bindGroupLayouts.geometry,
 			],
 		});
 
@@ -869,6 +870,7 @@ export class Renderer extends WebGPURenderer {
 		renderPass.setPipeline(this._renderPipelines.material);
 		renderPass.setBindGroup(0, this._bindGroups.view);
 		renderPass.setBindGroup(1, this._bindGroups.materialVisibility);
+		renderPass.setBindGroup(2, this._bindGroups.geometry);
 		renderPass.draw(6);
 		renderPass.end();
 	}

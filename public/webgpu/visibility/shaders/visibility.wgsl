@@ -30,8 +30,10 @@ struct Scene {
 }
 
 struct Mesh {
-	clusters: array<Cluster>,
+	// clusters: array<Cluster>,
 	materialIndex: u32,
 }
+
+// struct Cluster {}
 
 // struct Material {}

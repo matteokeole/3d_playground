@@ -9,7 +9,7 @@ import {SENSITIVITY} from "../../../hl2/main.js";
 
 export async function createScene() {
 	const binaryLoader = new BinaryLoader();
-	const binary = await binaryLoader.load("Test/Asset/FBX/Binary/sample.fbx");
+	const binary = await binaryLoader.load("Test/Asset/Model/FBX/Binary/sample.fbx");
 
 	const fbxParser = new FBXParser();
 	const fbxData = await fbxParser.parse(binary);
