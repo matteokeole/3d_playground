@@ -32,7 +32,7 @@ export class Instance {
 	/**
 	 * @param {Number}
 	 */
-	#timeSinceLastFrame;
+	#lastFrameTime;
 
 	/**
 	 * @type {?Number}
@@ -52,7 +52,7 @@ export class Instance {
 		this._frameIndex = 0;
 		this.#framesPerSecond = descriptor.framesPerSecond;
 		this.#frameInterval = 1000 / this.#framesPerSecond;
-		this.#timeSinceLastFrame = -this.#frameInterval;
+		this.#lastFrameTime = -this.#frameInterval;
 		this.#animationFrameRequestId = null;
 		this.#debugger = new Debugger();
 	}
@@ -71,9 +71,9 @@ export class Instance {
 
 	/**
 	 * @abstract
-	 * @param {Number} delta
+	 * @param {Number} deltaTime
 	 */
-	_update(delta) {}
+	_update(deltaTime) {}
 
 	/**
 	 * @abstract
@@ -84,13 +84,13 @@ export class Instance {
 		this.#animationFrameRequestId = requestAnimationFrame(this.#loop.bind(this));
 
 		const time = performance.now();
-		const delta = time - this.#timeSinceLastFrame;
+		const deltaTime = (time - this.#lastFrameTime) / 1000;
 
-		if (delta > this.#frameInterval) {
-			this.#timeSinceLastFrame = time - delta / this.#frameInterval;
+		this.#lastFrameTime = time;
 
+		// if (deltaTime > this.#frameInterval) {
 			try {
-				this._update(delta);
+				this._update(deltaTime);
 				this._render();
 
 				this._frameIndex++;
@@ -99,7 +99,7 @@ export class Instance {
 
 				this.dispose();
 			}
-		}
+		// }
 	}
 
 	dispose() {

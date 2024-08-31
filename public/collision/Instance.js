@@ -8,9 +8,9 @@ import {EPA} from "../../src/Algorithm/EPA.js";
 
 export class Instance extends _Instance {
 	/**
-	 * @param {Number} delta
+	 * @param {Number} deltaTime
 	 */
-	_update(delta) {
+	_update(deltaTime) {
 		const camera = this._renderer.getCamera();
 
 		if (camera.getCaptureSession() !== null) {

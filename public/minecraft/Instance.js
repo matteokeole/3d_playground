@@ -8,14 +8,14 @@ const diagonalMovement = () =>
 
 export class Instance extends _Instance {
 	/**
-	 * @param {Number} delta
+	 * @param {Number} deltaTime
 	 */
-	_update(delta) {
+	_update(deltaTime) {
 		const camera = this._renderer.getCamera();
 
 		// Update camera
 		{
-			const velocity = (diagonalMovement() ? VELOCITY_SQRT1_2 : VELOCITY) * delta;
+			const velocity = (diagonalMovement() ? VELOCITY_SQRT1_2 : VELOCITY) * deltaTime;
 
 			if (keys.has("KeyW")) camera.moveZ(velocity);
 			if (keys.has("KeyS")) camera.moveZ(-velocity);
@@ -36,7 +36,7 @@ export class Instance extends _Instance {
 
 		document.getElementById("DebugPosition").textContent = `${camera.getPosition()}`;
 		document.getElementById("DebugRotation").textContent = `${camera.getRotation()}`;
-		document.getElementById("DebugDelta").textContent = delta.toFixed(2);
+		document.getElementById("DebugDelta").textContent = deltaTime.toFixed(2);
 	}
 
 	_render() {

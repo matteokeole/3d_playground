@@ -90,6 +90,8 @@ export class Camera {
 	 */
 	#hull;
 
+	#velocity;
+
 	#viewpoint;
 
 	/**
@@ -114,6 +116,7 @@ export class Camera {
 		this.bias = 0;
 		this.turnVelocity = 0;
 		this.#hull = null;
+		this.#velocity = new Vector3(0, 0, 0);
 		this.#viewpoint = 0;
 		this.#captureSession = null;
 	}
@@ -184,6 +187,17 @@ export class Camera {
 	 */
 	setHull(hull) {
 		this.#hull = hull;
+	}
+
+	getVelocity() {
+		return this.#velocity;
+	}
+
+	/**
+	 * @param {Vector3} velocity
+	 */
+	setVelocity(velocity) {
+		this.#velocity = velocity;
 	}
 
 	getViewpoint() {
@@ -364,5 +378,20 @@ export class Camera {
 			.multiplyScalar(velocity[2]);
 
 		return right.add(up).add(forward);
+	}
+
+	/**
+	 * @param {Vector3} movementKeys
+	 */
+	getMoveDirection(movementKeys) {
+		const right = new Vector3(this.getRight()).multiplyScalar(movementKeys[0]);
+		const up = new Vector3(0, movementKeys[1], 0);
+		const forward = this
+			.getRight()
+			.cross(Camera.#UP)
+			.multiplyScalar(movementKeys[2]);
+		const moveDirection = right.add(up).add(forward);
+
+		return moveDirection.normalize();
 	}
 }

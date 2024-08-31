@@ -2,40 +2,39 @@ export class Debugger {
 	/**
 	 * @type {HTMLElement}
 	 */
-	positionElement;
-
-	/**
-	 * @type {HTMLElement}
-	 */
-	rotationElement;
-
-	/**
-	 * @type {HTMLElement}
-	 */
-	debugElement;
+	#container;
 
 	constructor() {
-		const container = document.createElement("div");
-		this.positionElement = document.createElement("span");
-		this.rotationElement = document.createElement("span");
-		this.debugElement = document.createElement("span");
+		this.#container = document.createElement("div");
+		this.#container.className = "debug";
 
-		container.className = "debug";
-		this.positionElement.id = "DebugPosition";
-		this.rotationElement.id = "DebugRotation";
-
-		container.appendChild(this.positionElement);
-		container.appendChild(this.rotationElement);
-		container.appendChild(this.debugElement);
-		document.body.appendChild(container);
+		document.body.appendChild(this.#container);
 	}
 
 	/**
 	 * @param {Record.<String, *>} properties
 	 */
 	update(properties) {
-		for (const [name, value] of Object.entries(properties)) {
-			this[name].textContent = value;
+		const propertyEntries = Object.entries(properties);
+
+		for (let i = 0; i < propertyEntries.length; i++) {
+			const elementId = propertyEntries[i][0];
+			const value = propertyEntries[i][1];
+
+			if (!(elementId in this.#container.children)) {
+				const element = document.createElement("span");
+
+				element.id = elementId;
+				element.textContent = `${elementId}: ${value}`;
+
+				this.#container.appendChild(element);
+
+				continue;
+			}
+
+			const element = this.#container.children[elementId];
+
+			element.textContent = `${elementId}: ${value}`;
 		}
 	}
 }
