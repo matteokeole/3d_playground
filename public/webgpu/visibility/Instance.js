@@ -5,7 +5,7 @@ import {Vector3} from "../../../src/math/index.js";
 import {Mesh} from "../../../src/Mesh/Mesh.js";
 import {keys} from "./input.js";
 
-const VELOCITY = 0.002;
+const VELOCITY = 0.2;
 
 export class Instance extends _Instance {
 	/**
@@ -26,7 +26,7 @@ export class Instance extends _Instance {
 		);
 		direction.normalize();
 		direction.multiplyScalar(VELOCITY);
-		// direction[1] -= .098;
+		direction[1] -= .098;
 
 		const acceleration = camera.getRelativeVelocity(direction);
 
@@ -72,6 +72,7 @@ export class Instance extends _Instance {
 			const force = hitResponse.normal.multiplyScalar(hitResponse.depth);
 
 			hull.getPosition().subtract(force);
+			hull.updateProjection();
 		}
 	}
 
@@ -87,6 +88,8 @@ export class Instance extends _Instance {
 			return null;
 		}
 
-		return EPA.test3d(dynamicMesh, staticMesh, simplex);
+		const collision = EPA.test3d(dynamicMesh, staticMesh, simplex);
+
+		return collision;
 	}
 }
