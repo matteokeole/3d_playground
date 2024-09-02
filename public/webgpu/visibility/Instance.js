@@ -30,7 +30,7 @@ export class Instance extends _Instance {
 			keys.KeyW + keys.KeyS,
 		);
 		normalizedKeyMovement.normalize();
-		normalizedKeyMovement[1] -= Instance.GRAVITY;
+		// normalizedKeyMovement[1] -= Instance.GRAVITY;
 
 		const accelDir = camera.getMoveDirection(normalizedKeyMovement);
 
