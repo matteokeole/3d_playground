@@ -13,6 +13,8 @@ export class Instance extends _Instance {
 	static MAX_VELOCITY_GROUND = 500;
 	static FRICTION = 4.8;
 
+	#canJump = true;
+
 	/**
 	 * @param {Number} deltaTime
 	 */
@@ -24,9 +26,20 @@ export class Instance extends _Instance {
 			return;
 		}
 
+		if (keys.Space && this.#canJump) {
+			this.#handleJump();
+
+			this.#canJump = false;
+		}
+
+		if (!keys.Space) {
+			// Reset jump ability
+			this.#canJump = true;
+		}
+
 		const normalizedKeyMovement = new Vector3(
 			keys.KeyA + keys.KeyD,
-			keys.ControlLeft + keys.Space,
+			0,
 			keys.KeyW + keys.KeyS,
 		);
 		normalizedKeyMovement.normalize();
@@ -67,6 +80,8 @@ export class Instance extends _Instance {
 			deltaTime: deltaTime.toPrecision(2),
 			pos: camera.getPosition(),
 			rot: camera.getRotation(),
+			spaceKey: Boolean(keys.Space),
+			canJump: this.#canJump,
 		});
 	}
 
@@ -160,5 +175,11 @@ export class Instance extends _Instance {
 	 */
 	#moveAir(accelDir, prevVelocity, deltaTime) {
 		return this.#accelerate(accelDir, prevVelocity, Instance.ACCELERATE_AIR, Instance.MAX_VELOCITY_AIR, deltaTime);
+	}
+
+	#handleJump() {
+		const camera = this._renderer.getCamera();
+
+		camera.getVelocity()[1] = 2;
 	}
 }

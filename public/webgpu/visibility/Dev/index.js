@@ -148,9 +148,9 @@ function createScene() {
 	const scene = new Scene();
 
 	scene.addMeshes(planeGeometry, [plane]);
-	// scene.addMeshes(boxGeometry, [leftBox, bridge, centerBox, rightBox]);
 	scene.addMeshes(slopeGeometry, [slope]);
-	scene.addMeshes(squareWallGeometry, [squareWall1, squareWall2, squareWall3, squareWall4]);
+	scene.addMeshes(boxGeometry, [leftBox, bridge, centerBox, rightBox]);
+	// scene.addMeshes(squareWallGeometry, [squareWall1, squareWall2, squareWall3, squareWall4]);
 
 	return scene;
 }
