@@ -6,13 +6,13 @@ import {SENSITIVITY} from "../../../hl2/main.js";
 import {Mesh} from "../../../hl2/Mesh.js";
 import {FIELD_OF_VIEW, FRAMES_PER_SECOND, PLAYER_COLLISION_HULL, PLAYER_VIEWPOINT} from "../../../index.js";
 import {listen} from "../input.js";
-import {Instance} from "../Instance.js";
 import {Renderer} from "../Renderer.js";
+import {DevInstance} from "./DevInstance.js";
 
 export default async function() {
 	const canvas = document.createElement("canvas");
 	const renderer = new Renderer(canvas);
-	const instance = new Instance({
+	const instance = new DevInstance({
 		renderer,
 		framesPerSecond: FRAMES_PER_SECOND,
 	});
