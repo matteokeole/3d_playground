@@ -1,5 +1,4 @@
-import {Session} from "../Capture/index.js";
-import {clamp, Matrix3, Matrix4, PI, Vector2, Vector3} from "../math/index.js";
+import {clamp, Matrix4, PI, Vector2, Vector3} from "../math/index.js";
 import {Mesh} from "../Mesh/index.js";
 
 /**
@@ -94,11 +93,6 @@ export class Camera {
 
 	#viewpoint;
 
-	/**
-	 * @type {?Session}
-	 */
-	#captureSession;
-
 	constructor() {
 		this._view = Matrix4.identity();
 		this._projection = Matrix4.identity();
@@ -118,7 +112,6 @@ export class Camera {
 		this.#hull = null;
 		this.#velocity = new Vector3(0, 0, 0);
 		this.#viewpoint = 0;
-		this.#captureSession = null;
 	}
 
 	getView() {
@@ -211,17 +204,6 @@ export class Camera {
 		this.#viewpoint = viewpoint;
 	}
 
-	getCaptureSession() {
-		return this.#captureSession;
-	}
-
-	/**
-	 * @param {Session} captureSession
-	 */
-	setCaptureSession(captureSession) {
-		this.#captureSession = captureSession;
-	}
-
 	/**
 	 * @param {Number} x
 	 */
@@ -289,42 +271,6 @@ export class Camera {
 		this.#up = this.#forward.cross(this.#right);
 	};
 
-	captureLookAt() {
-		const [yaw, pitch, roll] = this.#rotation;
-		const yawRotation = new Matrix3(
-			Math.cos(yaw), 0, Math.sin(yaw),
-			0, 1, 0,
-			-Math.sin(yaw), 0, Math.cos(yaw),
-		);
-		const pitchRotation = new Matrix3(
-			1, 0, 0,
-			0, Math.cos(pitch), -Math.sin(pitch),
-			0, Math.sin(pitch), Math.cos(pitch),
-		);
-		const rollRotation = new Matrix3(
-			Math.cos(roll), -Math.sin(roll), 0,
-			Math.sin(roll), Math.cos(roll), 0,
-			0, 0, 1,
-		);
-		const rotation = rollRotation.multiply(pitchRotation).multiply(yawRotation);
-
-		this.#forward = new Vector3(
-			rotation[2],
-			rotation[5],
-			rotation[8],
-		);
-		this.#right = new Vector3(
-			rotation[0],
-			rotation[3],
-			rotation[6],
-		);
-		this.#up = new Vector3(
-			rotation[1],
-			rotation[4],
-			rotation[7],
-		);
-	}
-
 	/**
 	 * @abstract
 	 */
@@ -350,20 +296,6 @@ export class Camera {
 			.add(xDistance)
 			.add(yDistance)
 			.add(zDistance);
-	}
-
-	/**
-	 * @param {Number} frameIndex
-	 */
-	readCaptureSession(frameIndex) {
-		const frame = this.#captureSession.read(frameIndex);
-
-		if (frame === null) {
-			return;
-		}
-
-		this.setPosition(frame.getPosition());
-		this.setRotation(frame.getRotation());
 	}
 
 	/**
