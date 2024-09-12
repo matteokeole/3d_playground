@@ -1,129 +1,36 @@
-import {clamp, Matrix4, PI, Vector2, Vector3} from "../math/index.js";
+import {NotImplementedError} from "../Error/index.js";
+import {Matrix4, Vector3} from "../math/index.js";
 import {Mesh} from "../Mesh/index.js";
+
+/**
+ * @typedef {Object} CameraDescriptor
+ * @property {Vector3} position
+ * @property {?Mesh} hull
+ */
 
 /**
  * @abstract
  */
 export class Camera {
-	static #UP = new Vector3(0, 1, 0);
-
-	/**
-	 * @param {Number} yaw
-	 * @param {Number} pitch
-	 * @returns {Vector3}
-	 */
-	static #sphericalToCartesian(yaw, pitch) {
-		return new Vector3(
-			Math.cos(pitch) * Math.sin(yaw),
-			Math.sin(pitch),
-			Math.cos(pitch) * Math.cos(yaw),
-		);
-	}
-
-	_view;
-	_projection;
-	_viewProjection;
-
-	/**
-	 * @type {Vector3}
-	 */
 	#position;
 
-	/**
-	 * @type {Vector3}
-	 */
-	#distance;
+	#view;
+	#projection;
+	#viewProjection;
 
-	/**
-	 * @type {Vector3}
-	 */
-	#rotation;
-
-	/**
-	 * @type {Vector3}
-	 */
-	#forward;
-
-	/**
-	 * @type {Vector3}
-	 */
-	#right;
-
-	/**
-	 * @type {Vector3}
-	 */
-	#up;
-
-	/**
-	 * @type {Number}
-	 */
-	fieldOfView;
-
-	/**
-	 * @type {Number}
-	 */
-	aspectRatio;
-
-	/**
-	 * @type {Number}
-	 */
-	near;
-
-	/**
-	 * @type {Number}
-	 */
-	far;
-
-	/**
-	 * @type {Number}
-	 */
-	bias;
-
-	/**
-	 * @type {Number}
-	 */
-	turnVelocity;
-
-	/**
-	 * @type {?Mesh}
-	 */
 	#hull;
 
-	#velocity;
+	/**
+	 * @param {CameraDescriptor} descriptor
+	 */
+	constructor(descriptor) {
+		this.#position = descriptor.position;
 
-	#viewpoint;
+		this.#view = Matrix4.identity();
+		this.#projection = Matrix4.identity();
+		this.#viewProjection = Matrix4.identity();
 
-	constructor() {
-		this._view = Matrix4.identity();
-		this._projection = Matrix4.identity();
-		this._viewProjection = Matrix4.identity();
-		this.#position = new Vector3();
-		this.#distance = new Vector3();
-		this.#rotation = new Vector3();
-		this.#forward = new Vector3(0, 0, 1);
-		this.#right = new Vector3(1, 0, 0);
-		this.#up = new Vector3(0, 1, 0);
-		this.fieldOfView = 0;
-		this.aspectRatio = 0;
-		this.near = 0;
-		this.far = 0;
-		this.bias = 0;
-		this.turnVelocity = 0;
-		this.#hull = null;
-		this.#velocity = new Vector3(0, 0, 0);
-		this.#viewpoint = 0;
-	}
-
-	getView() {
-		return this._view;
-	}
-
-	getProjection() {
-		return this._projection;
-	}
-
-	getViewProjection() {
-		return this._viewProjection;
+		this.#hull = descriptor.hull;
 	}
 
 	getPosition() {
@@ -137,38 +44,37 @@ export class Camera {
 		this.#position.set(position);
 	}
 
-	getRotation() {
-		return this.#rotation;
+	getView() {
+		return this.#view;
 	}
 
 	/**
-	 * @param {Vector3} rotation
+	 * @param {Matrix4} view
 	 */
-	setRotation(rotation) {
-		this.#rotation.set(rotation);
+	setView(view) {
+		this.#view = view;
 	}
 
-	getDistance() {
-		return this.#distance;
+	getProjection() {
+		return this.#projection;
 	}
 
 	/**
-	 * @param {Vector3} distance
+	 * @param {Matrix4} projection
 	 */
-	setDistance(distance) {
-		this.#distance.set(distance);
+	setProjection(projection) {
+		this.#projection = projection;
 	}
 
-	getForward() {
-		return this.#forward;
+	getViewProjection() {
+		return this.#viewProjection;
 	}
 
-	getRight() {
-		return this.#right;
-	}
-
-	getUp() {
-		return this.#up;
+	/**
+	 * @param {Matrix4} viewProjection
+	 */
+	setViewProjection(viewProjection) {
+		this.#viewProjection = viewProjection;
 	}
 
 	getHull() {
@@ -176,154 +82,16 @@ export class Camera {
 	}
 
 	/**
-	 * @param {Mesh} hull
+	 * @param {?Mesh} hull
 	 */
 	setHull(hull) {
 		this.#hull = hull;
 	}
 
-	getVelocity() {
-		return this.#velocity;
-	}
-
-	/**
-	 * @param {Vector3} velocity
-	 */
-	setVelocity(velocity) {
-		this.#velocity = velocity;
-	}
-
-	getViewpoint() {
-		return this.#viewpoint;
-	}
-
-	/**
-	 * @param {Number} viewpoint
-	 */
-	setViewpoint(viewpoint) {
-		this.#viewpoint = viewpoint;
-	}
-
-	/**
-	 * @param {Number} x
-	 */
-	truck(x) {
-		const right = new Vector3(this.#right);
-
-		this.#position.add(right.multiplyScalar(x));
-	}
-
-	/**
-	 * @param {Number} y
-	 */
-	pedestal(y) {
-		const up = new Vector3(this.#up);
-
-		this.#position.add(up.multiplyScalar(y));
-	}
-
-	/**
-	 * @param {Number} z
-	 */
-	dolly(z) {
-		const forward = new Vector3(this.#forward);
-
-		this.#position.add(forward.multiplyScalar(z));
-	}
-
-	/**
-	 * @param {Number} y
-	 */
-	moveY(y) {
-		this.#position[1] += y;
-	}
-
-	/**
-	 * @param {Number} z
-	 */
-	moveZ(z) {
-		const newForward = this.#right.cross(new Vector3(0, 1, 0));
-
-		this.#position.add(newForward.multiplyScalar(z));
-	}
-
-	/**
-	 * Note: Only yaw and pitch
-	 * 
-	 * @param {Vector2} delta
-	 */
-	lookAt(delta) {
-		delta.multiplyScalar(this.turnVelocity);
-
-		const newPitch = -delta[1];
-		const newYaw = delta[0];
-
-		this.#rotation[0] = clamp(this.#rotation[0] + newPitch, -PI * .5, PI * .5);
-		if (this.#rotation[1] + newYaw > PI) this.#rotation[1] = -PI;
-		if (this.#rotation[1] + newYaw < -PI) this.#rotation[1] = PI;
-		this.#rotation[1] += newYaw;
-
-		const pitch = this.#rotation[0];
-		const yaw = this.#rotation[1];
-
-		this.#forward = Camera.#sphericalToCartesian(yaw, pitch);
-		this.#right = Camera.#sphericalToCartesian(yaw + PI * .5, 0);
-		this.#up = this.#forward.cross(this.#right);
-	};
-
 	/**
 	 * @abstract
 	 */
-	update() {}
-
-	/**
-	 * Returns the current camera position, including the distance.
-	 */
-	getPhysicalPosition() {
-		const xDistance = new Vector3(
-			Math.cos(this.#rotation[1]),
-			0,
-			-Math.sin(this.#rotation[1]),
-		).multiplyScalar(this.#distance[0]);
-		const yDistance = new Vector3(1, this.#distance[1], 1);
-		const zDistance = new Vector3(
-			Math.sin(this.#rotation[1]),
-			0,
-			Math.cos(this.#rotation[1]),
-		).multiplyScalar(this.#distance[2]);
-
-		return new Vector3(this.#position)
-			.add(xDistance)
-			.add(yDistance)
-			.add(zDistance);
-	}
-
-	/**
-	 * @param {Vector3} velocity
-	 */
-	getRelativeVelocity(velocity) {
-		const right = new Vector3(this.getRight()).multiplyScalar(velocity[0]);
-		const up = new Vector3(0, velocity[1], 0);
-		const forward = this
-			.getRight()
-			.cross(Camera.#UP)
-			.multiplyScalar(velocity[2]);
-
-		return right.add(up).add(forward);
-	}
-
-	/**
-	 * @param {Vector3} movementKeys
-	 */
-	getMoveDirection(movementKeys) {
-		const right = new Vector3(this.getRight()).multiplyScalar(movementKeys[0]);
-		const up = new Vector3(0, movementKeys[1], 0);
-		const forward = this
-			.getRight()
-			.cross(Camera.#UP)
-			.multiplyScalar(movementKeys[2]);
-		const moveDirection = right.add(up).add(forward);
-
-		return moveDirection.normalize();
+	update() {
+		throw new NotImplementedError();
 	}
 }

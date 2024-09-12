@@ -1,11 +1,11 @@
 import {PerspectiveCamera} from "../../../../src/Camera/index.js";
-import {BoxGeometry, PolytopeGeometry} from "../../../../src/Geometry/index.js";
-import {PI, Vector2, Vector3, Vector4} from "../../../../src/math/index.js";
+import {BoxGeometry, Geometry, PolytopeGeometry} from "../../../../src/Geometry/index.js";
+import {FileLoader} from "../../../../src/Loader/FileLoader.js";
+import {Vector2, Vector3, Vector4} from "../../../../src/math/index.js";
+import {OBJParser} from "../../../../src/Parser/Text/OBJParser.js";
 import {Scene} from "../../../../src/Scene/index.js";
-import {SENSITIVITY} from "../../../hl2/main.js";
 import {Mesh} from "../../../hl2/Mesh.js";
-import {FIELD_OF_VIEW, FRAMES_PER_SECOND, PLAYER_COLLISION_HULL, PLAYER_VIEWPOINT} from "../../../index.js";
-import {listen} from "../input.js";
+import {FIELD_OF_VIEW, FRAMES_PER_SECOND, PLAYER_COLLISION_HULL} from "../../../index.js";
 import {Renderer} from "../Renderer.js";
 import {DevInstance} from "./DevInstance.js";
 
@@ -35,16 +35,15 @@ export default async function() {
 	renderer.setViewport(new Vector4(0, 0, viewport[0], viewport[1]));
 	renderer.resize();
 
-	const scene = createScene();
-	const camera = createCamera();
+	const scene = await createLookAtTestScene();
+	const camera = createLookAtTestCamera();
 
-	camera.aspectRatio = viewport[0] / viewport[1];
+	camera.setAspectRatio(viewport[0] / viewport[1]);
 
 	renderer.setScene(scene);
 	renderer.setCamera(camera);
 
 	document.body.appendChild(canvas);
-	listen(renderer);
 
 	instance.loop();
 }
@@ -52,7 +51,7 @@ export default async function() {
 /**
  * @see {@link https://www.graphics.cornell.edu/online/box/data}
  */
-function createScene() {
+async function createScene() {
 	///
 	/// Geometries
 	///
@@ -155,21 +154,63 @@ function createScene() {
 	return scene;
 }
 
+export async function createLookAtTestScene() {
+	const fileLoader = new FileLoader();
+	const response = await fileLoader.load("assets/models/bunny_medium.obj");
+	const text = await response.text();
+
+	const objParser = new OBJParser();
+	const obj = objParser.parse(text);
+
+	const geometry = new Geometry({
+		vertices: obj.vertices,
+		indices: obj.indices,
+		normals: Float32Array.of(),
+		tangents: Float32Array.of(),
+		uvs: Float32Array.of(),
+	});
+
+	const mesh = new Mesh(geometry, null);
+	mesh.setPosition(new Vector3(0, -0.3, 0));
+	mesh.setScale(new Vector3().addScalar(3));
+	mesh.updateProjection();
+
+	const scene = new Scene();
+
+	scene.addMeshes(geometry, [mesh]);
+
+	return scene;
+}
+
 function createCamera() {
 	const hull = new Mesh(new BoxGeometry(PLAYER_COLLISION_HULL), null);
 	hull.setPosition(new Vector3(0, 40, 0));
 	hull.updateProjection();
 
-	const camera = new PerspectiveCamera();
-	camera.setPosition(new Vector3(0, 64, -64));
-	camera.fieldOfView = FIELD_OF_VIEW;
-	camera.near = 1;
-	camera.far = 10000;
-	camera.bias = PI * .545;
-	camera.turnVelocity = SENSITIVITY;
-	camera.lookAt(new Vector2(0, 0));
-	camera.setHull(hull);
-	camera.setViewpoint(PLAYER_VIEWPOINT);
+	const camera = new PerspectiveCamera({
+		position: new Vector3(0, 64, -64),
+		hull,
+		fieldOfView: FIELD_OF_VIEW,
+		nearClipPlane: 1,
+		farClipPlane: 10000,
+	});
+
+	/**
+	 * @todo
+	 */
+	// camera.setViewpoint(PLAYER_VIEWPOINT);
+
+	return camera;
+}
+
+function createLookAtTestCamera() {
+	const camera = new PerspectiveCamera({
+		position: new Vector3(0, 0, -2),
+		hull: null,
+		fieldOfView: 60,
+		nearClipPlane: 0.1,
+		farClipPlane: 1000,
+	});
 
 	return camera;
 }
