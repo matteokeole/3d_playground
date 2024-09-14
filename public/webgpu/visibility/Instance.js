@@ -1,9 +1,8 @@
 import {Instance as _Instance} from "../../../src/index.js";
 import {Camera} from "../../../src/Camera/index.js";
 import {EPA, GJK} from "../../../src/Algorithm/index.js";
-import {max, min, Vector3} from "../../../src/math/index.js";
+import {max, Vector3} from "../../../src/math/index.js";
 import {Mesh} from "../../../src/Mesh/Mesh.js";
-import {keys} from "./input.js";
 
 export class Instance extends _Instance {
 	static GRAVITY = 0.4;

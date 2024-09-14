@@ -1,13 +1,13 @@
 import {Instance as _Instance} from "../../src/index.js";
 import {Vector3} from "../../src/math/index.js";
-import {keys} from "../hl2/input.js";
 import {Mesh} from "../hl2/Mesh.js";
-import {VELOCITY} from "./main.js";
 import {GJK} from "../../src/Algorithm/GJK.js";
 import {EPA} from "../../src/Algorithm/EPA.js";
 import {PerspectiveCamera} from "../../src/Camera/PerspectiveCamera.js";
 
 export class Instance extends _Instance {
+	static #FRICTION = 0.9;
+	static #CAMERA_SPEED = 0.5;
 	static #SENSITIVITY = 0.075;
 
 	#activeKeyCodes;
@@ -57,15 +57,9 @@ export class Instance extends _Instance {
 		 */
 		const camera = this._renderer.getCamera();
 
-		const cameraDirection = new Vector3(
-			keys.KeyA + keys.KeyD,
-			keys.ControlLeft + keys.Space,
-			keys.KeyW + keys.KeyS,
-		)
-			.normalize()
-			.multiplyScalar(VELOCITY);
+		this.#accelerate(deltaTime, this.#cameraVelocity);
 
-		camera.applyVelocity(cameraDirection);
+		camera.applyVelocity(this.#cameraVelocity);
 
 		this.#updateCameraMeshes();
 
@@ -78,6 +72,31 @@ export class Instance extends _Instance {
 
 	_render() {
 		this._renderer.render();
+	}
+
+	/**
+	 * @param {Number} deltaTime
+	 * @param {Vector3} velocity
+	 */
+	#accelerate(deltaTime, velocity) {
+		if (this.#activeKeyCodes["KeyW"]) {
+			velocity[2] = Instance.#CAMERA_SPEED;
+		}
+		if (this.#activeKeyCodes["KeyS"]) {
+			velocity[2] = -Instance.#CAMERA_SPEED;
+		}
+		if (this.#activeKeyCodes["KeyA"]) {
+			velocity[0] = -Instance.#CAMERA_SPEED;
+		}
+		if (this.#activeKeyCodes["KeyD"]) {
+			velocity[0] = Instance.#CAMERA_SPEED;
+		}
+
+		velocity.multiplyScalar(Instance.#FRICTION);
+
+		this.getDebugger().update({
+			"Velocity": velocity,
+		});
 	}
 
 	/**

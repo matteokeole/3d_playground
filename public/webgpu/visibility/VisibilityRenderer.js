@@ -3,7 +3,7 @@ import {Mesh} from "../../../src/Mesh/index.js";
 import {WebGPURenderer} from "../../../src/Renderer/index.js";
 import {Scene} from "../../../src/Scene/index.js";
 
-export class Renderer extends WebGPURenderer {
+export class VisibilityRenderer extends WebGPURenderer {
 	/**
 	 * @type {Map.<Geometry, GPUBuffer>}
 	 */

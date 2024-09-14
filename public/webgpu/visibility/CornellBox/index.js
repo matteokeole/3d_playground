@@ -5,9 +5,8 @@ import {Mesh} from "../../../../src/Mesh/index.js";
 import {Scene} from "../../../../src/Scene/index.js";
 import {SENSITIVITY} from "../../../hl2/main.js";
 import {FRAMES_PER_SECOND} from "../../../index.js";
-import {listen} from "../input.js";
 import {Instance} from "../Instance.js";
-import {Renderer} from "../Renderer.js";
+import {Renderer} from "../VisibilityRenderer.js";
 
 export default async function() {
 	const canvas = document.createElement("canvas");
@@ -42,7 +41,6 @@ export default async function() {
 	renderer.setCamera(camera);
 
 	document.body.appendChild(canvas);
-	listen(renderer);
 
 	instance.loop();
 }

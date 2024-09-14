@@ -6,7 +6,7 @@ import {OBJParser} from "../../../../src/Parser/Text/OBJParser.js";
 import {Scene} from "../../../../src/Scene/index.js";
 import {Mesh} from "../../../hl2/Mesh.js";
 import {FIELD_OF_VIEW, FRAMES_PER_SECOND, PLAYER_COLLISION_HULL} from "../../../index.js";
-import {Renderer} from "../Renderer.js";
+import {Renderer} from "../VisibilityRenderer.js";
 import {DevInstance} from "./DevInstance.js";
 
 export default async function() {
