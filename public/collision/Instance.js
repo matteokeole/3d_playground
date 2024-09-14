@@ -3,7 +3,7 @@ import {Vector3} from "../../src/math/index.js";
 import {Mesh} from "../hl2/Mesh.js";
 import {GJK} from "../../src/Algorithm/GJK.js";
 import {EPA} from "../../src/Algorithm/EPA.js";
-import {PerspectiveCamera} from "../../src/Camera/PerspectiveCamera.js";
+import {PerspectiveCamera} from "../../src/Camera/index.js";
 
 export class Instance extends _Instance {
 	static #FRICTION = 0.9;

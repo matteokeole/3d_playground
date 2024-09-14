@@ -1,4 +1,4 @@
-import {PerspectiveCamera} from "../../../../src/Camera/PerspectiveCamera.js";
+import {PerspectiveCamera} from "../../../../src/Camera/index.js";
 import {Instance} from "../../../../src/index.js";
 import {Vector3} from "../../../../src/math/index.js";
 
