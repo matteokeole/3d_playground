@@ -5,17 +5,57 @@ import {Mesh} from "../hl2/Mesh.js";
 import {VELOCITY} from "./main.js";
 import {GJK} from "../../src/Algorithm/GJK.js";
 import {EPA} from "../../src/Algorithm/EPA.js";
+import {PerspectiveCamera} from "../../src/Camera/PerspectiveCamera.js";
 
 export class Instance extends _Instance {
+	static #SENSITIVITY = 0.075;
+
+	#activeKeyCodes;
+	#cameraVelocity;
+
+	/**
+	 * @param {import("../../src/Instance.js").InstanceDescriptor} descriptor
+	 */
+	constructor(descriptor) {
+		super(descriptor);
+
+		/**
+		 * @type {Record.<String, Boolean>}
+		 */
+		this.#activeKeyCodes = {};
+		this.#cameraVelocity = new Vector3(0, 0, 0);
+
+		document.addEventListener("keydown", event => {
+			const keyCode = event.code;
+
+			if (!this.#activeKeyCodes[keyCode]) {
+				this.#onKeyDown(keyCode);
+			}
+
+			this.#activeKeyCodes[keyCode] = true;
+		});
+
+		document.addEventListener("keyup", event => {
+			const keyCode = event.code;
+
+			if (this.#activeKeyCodes[keyCode]) {
+				this.#onKeyUp(keyCode);
+			}
+
+			this.#activeKeyCodes[keyCode] = false;
+		});
+
+		this._renderer.getCanvas().addEventListener("mousemove", this.#onMouseMove.bind(this));
+	}
+
 	/**
 	 * @param {Number} deltaTime
 	 */
 	_update(deltaTime) {
+		/**
+		 * @type {PerspectiveCamera}
+		 */
 		const camera = this._renderer.getCamera();
-
-		if (camera.getCaptureSession() !== null) {
-			return this.#useCaptureSession();
-		}
 
 		const cameraDirection = new Vector3(
 			keys.KeyA + keys.KeyD,
@@ -25,7 +65,7 @@ export class Instance extends _Instance {
 			.normalize()
 			.multiplyScalar(VELOCITY);
 
-		camera.getPosition().add(camera.getRelativeVelocity(cameraDirection));
+		camera.applyVelocity(cameraDirection);
 
 		this.#updateCameraMeshes();
 
@@ -33,7 +73,6 @@ export class Instance extends _Instance {
 
 		this.getDebugger().update({
 			positionElement: camera.getPosition(),
-			rotationElement: camera.getRotation(),
 		});
 	}
 
@@ -117,7 +156,36 @@ export class Instance extends _Instance {
 		}
 	}
 
-	#useCaptureSession() {
+	/**
+	 * @param {String} keyCode
+	 */
+	#onKeyDown(keyCode) {}
+
+	/**
+	 * @param {String} keyCode
+	 */
+	#onKeyUp(keyCode) {}
+
+	/**
+	 * @param {MouseEvent} event
+	 */
+	#onMouseMove(event) {
+		if (!this._renderer.isPointerLocked()) {
+			return;
+		}
+
+		/**
+		 * @type {PerspectiveCamera}
+		 */
+		const camera = this._renderer.getCamera();
+
+		const xOffset = -event.movementX * Instance.#SENSITIVITY;
+		const yOffset = -event.movementY * Instance.#SENSITIVITY;
+
+		camera.applyYawAndPitch(xOffset, yOffset);
+	}
+
+	/* #useCaptureSession() {
 		const camera = this._renderer.getCamera();
 
 		camera.readCaptureSession(this._frameIndex);
@@ -125,5 +193,5 @@ export class Instance extends _Instance {
 		camera.update();
 
 		this.getDebugger().update(camera);
-	}
+	} */
 }

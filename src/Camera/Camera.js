@@ -13,11 +13,9 @@ import {Mesh} from "../Mesh/index.js";
  */
 export class Camera {
 	#position;
-
 	#view;
 	#projection;
 	#viewProjection;
-
 	#hull;
 
 	/**
@@ -25,11 +23,9 @@ export class Camera {
 	 */
 	constructor(descriptor) {
 		this.#position = descriptor.position;
-
 		this.#view = Matrix4.identity();
 		this.#projection = Matrix4.identity();
 		this.#viewProjection = Matrix4.identity();
-
 		this.#hull = descriptor.hull;
 	}
 

@@ -1,17 +1,22 @@
 import {Session} from "../Capture/index.js";
-import {Matrix3, Vector3} from "../math/index.js";
-import {Camera} from "./Camera.js";
+import {NotImplementedError} from "../Error/index.js";
+import {PerspectiveCamera} from "./PerspectiveCamera.js";
 
-export class CaptureCamera extends Camera {
-	/**
-	 * @type {?Session}
-	 */
+/**
+ * @typedef {Object} PerspectiveCaptureCameraDescriptor
+ * @property {?Session} captureSession
+ */
+
+export class PerspectiveCaptureCamera extends PerspectiveCamera {
 	#captureSession;
 
-	constructor() {
-		super();
+	/**
+	 * @param {import("./Camera.js").CameraDescriptor & import("./PerspectiveCamera.js").PerspectiveCameraDescriptor & PerspectiveCaptureCameraDescriptor} descriptor
+	 */
+	constructor(descriptor) {
+		super(descriptor);
 
-		this.#captureSession = null;
+		this.#captureSession = descriptor.captureSession;
 	}
 
 	getCaptureSession() {
@@ -19,14 +24,16 @@ export class CaptureCamera extends Camera {
 	}
 
 	/**
-	 * @param {Session} captureSession
+	 * @param {?Session} captureSession
 	 */
 	setCaptureSession(captureSession) {
 		this.#captureSession = captureSession;
 	}
 
 	lookAt() {
-		const [yaw, pitch, roll] = this.getRotation();
+		throw new NotImplementedError();
+
+		/* const [yaw, pitch, roll] = this.getRotation();
 		const yawRotation = new Matrix3(
 			Math.cos(yaw), 0, Math.sin(yaw),
 			0, 1, 0,
@@ -58,20 +65,22 @@ export class CaptureCamera extends Camera {
 			rotation[1],
 			rotation[4],
 			rotation[7],
-		));
+		)); */
 	}
 
 	/**
 	 * @param {Number} frameIndex
 	 */
 	readCaptureSession(frameIndex) {
-		const frame = this.#captureSession.read(frameIndex);
+		throw new NotImplementedError();
+
+		/* const frame = this.#captureSession.read(frameIndex);
 
 		if (frame === null) {
 			return;
 		}
 
 		this.setPosition(frame.getPosition());
-		this.setRotation(frame.getRotation());
+		this.setRotation(frame.getRotation()); */
 	}
 }

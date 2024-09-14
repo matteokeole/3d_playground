@@ -33,8 +33,10 @@ export default async function() {
 	// const captureSessionLoader = new CaptureSessionLoader();
 	// const captureSession = await captureSessionLoader.load("assets/capture/rotation/pitch.json");
 
-	const camera = createCamera(viewport[0] / viewport[1]);
+	const camera = createCamera();
 	// camera.setCaptureSession(captureSession);
+
+	camera.setAspectRatio(viewport[0] / viewport[1]);
 
 	renderer.loadTextures(imageBitmaps);
 	renderer.setScene(await createScene(imageBitmaps));
