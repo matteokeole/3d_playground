@@ -1,4 +1,4 @@
-import {PI, Matrix4, Vector3, rad} from "../math/index.js";
+import {PI, Matrix4, Vector3, rad, clamp} from "../math/index.js";
 import {Camera} from "./Camera.js";
 
 /**
@@ -125,10 +125,21 @@ export class PerspectiveCamera extends Camera {
 		this.#yaw += yawOffset;
 		this.#pitch += pitchOffset;
 
-		/**
-		 * @todo Yaw/pitch constraints
-		 */
-		// this.#yaw = clamp(this.#rotation[0] + newPitch, -PI * .5, PI * .5);
+		if (this.#yaw < 0) {
+			this.#yaw = 360;
+		}
+
+		if (this.#yaw > 360) {
+			this.#yaw = 0;
+		}
+
+		if (this.#pitch < -90) {
+			this.#pitch = -90;
+		}
+
+		if (this.#pitch > 90) {
+			this.#pitch = 90;
+		}
 
 		this.#yawRad = rad(this.#yaw);
 		this.#pitchRad = rad(this.#pitch);
