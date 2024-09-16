@@ -1,3 +1,4 @@
+import {CustomSceneClusterizer} from "../CustomSceneClusterizer.js";
 import {Geometry} from "../Geometry/Geometry.js";
 import {Mesh} from "../Mesh/Mesh.js";
 
@@ -19,6 +20,11 @@ export class Scene {
 	#meshes;
 
 	/**
+	 * @type {import("../CustomSceneClusterizer.js").ClusteredMeshes}
+	 */
+	#clusteredMeshes;
+
+	/**
 	 * @type {Map.<Geometry, Mesh[]>}
 	 */
 	#instancesByGeometry;
@@ -26,6 +32,7 @@ export class Scene {
 	constructor() {
 		this.#geometries = [];
 		this.#meshes = [];
+		this.#clusteredMeshes = null;
 		this.#instancesByGeometry = new Map();
 	}
 
@@ -35,6 +42,10 @@ export class Scene {
 
 	getMeshes() {
 		return this.#meshes;
+	}
+
+	getClusteredMeshes() {
+		return this.#clusteredMeshes;
 	}
 
 	/**
@@ -80,5 +91,9 @@ export class Scene {
 			this.#instancesByGeometry.get(geometry).push(mesh);
 			this.#meshes.push(mesh);
 		}
+	}
+
+	clusterize() {
+		this.#clusteredMeshes = CustomSceneClusterizer.clusterize(this);
 	}
 }

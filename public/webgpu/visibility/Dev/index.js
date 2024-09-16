@@ -1,7 +1,7 @@
 import {PerspectiveCamera} from "../../../../src/Camera/index.js";
 import {BoxGeometry, Geometry, PolytopeGeometry} from "../../../../src/Geometry/index.js";
 import {FileLoader} from "../../../../src/Loader/FileLoader.js";
-import {Vector2, Vector3, Vector4} from "../../../../src/math/index.js";
+import {PI, Vector2, Vector3, Vector4} from "../../../../src/math/index.js";
 import {OBJParser} from "../../../../src/Parser/Text/OBJParser.js";
 import {Scene} from "../../../../src/Scene/index.js";
 import {Mesh} from "../../../hl2/Mesh.js";
@@ -21,14 +21,14 @@ export default async function() {
 
 	await renderer.loadShader(
 		"visibility",
-		"public/webgpu/visibility/shaders/visibility.wgsl",
-		"public/webgpu/visibility/shaders/visibility.vert.wgsl",
-		"public/webgpu/visibility/shaders/visibility.frag.wgsl",
+		"public/webgpu/visibility/Shader/Visibility.wgsl",
+		"public/webgpu/visibility/Shader/Visibility.vert.wgsl",
+		"public/webgpu/visibility/Shader/Visibility.frag.wgsl",
 	);
 	await renderer.loadShader(
 		"material",
-		"public/webgpu/visibility/shaders/base.vert.wgsl",
-		"public/webgpu/visibility/shaders/base.frag.wgsl",
+		"public/webgpu/visibility/Shader/Material.vert.wgsl",
+		"public/webgpu/visibility/Shader/Material.frag.wgsl",
 	);
 
 	const viewport = new Vector2(innerWidth, innerHeight);
@@ -36,11 +36,15 @@ export default async function() {
 	renderer.resize();
 
 	const scene = await createLookAtTestScene();
+
+	scene.clusterize();
+
+	renderer.setScene(scene);
+
 	const camera = createLookAtTestCamera();
 
 	camera.setAspectRatio(viewport[0] / viewport[1]);
 
-	renderer.setScene(scene);
 	renderer.setCamera(camera);
 
 	document.body.appendChild(canvas);
@@ -156,7 +160,7 @@ async function createScene() {
 
 export async function createLookAtTestScene() {
 	const fileLoader = new FileLoader();
-	const response = await fileLoader.load("assets/models/bunny_medium.obj");
+	const response = await fileLoader.load("assets/models/nefertiti.obj");
 	const text = await response.text();
 
 	const objParser = new OBJParser();
@@ -170,14 +174,27 @@ export async function createLookAtTestScene() {
 		uvs: Float32Array.of(),
 	});
 
-	const mesh = new Mesh(geometry, null);
-	mesh.setPosition(new Vector3(0, -0.3, 0));
-	mesh.setScale(new Vector3().addScalar(3));
-	mesh.updateProjection();
+	const mesh1 = new Mesh(geometry, null);
+	mesh1.setPosition(new Vector3(-10, -0.3, 0));
+	mesh1.setScale(new Vector3().addScalar(0.04));
+	mesh1.setRotation(new Vector3(-PI / 2, 0, PI));
+	mesh1.updateProjection();
+
+	const mesh2 = new Mesh(geometry, null);
+	mesh2.setPosition(new Vector3(0, -0.3, 0));
+	mesh2.setScale(new Vector3().addScalar(0.04));
+	mesh2.setRotation(new Vector3(-PI / 2, 0, PI));
+	mesh2.updateProjection();
+
+	const mesh3 = new Mesh(geometry, null);
+	mesh3.setPosition(new Vector3(10, -0.3, 0));
+	mesh3.setScale(new Vector3().addScalar(0.04));
+	mesh3.setRotation(new Vector3(-PI / 2, 0, PI));
+	mesh3.updateProjection();
 
 	const scene = new Scene();
 
-	scene.addMeshes(geometry, [mesh]);
+	scene.addMeshes(geometry, [mesh1, mesh2, mesh3]);
 
 	return scene;
 }
@@ -205,7 +222,7 @@ function createCamera() {
 
 function createLookAtTestCamera() {
 	const camera = new PerspectiveCamera({
-		position: new Vector3(0, 0, -2),
+		position: new Vector3(0, 0, -30),
 		hull: null,
 		fieldOfView: 60,
 		nearClipPlane: 0.1,

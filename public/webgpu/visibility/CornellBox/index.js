@@ -20,14 +20,14 @@ export default async function() {
 
 	await renderer.loadShader(
 		"visibility",
-		"public/webgpu/visibility/shaders/visibility.wgsl",
-		"public/webgpu/visibility/shaders/visibility.vert.wgsl",
-		"public/webgpu/visibility/shaders/visibility.frag.wgsl",
+		"public/webgpu/visibility/Shader/Visibility.wgsl",
+		"public/webgpu/visibility/Shader/Visibility.vert.wgsl",
+		"public/webgpu/visibility/Shader/Visibility.frag.wgsl",
 	);
 	await renderer.loadShader(
 		"material",
-		"public/webgpu/visibility/CornellBox/Shader/base.vert.wgsl",
-		"public/webgpu/visibility/CornellBox/Shader/base.frag.wgsl",
+		"public/webgpu/visibility/CornellBox/Shader/Material.vert.wgsl",
+		"public/webgpu/visibility/CornellBox/Shader/Material.frag.wgsl",
 	);
 
 	const viewport = new Vector2(innerWidth, innerHeight);

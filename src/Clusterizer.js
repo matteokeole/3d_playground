@@ -112,8 +112,6 @@ export class Clusterizer {
 			clusteredGeometry.clusters.push(cluster);
 		}
 
-		debugger;
-
 		return clusteredGeometry;
 	}
 }
