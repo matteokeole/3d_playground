@@ -3,7 +3,7 @@ import {FRAMES_PER_SECOND} from "../../index.js";
 import {Instance} from "./Instance.js";
 import {VisibilityRenderer} from "./VisibilityRenderer.js";
 
-import {createCamera, createScene} from "./scenes/obj.js";
+import {createCamera, createScene} from "./Scene/obj.js";
 
 export default async function() {
 	const canvas = document.createElement("canvas");
@@ -17,15 +17,15 @@ export default async function() {
 
 	await renderer.loadShader(
 		"visibility",
-		"public/webgpu/visibility/shaders/visibility.wgsl",
-		"public/webgpu/visibility/shaders/visibility.vert.wgsl",
-		"public/webgpu/visibility/shaders/visibility.frag.wgsl",
+		"public/webgpu/visibility/Shader/Visibility.wgsl",
+		"public/webgpu/visibility/Shader/Visibility.vert.wgsl",
+		"public/webgpu/visibility/Shader/Visibility.frag.wgsl",
 	);
 	await renderer.loadShader(
 		"material",
-		"public/webgpu/visibility/shaders/base.wgsl",
-		"public/webgpu/visibility/shaders/base.vert.wgsl",
-		"public/webgpu/visibility/shaders/base.frag.wgsl",
+		"public/webgpu/visibility/Shader/Material.wgsl",
+		"public/webgpu/visibility/Shader/Material.vert.wgsl",
+		"public/webgpu/visibility/Shader/Material.frag.wgsl",
 	);
 
 	const viewport = new Vector2(innerWidth, innerHeight);

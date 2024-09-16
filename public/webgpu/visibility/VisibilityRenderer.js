@@ -69,7 +69,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 			primitive: {
 				topology: "triangle-list",
 				frontFace: "cw",
-				cullMode: "back",
+				// cullMode: "back",
 			},
 			depthStencil: {
 				format: "depth24plus",
@@ -194,32 +194,18 @@ export class VisibilityRenderer extends WebGPURenderer {
 	}
 
 	#createIndexStorageBuffer() {
-		const meshes = this._scene.getMeshes();
-		let indexCount = 0;
-
-		for (let i = 0; i < meshes.length; i++) {
-			indexCount += meshes[i].getGeometry().getIndices().length;
-		}
+		const indexBuffer = this._scene.getClusteredMeshes().indexBuffer;
 
 		const indexStorageBuffer = this._device.createBuffer({
 			label: "Index buffer",
-			size: indexCount * Uint32Array.BYTES_PER_ELEMENT,
+			size: indexBuffer.byteLength,
 			usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
 			mappedAtCreation: true,
 		});
 
 		const indexStorageBufferMap = new Uint32Array(indexStorageBuffer.getMappedRange());
 
-		for (let i = 0, previousIndexCount = 0, previousVertexCount = 0; i < meshes.length; i++) {
-			const indices = meshes[i].getGeometry().getIndices();
-
-			for (let j = 0; j < indices.length; j++) {
-				indexStorageBufferMap[previousIndexCount + j] = previousVertexCount + indices[j];
-			}
-
-			previousIndexCount += indices.length;
-			previousVertexCount += meshes[i].getGeometry().getVertices().length / 3;
-		}
+		indexStorageBufferMap.set(indexBuffer);
 
 		indexStorageBuffer.unmap();
 
@@ -227,8 +213,6 @@ export class VisibilityRenderer extends WebGPURenderer {
 	}
 
 	#createGeometryIndirectBuffer() {
-		const meshes = this._scene.getMeshes();
-
 		const indirectBuffer = this._device.createBuffer({
 			label: "Geometry indirect",
 			size: WebGPURenderer._INDIRECT_BUFFER_SIZE * Uint32Array.BYTES_PER_ELEMENT,
@@ -240,20 +224,15 @@ export class VisibilityRenderer extends WebGPURenderer {
 		let firstIndex = 0;
 		let offset = 0;
 
-		let totalIndexCount = 0;
+		const indicesPerCluster = 128 * 3;
+		const clusterCount = this._scene.getClusteredMeshes().clusters.length;
 
-		for (let i = 0; i < meshes.length; i++) {
-			totalIndexCount += meshes[i].getGeometry().getIndices().length;
-		}
-
-		const clusterCount = this._scene.getClusters().length;
-
-		indirectBufferMap[offset + 0] = totalIndexCount; // The number of indices to draw
+		indirectBufferMap[offset + 0] = indicesPerCluster; // The number of indices to draw per cluster
 		indirectBufferMap[offset + 1] = clusterCount; // The number of clusters to draw
 		indirectBufferMap[offset + 2] = firstIndex; // Offset into the index buffer, in indices, begin drawing from
 
-		/* // Create a indirect sub-buffer for each unique geometry
-		for (let i = 0; i < geometries.length; i++) {
+		// Create a indirect sub-buffer for each unique geometry
+		/* for (let i = 0; i < geometries.length; i++) {
 			const geometry = geometries[i];
 			const indexCount = geometry.getIndices().length;
 			const instanceCount = this._scene.getInstanceCount(geometry);
@@ -272,19 +251,19 @@ export class VisibilityRenderer extends WebGPURenderer {
 	}
 
 	#createClusterStorageBuffer() {
-		const clusters = this._scene.getClusters();
+		const clusteredMeshes = this._scene.getClusteredMeshes();
 
 		const clusterStorageBuffer = this._device.createBuffer({
 			label: "Cluster",
-			size: clusters.length * Uint32Array.BYTES_PER_ELEMENT,
+			size: clusteredMeshes.clusters.length * Uint32Array.BYTES_PER_ELEMENT,
 			usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
 			mappedAtCreation: true,
 		});
 
 		const clusterStorageBufferMap = new Uint32Array(clusterStorageBuffer.getMappedRange());
 
-		for (let i = 0; i < clusters.length; i++) {
-			const cluster = clusters[i];
+		for (let i = 0; i < clusteredMeshes.clusters.length; i++) {
+			const cluster = clusteredMeshes.clusters[i];
 
 			clusterStorageBufferMap[i] = cluster.meshIndex;
 		}

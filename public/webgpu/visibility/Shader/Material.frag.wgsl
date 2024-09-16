@@ -36,7 +36,7 @@ const FAR: f32 = 1000;
 const VISUALIZATION_MODE_DEPTH: u32 = 0;
 const VISUALIZATION_MODE_TRIANGLE: u32 = 1;
 const VISUALIZATION_MODE_CLUSTER: u32 = 2;
-// const VISUALIZATION_MODE_MESH: u32 = 3;
+const VISUALIZATION_MODE_MESH: u32 = 3;
 // const VISUALIZATION_MODE_GEOMETRY: u32 = 4;
 const VISUALIZATION_MODE_PHONG: u32 = 5;
 const VISUALIZATION_MODE: u32 = VISUALIZATION_MODE_CLUSTER;
@@ -67,14 +67,20 @@ fn main(in: In) -> @location(0) vec4f {
 
 		color = intToColor(clusterIndex) * 0.8 + 0.2;
 	}
-	/* else if (VISUALIZATION_MODE == VISUALIZATION_MODE_MESH) {
+	else if (VISUALIZATION_MODE == VISUALIZATION_MODE_MESH) {
 		let visibility: u32 = textureLoad(visibilityTexture, position).r;
 		let clusterIndex: u32 = (visibility >> 7);
-		let cluster: Cluster = clusters[clusterIndex];
-		let meshIndex: u32 = cluster.meshIndex;
 
-		color = intToColor(meshIndex) * 0.8 + 0.2;
-	} */
+		if (clusterIndex != 0) {
+			let cluster: Cluster = clusters[clusterIndex - 1];
+
+			let meshIndex: u32 = cluster.meshIndex + 1;
+
+			color = intToColor(meshIndex);
+		}
+
+		color = color * 0.8 + 0.2;
+	}
 	else if (VISUALIZATION_MODE == VISUALIZATION_MODE_PHONG) {
 		let visibility: u32 = textureLoad(visibilityTexture, position).r;
 		let triangleIndex: u32 = visibility & 0x7f;
