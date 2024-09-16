@@ -3,6 +3,9 @@
 @group(1) @binding(1) var visibilityTexture: texture_storage_2d<rg32uint, read>;
 @group(2) @binding(0) var<storage> vertexBuffer: array<f32>;
 @group(2) @binding(1) var<storage> indexBuffer: array<u32>;
+@group(2) @binding(2) var<storage> clusters: array<Cluster>;
+@group(2) @binding(3) var<storage> geometries: array<Geometry>;
+@group(3) @binding(0) var<storage> meshes: array<Mesh>;
 
 struct View {
 	viewport: vec4u,
@@ -13,14 +16,30 @@ struct In {
 	@builtin(position) position: vec4f,
 }
 
+struct Cluster {
+	meshIndex: u32,
+}
+
+struct Geometry {
+	triangleCount: u32,
+}
+
+struct Mesh {
+	projection: mat4x4f,
+	// geometryIndex: u32,
+	// materialIndex: u32,
+}
+
 const NEAR: f32 = 5;
 const FAR: f32 = 1000;
 
 const VISUALIZATION_MODE_DEPTH: u32 = 0;
-const VISUALIZATION_MODE_INSTANCE: u32 = 1;
-const VISUALIZATION_MODE_TRIANGLE: u32 = 2;
-const VISUALIZATION_MODE_PHONG: u32 = 3;
-const VISUALIZATION_MODE: u32 = VISUALIZATION_MODE_TRIANGLE;
+const VISUALIZATION_MODE_TRIANGLE: u32 = 1;
+const VISUALIZATION_MODE_CLUSTER: u32 = 2;
+// const VISUALIZATION_MODE_MESH: u32 = 3;
+// const VISUALIZATION_MODE_GEOMETRY: u32 = 4;
+const VISUALIZATION_MODE_PHONG: u32 = 5;
+const VISUALIZATION_MODE: u32 = VISUALIZATION_MODE_CLUSTER;
 
 const CAMERA_POSITION: vec3f = vec3f(0, 0, 0);
 const LIGHT_POSITION: vec3f = vec3f(0.29, 4.94, 2.46);
@@ -36,18 +55,26 @@ fn main(in: In) -> @location(0) vec4f {
 
 		color = vec3f(linearDepth);
 	}
-	else if (VISUALIZATION_MODE == VISUALIZATION_MODE_INSTANCE) {
-		let visibility: u32 = textureLoad(visibilityTexture, position).r;
-		let instanceIndex: u32 = visibility >> 7;
-
-		color = intToColor(instanceIndex) * 0.8 + 0.2;
-	}
 	else if (VISUALIZATION_MODE == VISUALIZATION_MODE_TRIANGLE) {
 		let visibility: u32 = textureLoad(visibilityTexture, position).r;
 		let triangleIndex: u32 = visibility & 0x7f;
 
 		color = intToColor(triangleIndex) * 0.8 + 0.2;
 	}
+	else if (VISUALIZATION_MODE == VISUALIZATION_MODE_CLUSTER) {
+		let visibility: u32 = textureLoad(visibilityTexture, position).r;
+		let clusterIndex: u32 = visibility >> 7;
+
+		color = intToColor(clusterIndex) * 0.8 + 0.2;
+	}
+	/* else if (VISUALIZATION_MODE == VISUALIZATION_MODE_MESH) {
+		let visibility: u32 = textureLoad(visibilityTexture, position).r;
+		let clusterIndex: u32 = (visibility >> 7);
+		let cluster: Cluster = clusters[clusterIndex];
+		let meshIndex: u32 = cluster.meshIndex;
+
+		color = intToColor(meshIndex) * 0.8 + 0.2;
+	} */
 	else if (VISUALIZATION_MODE == VISUALIZATION_MODE_PHONG) {
 		let visibility: u32 = textureLoad(visibilityTexture, position).r;
 		let triangleIndex: u32 = visibility & 0x7f;

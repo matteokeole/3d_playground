@@ -1,7 +1,7 @@
 import {PerspectiveCamera} from "../../../../src/Camera/index.js";
 import {BoxGeometry, Geometry, PolytopeGeometry} from "../../../../src/Geometry/index.js";
 import {FileLoader} from "../../../../src/Loader/FileLoader.js";
-import {Vector2, Vector3, Vector4} from "../../../../src/math/index.js";
+import {PI, Vector2, Vector3, Vector4} from "../../../../src/math/index.js";
 import {OBJParser} from "../../../../src/Parser/Text/OBJParser.js";
 import {Scene} from "../../../../src/Scene/index.js";
 import {Mesh} from "../../../hl2/Mesh.js";
@@ -36,11 +36,15 @@ export default async function() {
 	renderer.resize();
 
 	const scene = await createLookAtTestScene();
+
+	scene.clusterize();
+
+	renderer.setScene(scene);
+
 	const camera = createLookAtTestCamera();
 
 	camera.setAspectRatio(viewport[0] / viewport[1]);
 
-	renderer.setScene(scene);
 	renderer.setCamera(camera);
 
 	document.body.appendChild(canvas);
@@ -173,6 +177,8 @@ export async function createLookAtTestScene() {
 	const mesh = new Mesh(geometry, null);
 	mesh.setPosition(new Vector3(0, -0.3, 0));
 	mesh.setScale(new Vector3().addScalar(3));
+	// mesh.setScale(new Vector3().addScalar(0.04));
+	// mesh.setRotation(new Vector3(-PI / 2, 0, PI));
 	mesh.updateProjection();
 
 	const scene = new Scene();

@@ -4,7 +4,7 @@ import {Vector3} from "../../../../src/math/index.js";
 
 export class DevInstance extends Instance {
 	static #FRICTION = 0.9;
-	static #CAMERA_SPEED = 0.02;
+	static #CAMERA_SPEED = 0.2;
 	static #SENSITIVITY = 0.075;
 
 	#activeKeyCodes;
