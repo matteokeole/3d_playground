@@ -27,6 +27,7 @@ export default async function() {
 	);
 	await renderer.loadShader(
 		"material",
+		"public/webgpu/visibility/Shader/Material.wgsl",
 		"public/webgpu/visibility/Shader/Material.vert.wgsl",
 		"public/webgpu/visibility/Shader/Material.frag.wgsl",
 	);
@@ -160,7 +161,7 @@ async function createScene() {
 
 export async function createLookAtTestScene() {
 	const fileLoader = new FileLoader();
-	const response = await fileLoader.load("assets/models/nefertiti.obj");
+	const response = await fileLoader.load("assets/models/living_room/living_room.obj");
 	const text = await response.text();
 
 	const objParser = new OBJParser();
@@ -174,27 +175,15 @@ export async function createLookAtTestScene() {
 		uvs: Float32Array.of(),
 	});
 
-	const mesh1 = new Mesh(geometry, null);
-	mesh1.setPosition(new Vector3(-10, -0.3, 0));
-	mesh1.setScale(new Vector3().addScalar(0.04));
-	mesh1.setRotation(new Vector3(-PI / 2, 0, PI));
-	mesh1.updateProjection();
-
-	const mesh2 = new Mesh(geometry, null);
-	mesh2.setPosition(new Vector3(0, -0.3, 0));
-	mesh2.setScale(new Vector3().addScalar(0.04));
-	mesh2.setRotation(new Vector3(-PI / 2, 0, PI));
-	mesh2.updateProjection();
-
-	const mesh3 = new Mesh(geometry, null);
-	mesh3.setPosition(new Vector3(10, -0.3, 0));
-	mesh3.setScale(new Vector3().addScalar(0.04));
-	mesh3.setRotation(new Vector3(-PI / 2, 0, PI));
-	mesh3.updateProjection();
+	const mesh = new Mesh(geometry, null);
+	// mesh.setPosition(new Vector3(-10, -0.3, 0));
+	// mesh.setScale(new Vector3().addScalar(0.04));
+	// mesh.setRotation(new Vector3(-PI / 2, 0, PI));
+	// mesh.updateProjection();
 
 	const scene = new Scene();
 
-	scene.addMeshes(geometry, [mesh1, mesh2, mesh3]);
+	scene.addMeshes(geometry, [mesh]);
 
 	return scene;
 }
@@ -222,7 +211,7 @@ function createCamera() {
 
 function createLookAtTestCamera() {
 	const camera = new PerspectiveCamera({
-		position: new Vector3(0, 0, -30),
+		position: new Vector3(0, 0, -2),
 		hull: null,
 		fieldOfView: 60,
 		nearClipPlane: 0.1,

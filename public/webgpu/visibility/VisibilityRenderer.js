@@ -462,7 +462,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 			entries: [
 				{
 					binding: 0,
-					visibility: GPUShaderStage.VERTEX,
+					visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
 					buffer: {
 						type: "read-only-storage",
 					},

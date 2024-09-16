@@ -25,9 +25,7 @@ struct Geometry {
 }
 
 struct Mesh {
-	projection: mat4x4f,
-	// geometryIndex: u32,
-	// materialIndex: u32,
+	world: mat4x4f,
 }
 
 const NEAR: f32 = 5;
@@ -38,8 +36,8 @@ const VISUALIZATION_MODE_TRIANGLE: u32 = 1;
 const VISUALIZATION_MODE_CLUSTER: u32 = 2;
 const VISUALIZATION_MODE_MESH: u32 = 3;
 // const VISUALIZATION_MODE_GEOMETRY: u32 = 4;
-const VISUALIZATION_MODE_PHONG: u32 = 5;
-const VISUALIZATION_MODE: u32 = VISUALIZATION_MODE_CLUSTER;
+const VISUALIZATION_MODE_BARY: u32 = 5;
+const VISUALIZATION_MODE: u32 = VISUALIZATION_MODE_BARY;
 
 const CAMERA_POSITION: vec3f = vec3f(0, 0, 0);
 const LIGHT_POSITION: vec3f = vec3f(0.29, 4.94, 2.46);
@@ -81,13 +79,24 @@ fn main(in: In) -> @location(0) vec4f {
 
 		color = color * 0.8 + 0.2;
 	}
-	else if (VISUALIZATION_MODE == VISUALIZATION_MODE_PHONG) {
+	else if (VISUALIZATION_MODE == VISUALIZATION_MODE_BARY) {
 		let visibility: u32 = textureLoad(visibilityTexture, position).r;
-		let triangleIndex: u32 = visibility & 0x7f;
-		let triangle: array<vec3f, 3> = fetchTriangle(triangleIndex - 1);
-		let result: vec3f = phong(triangle);
+		let clusterIndex: u32 = (visibility >> 7);
 
-		color = result;
+		if (clusterIndex != 0) {
+			let cluster: Cluster = clusters[clusterIndex - 1];
+
+			let meshIndex: u32 = cluster.meshIndex + 1;
+			let mesh: Mesh = meshes[meshIndex];
+
+			let triangleIndex: u32 = visibility & 0x7f;
+			let triangle: array<vec3f, 3> = fetchTriangle(triangleIndex - 1);
+			let result: vec3f = bary(triangle, position, view.viewProjection * mesh.world);
+
+			color = result;
+		}
+
+		color = color * 0.8 + 0.2;
 	}
 
 	return vec4f(color, 1);
@@ -140,19 +149,33 @@ fn fetchVertex(index: u32) -> vec3f {
 	return vec3f(x, y, z);
 }
 
-fn phong(triangle: array<vec3f, 3>) -> vec3f {
-	let a: vec3f = triangle[0];
-	let b: vec3f = triangle[1];
-	let c: vec3f = triangle[2];
+fn bary(triangle: array<vec3f, 3>, uv: vec2u, world: mat4x4f) -> vec3f {
+	let width: u32 = view.viewport.z;
+	let height: u32 = view.viewport.w;
+	let imageAspectRatio: f32 = f32(width) / f32(height);
+	let scale: f32 = 1;
 
-	let ab: vec3f = b - a;
-	let ac: vec3f = c - a;
+	let px: f32 = (2 * (f32(uv.x) + 0.5) / f32(width) - 1) * imageAspectRatio * scale;
+	let py: f32 = (1 - 2 * (f32(uv.y) + 0.5) / f32(height)) * scale;
+	let p: vec3f = normalize(vec3f(px, py, -1));
 
-	let N: vec3f = abs(normalize(cross(ab, ac)));
+	let a: vec3f = (world * vec4f(triangle[0], 1)).xyz;
+	let b: vec3f = (world * vec4f(triangle[1], 1)).xyz;
+	let c: vec3f = (world * vec4f(triangle[2], 1)).xyz;
 
-	// let L: vec3f = normalize(LIGHT_POSITION - CAMERA_POSITION);
+	var u: f32 = 0;
+	var v: f32 = 0;
+	var w: f32 = 0;
 
-	// let dot: f32 = max(dot(N, L), 0);
+	computeBarycentricCoordinates(a, b, c, p, &u, &v, &w);
 
-	return N;
+	const colors: array<vec3f, 3> = array(
+		vec3f(0.6, 0.4, 0.1),
+		vec3f(0.1, 0.5, 0.3),
+		vec3f(0.1, 0.3, 0.7),
+	);
+
+	let result: vec3f = u * colors[0] + v * colors[1] + w * colors[2];
+
+	return result;
 }

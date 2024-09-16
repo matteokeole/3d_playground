@@ -10,7 +10,7 @@ struct TrianglePosition {
 	pos2: vec3f,
 }
 
-fn fetchTriangleIndices(instanceIndex: u32, triangleIndex: u32) -> vec3f {
+/* fn fetchTriangleIndices(instanceIndex: u32, triangleIndex: u32) -> vec3f {
 	let startIndex: u32 = instanceBuffer[instanceIndex].visibilityStartIndexPositionGeometryMaterialIndex.x;
 
 	return visibilityIndexBuffer[startIndex + 3 * 4 * triangleIndex];
@@ -25,9 +25,26 @@ fn fetchTrianglePosition(instanceIndex: u32, triangleIndices: vec3f) -> Triangle
 	trianglePosition.pos2.xyz = vec3f(visibilityPositionBuffer[startPos + 12 * triangleIndices.z]);
 
 	return trianglePosition;
+} */
+
+fn computeBarycentricCoordinates(a: vec3f, b: vec3f, c: vec3f, p: vec3f, u: ptr<function, f32>, v: ptr<function, f32>, w: ptr<function, f32>) {
+	let v0: vec3f = b - a;
+	let v1: vec3f = c - a;
+	let v2: vec3f = p - a;
+
+	let d00: f32 = dot(v0, v0);
+	let d01: f32 = dot(v0, v1);
+	let d11: f32 = dot(v1, v1);
+	let d20: f32 = dot(v2, v0);
+	let d21: f32 = dot(v2, v1);
+	let denom: f32 = d00 * d11 - d01 * d01;
+
+	*v = (d11 * d20 - d01 * d21) / denom;
+	*w = (d00 * d21 - d01 * d20) / denom;
+	*u = 1 - *v - *w;
 }
 
-fn calculateBarycentricDerivatives(v0: vec4f, v1: vec4f, v2: vec4f, uv: vec2f, viewport: vec2f) -> BarycentricDerivatives {
+/* fn calculateBarycentricDerivatives(v0: vec4f, v1: vec4f, v2: vec4f, uv: vec2f, viewport: vec2f) -> BarycentricDerivatives {
 	var deriv: BarycentricDerivatives;
 
 	let invW: vec3f = rcpvec3f(vec3f(v0.w, v1.w, v2.w));
@@ -69,7 +86,7 @@ fn calculateBarycentricDerivatives(v0: vec4f, v1: vec4f, v2: vec4f, uv: vec2f, v
 	return deriv;
 }
 
-fn interpolateWithBarycentricDerivatives(BarycentricDerivatives derivatives, v0: f32, v1: f32, v2: f32) -> vec3f {
+fn interpolateWithBarycentricDerivatives(derivatives: BarycentricDerivatives, v0: f32, v1: f32, v2: f32) -> vec3f {
 	let mergedVertex: vec3f = vec3f(v0, v1, v2);
 
 	return vec3f(
@@ -89,4 +106,4 @@ fn rcpvec3f(a: vec3f) -> vec3f {
 		1 / a.y,
 		1 / a.z,
 	);
-}
+} */
