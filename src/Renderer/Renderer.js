@@ -2,6 +2,7 @@ import {Camera} from "../Camera/index.js";
 import {NotImplementedError} from "../Error/index.js";
 import {TextLoader} from "../Loader/index.js";
 import {Vector4} from "../math/index.js";
+import {Scene} from "../Scene/index.js";
 import {Shader} from "../Shader/index.js";
 
 /**
@@ -19,7 +20,7 @@ export class Renderer {
 	_viewport;
 
 	/**
-	 * @type {?Object}
+	 * @type {?Scene}
 	 */
 	_scene;
 
@@ -27,6 +28,8 @@ export class Renderer {
 	 * @type {?Camera}
 	 */
 	_camera;
+
+	#isPointerLocked;
 
 	/**
 	 * @param {HTMLCanvasElement} canvas
@@ -39,6 +42,21 @@ export class Renderer {
 		this._viewport = new Vector4(0, 0, 300, 150);
 		this._scene = null;
 		this._camera = null;
+		this.#isPointerLocked = false;
+
+		document.addEventListener("pointerlockchange", () => {
+			const isPointerLocked = document.pointerLockElement === this._canvas;
+
+			this.setIsPointerLocked(isPointerLocked);
+		});
+
+		canvas.addEventListener("click", event => {
+			if (event.target !== this._canvas) {
+				return;
+			}
+
+			this._canvas.requestPointerLock();
+		});
 	}
 
 	getTextLoader() {
@@ -91,6 +109,17 @@ export class Renderer {
 	 * @param {Camera} camera
 	 */
 	setCamera(camera) {}
+
+	isPointerLocked() {
+		return this.#isPointerLocked;
+	}
+
+	/**
+	 * @param {Boolean} isPointerLocked
+	 */
+	setIsPointerLocked(isPointerLocked) {
+		this.#isPointerLocked = isPointerLocked;
+	}
 
 	/**
 	 * @abstract

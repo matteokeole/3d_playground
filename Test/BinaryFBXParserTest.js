@@ -1,8 +1,8 @@
 import {BinaryLoader} from "../src/Loader/index.js";
 import {FBXParser} from "../src/Parser/Binary/index.js";
-import {Test} from "../src/Test/index.js";
+import {UnitTest} from "../src/Test/index.js";
 
-export class BinaryFBXParserTest extends Test {
+export class BinaryFBXParserTest extends UnitTest {
 	/**
 	 * Tests results:
 	 * - cube.fbx (7.4): 71.5kB
@@ -10,7 +10,7 @@ export class BinaryFBXParserTest extends Test {
 	 * - table.fbx (7.4): 209kB
 	 */
 	async execute() {
-		const url = "Test/Asset/FBX/Binary/cube.fbx";
+		const url = "Test/Asset/Model/FBX/Binary/cube.fbx";
 
 		const binaryLoader = new BinaryLoader();
 		const arrayBuffer = await binaryLoader.load(url);

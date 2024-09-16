@@ -145,7 +145,7 @@ export class Renderer extends WebGLRenderer {
 
 		gl.uniformMatrix4fv(this._uniforms.cameraProjection, false, camera.getProjection());
 		gl.uniformMatrix4fv(this._uniforms.cameraView, false, camera.getView());
-		gl.uniform3fv(this._uniforms.cameraPosition, camera.getPhysicalPosition());
+		gl.uniform3fv(this._uniforms.cameraPosition, camera.getPosition());
 		gl.uniform3fv(this._uniforms.lightPosition, pointLight.position);
 		gl.uniform3fv(this._uniforms.lightColor, pointLight.color);
 		gl.uniform1f(this._uniforms.lightIntensity, pointLight.intensity);
@@ -297,7 +297,7 @@ export class Renderer extends WebGLRenderer {
 
 				gl.uniformMatrix4fv(this._uniforms.debugCameraProjection, false, camera.getProjection());
 				gl.uniformMatrix4fv(this._uniforms.debugCameraView, false, camera.getView());
-				gl.uniform3fv(this._uniforms.debugCameraPosition, camera.getPhysicalPosition());
+				gl.uniform3fv(this._uniforms.debugCameraPosition, camera.getPosition());
 
 				for (const [, meshes] of this.#meshesPerMaterial) {
 					for (let i = 0, length = meshes.length; i < length; i++) {

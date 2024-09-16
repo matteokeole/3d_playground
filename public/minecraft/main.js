@@ -1,12 +1,11 @@
 import {PerspectiveCamera} from "../../src/Camera/index.js";
 import {ImageBitmapLoader} from "../../src/Loader/index.js";
-import {PI, SQRT1_2, Vector2} from "../../src/math/index.js";
+import {SQRT1_2, Vector2, Vector3} from "../../src/math/index.js";
 import {Renderer} from "./Renderer.js";
 import {enableDebugging} from "./debug.js";
-import {listen} from "./input.js";
 import {Instance} from "./Instance.js";
 
-import {createScene} from "./scenes/perspective_shadow.js";
+import {createScene} from "./scenes/chunk.js";
 
 export const FRAMES_PER_SECOND = 60;
 export const FIELD_OF_VIEW = 90;
@@ -38,20 +37,23 @@ export default async function() {
 
 	renderer.loadTextures(textures);
 
-	const camera = new PerspectiveCamera();
-	camera.getPosition()[1] = CAMERA_HEIGHT;
-	camera.fieldOfView = FIELD_OF_VIEW;
-	camera.aspectRatio = viewport[0] / viewport[1];
-	camera.near = .01;
-	camera.far = 200;
-	camera.bias = PI * .5; // This cancels the perspective matrix bias
-	camera.turnVelocity = .001;
+	// Bias: PI / 2
+	const camera = new PerspectiveCamera({
+		position: new Vector3(0, CAMERA_HEIGHT, 0),
+		hull: null,
+		fieldOfView: FIELD_OF_VIEW,
+		nearClipPlane: 0.1,
+		farClipPlane: 200,
+	});
 
-	renderer.setScene(createScene());
+	camera.setAspectRatio(viewport[0] / viewport[1]);
+
+	const scene = createScene();
+
+	renderer.setScene(scene);
 	renderer.setCamera(camera);
 
 	enableDebugging(renderer);
-	listen(renderer);
 
 	renderer.prerender();
 

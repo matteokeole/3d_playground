@@ -39,12 +39,12 @@ export class WebGLShader extends Shader {
 		const vertexExecArray = WebGLShader.#VERSION_DIRECTIVE_REGEXP.exec(vertexSource);
 		const vertexVersionDirective = vertexExecArray[1];
 		const postVersionDirectiveVertexSource = vertexExecArray[2];
-		const commonVertexSource = `${vertexVersionDirective}${commonSource}${postVersionDirectiveVertexSource}`;
+		const commonVertexSource = `${vertexVersionDirective}${commonSource}\n${postVersionDirectiveVertexSource}`;
 
 		const fragmentExecArray = WebGLShader.#VERSION_DIRECTIVE_REGEXP.exec(fragmentSource);
 		const fragmentVersionDirective = fragmentExecArray[1];
 		const postVersionDirectiveFragmentSource = fragmentExecArray[2];
-		const commonFragmentSource = `${fragmentVersionDirective}${commonSource}${postVersionDirectiveFragmentSource}`;
+		const commonFragmentSource = `${fragmentVersionDirective}${commonSource}\n${postVersionDirectiveFragmentSource}`;
 
 		return new WebGLShader(context, commonVertexSource, commonFragmentSource);
 	}

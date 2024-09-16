@@ -7,11 +7,14 @@ const testClass = response[environment.testClass];
 const test = new testClass();
 
 if (!(test instanceof Test)) {
-	throw new Error(`Test class ${environment.testClass} must extend Test in order to be executed.`);
+	throw new Error(`Class ${environment.testClass} does not extend Test.`);
 }
 
 try {
 	await test.execute();
+
+	console.info(`${environment.testClass} completed with success.`);
 } catch (error) {
-	console.error(`${environment.testClass} failed: ${error.stack}`);
+	console.error(error);
+	console.info(`${environment.testClass} completed with failure.`);
 }

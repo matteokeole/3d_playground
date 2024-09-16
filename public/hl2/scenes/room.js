@@ -1,10 +1,9 @@
 import {PerspectiveCamera} from "../../../src/Camera/index.js";
 import {PointLight} from "../../../src/Light/index.js";
 import {SSDLoader} from "../../../src/Loader/index.js";
-import {PI, Vector2, Vector3} from "../../../src/math/index.js";
+import {Vector3} from "../../../src/math/index.js";
 import {FIELD_OF_VIEW, PLAYER_COLLISION_HULL} from "../../index.js";
 import {Scene} from "../Scene.js";
-import {SENSITIVITY} from "../main.js";
 
 /**
  * @param {import("../../../src/Loader/ImageBitmapLoader.js").Image[]} imageBitmaps
@@ -29,20 +28,14 @@ export async function createScene(imageBitmaps) {
 	return scene;
 }
 
-/**
- * @param {Number} aspectRatio
- */
-export function createCamera(aspectRatio) {
-	const camera = new PerspectiveCamera();
-
-	camera.setPosition(new Vector3(0, PLAYER_COLLISION_HULL[1], -128));
-	camera.fieldOfView = FIELD_OF_VIEW;
-	camera.aspectRatio = aspectRatio;
-	camera.near = .5;
-	camera.far = 1000;
-	camera.bias = PI * .545; // ~1.712
-	camera.turnVelocity = SENSITIVITY;
-	camera.lookAt(new Vector2());
+export function createCamera() {
+	const camera = new PerspectiveCamera({
+		position: new Vector3(0, PLAYER_COLLISION_HULL[1], -128),
+		hull: null,
+		fieldOfView: FIELD_OF_VIEW,
+		nearClipPlane: 0.5,
+		farClipPlane: 1000,
+	});
 
 	return camera;
 }

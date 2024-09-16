@@ -5,13 +5,12 @@ import {Mesh} from "../../../../src/Mesh/index.js";
 import {Scene} from "../../../../src/Scene/index.js";
 import {SENSITIVITY} from "../../../hl2/main.js";
 import {FRAMES_PER_SECOND} from "../../../index.js";
-import {listen} from "../input.js";
 import {Instance} from "../Instance.js";
-import {Renderer} from "../Renderer.js";
+import {VisibilityRenderer} from "../VisibilityRenderer.js";
 
 export default async function() {
 	const canvas = document.createElement("canvas");
-	const renderer = new Renderer(canvas);
+	const renderer = new VisibilityRenderer(canvas);
 	const instance = new Instance({
 		renderer,
 		framesPerSecond: FRAMES_PER_SECOND,
@@ -21,14 +20,14 @@ export default async function() {
 
 	await renderer.loadShader(
 		"visibility",
-		"public/webgpu/visibility/shaders/visibility.wgsl",
-		"public/webgpu/visibility/shaders/visibility.vert.wgsl",
-		"public/webgpu/visibility/shaders/visibility.frag.wgsl",
+		"public/webgpu/visibility/Shader/Visibility.wgsl",
+		"public/webgpu/visibility/Shader/Visibility.vert.wgsl",
+		"public/webgpu/visibility/Shader/Visibility.frag.wgsl",
 	);
 	await renderer.loadShader(
 		"material",
-		"public/webgpu/visibility/CornellBox/Shader/base.vert.wgsl",
-		"public/webgpu/visibility/CornellBox/Shader/base.frag.wgsl",
+		"public/webgpu/visibility/CornellBox/Shader/Material.vert.wgsl",
+		"public/webgpu/visibility/CornellBox/Shader/Material.frag.wgsl",
 	);
 
 	const viewport = new Vector2(innerWidth, innerHeight);
@@ -42,7 +41,6 @@ export default async function() {
 	renderer.setCamera(camera);
 
 	document.body.appendChild(canvas);
-	listen(renderer);
 
 	instance.loop();
 }

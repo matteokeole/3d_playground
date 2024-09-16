@@ -1,9 +1,10 @@
 import {PerspectiveCamera} from "../../../src/Camera/index.js";
 import {BoxGeometry} from "../../../src/Geometry/index.js";
 import {TextureMaterial} from "../../../src/Material/index.js";
-import {Matrix3, PI, Vector2, Vector3} from "../../../src/math/index.js";
+import {Matrix3, Vector3} from "../../../src/math/index.js";
 import {Mesh} from "../../../src/Mesh/index.js";
 import {BLOCK_SCALE, FIELD_OF_VIEW, NOISE_AMPLITUDE, NOISE_INC} from "../main.js";
+import {perlin2} from "../perlin.js";
 import {Scene} from "../Scene.js";
 
 /**
@@ -12,7 +13,7 @@ import {Scene} from "../Scene.js";
 export function createScene() {
 	const
 		chunkSize = 16,
-		chunkSizeSquared = chunkSize ** 2,
+		chunkSizeSquared = chunkSize * chunkSize,
 		chunkCenter = chunkSize / 2 - .5,
 		heightOffset = 9,
 		meshes = [];
@@ -32,7 +33,7 @@ export function createScene() {
 
 		x = i % chunkSize + .5;
 		z = j % chunkSize + .5;
-		y = Math.round(noise.perlin2(x * NOISE_INC, z * NOISE_INC) * NOISE_AMPLITUDE) + heightOffset;
+		y = Math.round(perlin2(x * NOISE_INC, z * NOISE_INC) * NOISE_AMPLITUDE) + heightOffset;
 
 		mesh.setPosition(new Vector3(x, y, z).subtractScalar(chunkCenter).multiplyScalar(BLOCK_SCALE));
 		mesh.getScale().multiplyScalar(BLOCK_SCALE);
@@ -40,18 +41,20 @@ export function createScene() {
 		meshes.push(mesh);
 	}
 
-	const pointLight = new PerspectiveCamera();
-	pointLight.setPosition(new Vector3(-4.82, 6.09, 3.54));
-	pointLight.setRotation(new Vector3(-0.96, 2.17, 0));
-	pointLight.fieldOfView = FIELD_OF_VIEW;
-	pointLight.aspectRatio = innerWidth / innerHeight;
-	pointLight.near = 1;
-	pointLight.far = 200;
-	pointLight.bias = PI * .5;
-	pointLight.turnVelocity = 0;
-	pointLight.lookAt(new Vector2());
+	// Rotation: (-0.96, 2.17, 0)
+	// Bias: PI / 2
+	const pointLight = new PerspectiveCamera({
+		position: new Vector3(-4.82, 6.09, 3.54),
+		hull: null,
+		fieldOfView: FIELD_OF_VIEW,
+		nearClipPlane: 1,
+		farClipPlane: 200,
+	});
+
+	pointLight.setAspectRatio(innerWidth / innerHeight);
 
 	const scene = new Scene(meshes);
+
 	scene.setPointLight(pointLight);
 
 	return scene;

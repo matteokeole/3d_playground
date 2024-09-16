@@ -1,0 +1,233 @@
+import {PerspectiveCamera} from "../../../../src/Camera/index.js";
+import {BoxGeometry, Geometry, PolytopeGeometry} from "../../../../src/Geometry/index.js";
+import {FileLoader} from "../../../../src/Loader/FileLoader.js";
+import {PI, Vector2, Vector3, Vector4} from "../../../../src/math/index.js";
+import {OBJParser} from "../../../../src/Parser/Text/OBJParser.js";
+import {Scene} from "../../../../src/Scene/index.js";
+import {Mesh} from "../../../hl2/Mesh.js";
+import {FIELD_OF_VIEW, FRAMES_PER_SECOND, PLAYER_COLLISION_HULL} from "../../../index.js";
+import {VisibilityRenderer} from "../VisibilityRenderer.js";
+import {DevInstance} from "./DevInstance.js";
+
+export default async function() {
+	const canvas = document.createElement("canvas");
+	const renderer = new VisibilityRenderer(canvas);
+	const instance = new DevInstance({
+		renderer,
+		framesPerSecond: FRAMES_PER_SECOND,
+	});
+
+	await instance.build();
+
+	await renderer.loadShader(
+		"visibility",
+		"public/webgpu/visibility/Shader/Visibility.wgsl",
+		"public/webgpu/visibility/Shader/Visibility.vert.wgsl",
+		"public/webgpu/visibility/Shader/Visibility.frag.wgsl",
+	);
+	await renderer.loadShader(
+		"material",
+		"public/webgpu/visibility/Shader/Material.vert.wgsl",
+		"public/webgpu/visibility/Shader/Material.frag.wgsl",
+	);
+
+	const viewport = new Vector2(innerWidth, innerHeight);
+	renderer.setViewport(new Vector4(0, 0, viewport[0], viewport[1]));
+	renderer.resize();
+
+	const scene = await createLookAtTestScene();
+
+	scene.clusterize();
+
+	renderer.setScene(scene);
+
+	const camera = createLookAtTestCamera();
+
+	camera.setAspectRatio(viewport[0] / viewport[1]);
+
+	renderer.setCamera(camera);
+
+	document.body.appendChild(canvas);
+
+	instance.loop();
+}
+
+/**
+ * @see {@link https://www.graphics.cornell.edu/online/box/data}
+ */
+async function createScene() {
+	///
+	/// Geometries
+	///
+
+	const planeGeometry = new BoxGeometry(new Vector3(2560, 0, 2560));
+	const squareWallGeometry = new PolytopeGeometry({
+		vertices: Float32Array.of(
+			0,   0,   0,
+			0,   128, 0,
+			128, 128, 0,
+			128, 0,   0,
+		),
+		indices: Uint32Array.of(
+			0, 1, 2,
+			0, 2, 3,
+		),
+	});
+	const boxGeometry = new BoxGeometry(new Vector3(1, 1, 1));
+	const slopeGeometry = new PolytopeGeometry({
+		vertices: Float32Array.of(
+			-0.5,  0.5,  0.5,
+			 0.5,  0.5,  0.5,
+			-0.5, -0.5, -0.8,
+			 0.5, -0.5, -0.8,
+			-0.5, -0.5,  0.5,
+			 0.5, -0.5,  0.5,
+		),
+		indices: Uint32Array.of(
+			0, 1, 2,
+			1, 3, 2,
+			0, 2, 4,
+			1, 5, 3,
+			1, 0, 5,
+			0, 4, 5,
+			2, 3, 4,
+			3, 5, 4,
+		),
+	});
+
+	///
+	/// Meshes
+	///
+
+	const plane = new Mesh(planeGeometry, null);
+	plane.setPosition(new Vector3(0, 0, 0));
+	plane.updateProjection();
+
+	const squareWall1 = new Mesh(squareWallGeometry, null);
+	squareWall1.setPosition(new Vector3(128, 0, 0));
+	squareWall1.updateProjection();
+
+	const squareWall2 = new Mesh(squareWallGeometry, null);
+	squareWall2.setPosition(new Vector3(256, 0, 0));
+	squareWall2.updateProjection();
+
+	const squareWall3 = new Mesh(squareWallGeometry, null);
+	squareWall3.setPosition(new Vector3(384, 0, 0));
+	squareWall3.updateProjection();
+
+	const squareWall4 = new Mesh(squareWallGeometry, null);
+	squareWall4.setPosition(new Vector3(512, 0, 0));
+	squareWall4.updateProjection();
+
+	const leftBox = new Mesh(boxGeometry, null);
+	leftBox.setPosition(new Vector3(-112, 24, 32));
+	leftBox.setScale(new Vector3(32, 48, 192));
+	leftBox.updateProjection();
+
+	const bridge = new Mesh(boxGeometry, null);
+	bridge.setPosition(new Vector3(-64, 42, 96));
+	bridge.setScale(new Vector3(64, 12, 64));
+	bridge.updateProjection();
+
+	const centerBox = new Mesh(boxGeometry, null);
+	centerBox.setPosition(new Vector3(16, 24, 96));
+	centerBox.setScale(new Vector3(96, 48, 64));
+	centerBox.updateProjection();
+
+	const rightBox = new Mesh(boxGeometry, null);
+	rightBox.setPosition(new Vector3(96, 24, 64));
+	rightBox.setScale(new Vector3(64, 48, 128));
+	rightBox.updateProjection();
+
+	const slope = new Mesh(slopeGeometry, null);
+	slope.setPosition(new Vector3(96, 24, -24));
+	slope.setScale(new Vector3(64, 48, 48));
+	slope.updateProjection();
+
+	///
+	/// Scene
+	///
+
+	const scene = new Scene();
+
+	scene.addMeshes(planeGeometry, [plane]);
+	scene.addMeshes(slopeGeometry, [slope]);
+	scene.addMeshes(boxGeometry, [leftBox, bridge, centerBox, rightBox]);
+	// scene.addMeshes(squareWallGeometry, [squareWall1, squareWall2, squareWall3, squareWall4]);
+
+	return scene;
+}
+
+export async function createLookAtTestScene() {
+	const fileLoader = new FileLoader();
+	const response = await fileLoader.load("assets/models/nefertiti.obj");
+	const text = await response.text();
+
+	const objParser = new OBJParser();
+	const obj = objParser.parse(text);
+
+	const geometry = new Geometry({
+		vertices: obj.vertices,
+		indices: obj.indices,
+		normals: Float32Array.of(),
+		tangents: Float32Array.of(),
+		uvs: Float32Array.of(),
+	});
+
+	const mesh1 = new Mesh(geometry, null);
+	mesh1.setPosition(new Vector3(-10, -0.3, 0));
+	mesh1.setScale(new Vector3().addScalar(0.04));
+	mesh1.setRotation(new Vector3(-PI / 2, 0, PI));
+	mesh1.updateProjection();
+
+	const mesh2 = new Mesh(geometry, null);
+	mesh2.setPosition(new Vector3(0, -0.3, 0));
+	mesh2.setScale(new Vector3().addScalar(0.04));
+	mesh2.setRotation(new Vector3(-PI / 2, 0, PI));
+	mesh2.updateProjection();
+
+	const mesh3 = new Mesh(geometry, null);
+	mesh3.setPosition(new Vector3(10, -0.3, 0));
+	mesh3.setScale(new Vector3().addScalar(0.04));
+	mesh3.setRotation(new Vector3(-PI / 2, 0, PI));
+	mesh3.updateProjection();
+
+	const scene = new Scene();
+
+	scene.addMeshes(geometry, [mesh1, mesh2, mesh3]);
+
+	return scene;
+}
+
+function createCamera() {
+	const hull = new Mesh(new BoxGeometry(PLAYER_COLLISION_HULL), null);
+	hull.setPosition(new Vector3(0, 40, 0));
+	hull.updateProjection();
+
+	const camera = new PerspectiveCamera({
+		position: new Vector3(0, 64, -64),
+		hull,
+		fieldOfView: FIELD_OF_VIEW,
+		nearClipPlane: 1,
+		farClipPlane: 10000,
+	});
+
+	/**
+	 * @todo
+	 */
+	// camera.setViewpoint(PLAYER_VIEWPOINT);
+
+	return camera;
+}
+
+function createLookAtTestCamera() {
+	const camera = new PerspectiveCamera({
+		position: new Vector3(0, 0, -30),
+		hull: null,
+		fieldOfView: 60,
+		nearClipPlane: 0.1,
+		farClipPlane: 1000,
+	});
+
+	return camera;
+}

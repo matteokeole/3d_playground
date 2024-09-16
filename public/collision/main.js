@@ -1,6 +1,5 @@
 import {ImageBitmapLoader} from "../../src/Loader/index.js";
 import {Vector2, Vector4} from "../../src/math/index.js";
-import {listen} from "../hl2/input.js";
 import {Renderer} from "../hl2/Renderer.js";
 import {Instance} from "./Instance.js";
 
@@ -33,14 +32,14 @@ export default async function() {
 	// const captureSessionLoader = new CaptureSessionLoader();
 	// const captureSession = await captureSessionLoader.load("assets/capture/rotation/pitch.json");
 
-	const camera = createCamera(viewport[0] / viewport[1]);
+	const camera = createCamera();
 	// camera.setCaptureSession(captureSession);
+
+	camera.setAspectRatio(viewport[0] / viewport[1]);
 
 	renderer.loadTextures(imageBitmaps);
 	renderer.setScene(await createScene(imageBitmaps));
 	renderer.setCamera(camera);
-
-	listen(renderer);
 
 	document.body.appendChild(canvas);
 
