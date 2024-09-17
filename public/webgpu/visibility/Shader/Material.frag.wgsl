@@ -44,29 +44,29 @@ const LIGHT_POSITION: vec3f = vec3f(0.29, 4.94, 2.46);
 
 @fragment
 fn main(in: In) -> @location(0) vec4f {
-	let position: vec2u = vec2u(in.position.xy);
+	let uv: vec2u = vec2u(in.position.xy);
 	var color: vec3f;
 
 	if (VISUALIZATION_MODE == VISUALIZATION_MODE_DEPTH) {
-		let depth: f32 = textureLoad(depthTexture, position, 0);
+		let depth: f32 = textureLoad(depthTexture, uv, 0);
 		let linearDepth: f32 = linearizeDepth(depth);
 
 		color = vec3f(linearDepth);
 	}
 	else if (VISUALIZATION_MODE == VISUALIZATION_MODE_TRIANGLE) {
-		let visibility: u32 = textureLoad(visibilityTexture, position).r;
+		let visibility: u32 = textureLoad(visibilityTexture, uv).r;
 		let triangleIndex: u32 = visibility & 0x7f;
 
 		color = intToColor(triangleIndex) * 0.8 + 0.2;
 	}
 	else if (VISUALIZATION_MODE == VISUALIZATION_MODE_CLUSTER) {
-		let visibility: u32 = textureLoad(visibilityTexture, position).r;
+		let visibility: u32 = textureLoad(visibilityTexture, uv).r;
 		let clusterIndex: u32 = visibility >> 7;
 
 		color = intToColor(clusterIndex) * 0.8 + 0.2;
 	}
 	else if (VISUALIZATION_MODE == VISUALIZATION_MODE_MESH) {
-		let visibility: u32 = textureLoad(visibilityTexture, position).r;
+		let visibility: u32 = textureLoad(visibilityTexture, uv).r;
 		let clusterIndex: u32 = (visibility >> 7);
 
 		if (clusterIndex != 0) {
@@ -80,7 +80,7 @@ fn main(in: In) -> @location(0) vec4f {
 		color = color * 0.8 + 0.2;
 	}
 	else if (VISUALIZATION_MODE == VISUALIZATION_MODE_BARY) {
-		let visibility: u32 = textureLoad(visibilityTexture, position).r;
+		let visibility: u32 = textureLoad(visibilityTexture, uv).r;
 		let clusterIndex: u32 = (visibility >> 7);
 
 		if (clusterIndex != 0) {
@@ -90,8 +90,9 @@ fn main(in: In) -> @location(0) vec4f {
 			let mesh: Mesh = meshes[meshIndex];
 
 			let triangleIndex: u32 = visibility & 0x7f;
-			let triangle: array<vec3f, 3> = fetchTriangle(triangleIndex - 1);
-			let result: vec3f = bary(triangle, position, view.viewProjection * mesh.world);
+			let triangle: array<vec4f, 3> = fetchTriangle(triangleIndex);
+
+			let result: vec3f = bary(triangle, uv, view.viewProjection * mesh.world);
 
 			color = result;
 		}
@@ -129,47 +130,108 @@ fn linearizeDepth(depth: f32) -> f32 {
 	return (2 * NEAR) / (FAR + NEAR - depth * (FAR - NEAR));	
 }
 
-fn fetchTriangle(triangleStartIndex: u32) -> array<vec3f, 3> {
+fn fetchTriangle(triangleStartIndex: u32) -> array<vec4f, 3> {
 	let i0: u32 = indexBuffer[triangleStartIndex * 3 + 0];
 	let i1: u32 = indexBuffer[triangleStartIndex * 3 + 1];
 	let i2: u32 = indexBuffer[triangleStartIndex * 3 + 2];
 
-	let v0: vec3f = fetchVertex(i0);
-	let v1: vec3f = fetchVertex(i1);
-	let v2: vec3f = fetchVertex(i2);
+	let v0: vec4f = fetchVertex(i0);
+	let v1: vec4f = fetchVertex(i1);
+	let v2: vec4f = fetchVertex(i2);
 
-	return array<vec3f, 3>(v0, v1, v2);
+	return array<vec4f, 3>(v0, v1, v2);
 }
 
-fn fetchVertex(index: u32) -> vec3f {
+fn fetchVertex(index: u32) -> vec4f {
 	let x: f32 = vertexBuffer[index * 3 + 0];
 	let y: f32 = vertexBuffer[index * 3 + 1];
 	let z: f32 = vertexBuffer[index * 3 + 2];
 
-	return vec3f(x, y, z);
+	return vec4f(x, y, z, 1);
 }
 
-fn bary(triangle: array<vec3f, 3>, uv: vec2u, world: mat4x4f) -> vec3f {
+/* fn pythagore(triangle: array<vec3f, 3>, uv: vec2u, worldViewProjection: mat4x4f) -> vec3f {
+	let ndcUv: vec2f = getNdcUv(uv);
+
+	let v0: vec3f = (worldViewProjection * vec4f(triangle[0], 1)).xyz;
+	let v1: vec3f = (worldViewProjection * vec4f(triangle[1], 1)).xyz;
+	let v2: vec3f = (worldViewProjection * vec4f(triangle[2], 1)).xyz;
+
+	let v0Rgb: vec3f = vec3f(1, 0, 0);
+	let v1Rgb: vec3f = vec3f(0, 1, 0);
+	let v2Rgb: vec3f = vec3f(0, 0, 1);
+
+	// let p: vec3f = (worldViewProjection * vec4f(ndcUv, 1, 1)).xyz;
+	let p: vec3f = vec3f(ndcUv, 1);
+
+	let v0Dist = sqrt(pow(v0.x - p.x, 2) + pow(v0.y - p.y, 2) + pow(v0.z - p.z, 2));
+	let v1Dist = sqrt(pow(v1.x - p.x, 2) + pow(v1.y - p.y, 2) + pow(v1.z - p.z, 2));
+	let v2Dist = sqrt(pow(v2.x - p.x, 2) + pow(v2.y - p.y, 2) + pow(v2.z - p.z, 2));
+
+	let w0: f32 = 1 / v0Dist;
+	let w1: f32 = 1 / v1Dist;
+	let w2: f32 = 1 / v2Dist;
+
+	let rgb: vec3f = (w0 * v0Rgb + w1 * v1Rgb + w2 * v2Rgb) / w0 + w1 + w2;
+
+	return rgb;
+} */
+
+fn getNdcUv(uv: vec2u) -> vec2f {
 	let width: u32 = view.viewport.z;
+	let height: u32 = view.viewport.w;
+	// let imageAspectRatio: f32 = f32(width) / f32(height);
+	// let scale: f32 = 1;
+
+	// let u: f32 = (2 * (f32(uv.x) + 0.5) / f32(width) - 1) * imageAspectRatio * scale;
+	// let v: f32 = (1 - 2 * (f32(uv.y) + 0.5) / f32(height)) * scale;
+
+	let ndcU: f32 = f32(uv.x) / f32(width) * 2 - 1;
+	let ndcV: f32 = f32(uv.y) / f32(height) * 2 - 1;
+
+	let ndcUv: vec2f = vec2f(ndcU, ndcV);
+
+	return ndcUv;
+}
+
+fn bary(triangle: array<vec4f, 3>, uv: vec2u, worldViewProjection: mat4x4f) -> vec3f {
+	let ndcUv: vec2f = getNdcUv(uv);
+	let p: vec3f = vec3f(ndcUv, 1);
+
+	let a: vec3f = (worldViewProjection * triangle[0]).xyz;
+	let b: vec3f = (worldViewProjection * triangle[1]).xyz;
+	let c: vec3f = (worldViewProjection * triangle[2]).xyz;
+
+	let uvw: vec3f = computeBarycentricCoordinates(a, b, c, p);
+
+	let aRgb: vec3f = vec3f(1, 0, 0);
+	let bRgb: vec3f = vec3f(0, 1, 0);
+	let cRgb: vec3f = vec3f(0, 0, 1);
+
+	let u: f32 = uvw.x;
+	let v: f32 = uvw.y;
+	let w: f32 = uvw.z;
+
+	let rgb: vec3f = vec3f(
+		u * aRgb.r + v * bRgb.r + w * cRgb.r,
+		u * aRgb.g + v * bRgb.g + w * cRgb.g,
+		u * aRgb.b + v * bRgb.b + w * cRgb.b,
+	);
+
+	return rgb;
+
+	/* let width: u32 = view.viewport.z;
 	let height: u32 = view.viewport.w;
 	let imageAspectRatio: f32 = f32(width) / f32(height);
 	let scale: f32 = 1;
+	let uvX: f32 = (2 * (f32(uv.x) + 0.5) / f32(width) - 1) * imageAspectRatio * scale;
+	let uvY: f32 = (1 - 2 * (f32(uv.y) + 0.5) / f32(height)) * scale;
+	let uvNdc: vec2f = vec2f(uvX, uvY);
+	let viewport: vec2f = vec2f(view.viewport.zw);
 
-	let px: f32 = (2 * (f32(uv.x) + 0.5) / f32(width) - 1) * imageAspectRatio * scale;
-	let py: f32 = (1 - 2 * (f32(uv.y) + 0.5) / f32(height)) * scale;
-	let p: vec3f = normalize(vec3f(px, py, -1));
+	let barycentricDerivatives: BarycentricDerivatives = computeBarycentricDerivatives(triangle[0], triangle[1], triangle[2], uvNdc, viewport); */
 
-	let a: vec3f = (world * vec4f(triangle[0], 1)).xyz;
-	let b: vec3f = (world * vec4f(triangle[1], 1)).xyz;
-	let c: vec3f = (world * vec4f(triangle[2], 1)).xyz;
-
-	var u: f32 = 0;
-	var v: f32 = 0;
-	var w: f32 = 0;
-
-	computeBarycentricCoordinates(a, b, c, p, &u, &v, &w);
-
-	const colors: array<vec3f, 3> = array(
+	/* const colors: array<vec3f, 3> = array(
 		vec3f(0.6, 0.4, 0.1),
 		vec3f(0.1, 0.5, 0.3),
 		vec3f(0.1, 0.3, 0.7),
@@ -177,5 +239,5 @@ fn bary(triangle: array<vec3f, 3>, uv: vec2u, world: mat4x4f) -> vec3f {
 
 	let result: vec3f = u * colors[0] + v * colors[1] + w * colors[2];
 
-	return result;
+	return result; */
 }

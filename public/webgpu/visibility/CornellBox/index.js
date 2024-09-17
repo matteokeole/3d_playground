@@ -230,19 +230,15 @@ function createCornellBoxScene() {
 }
 
 function createCornellBoxCamera() {
-	const camera = new PerspectiveCamera();
+	const camera = new PerspectiveCamera({
+		position: new Vector3(278, 273, -800),
+		hull: null,
+		fieldOfView: 35, // Debug
+		nearClipPlane: 0.01,
+		farClipPlane: 2000,
+	});
 
-	camera.setPosition(new Vector3(278, 273, -800));
-	camera.fieldOfView = 35; // Debug
-	camera.aspectRatio = 1;
-	camera.near = 0.01;
-	camera.far = 2000;
-	camera.turnVelocity = SENSITIVITY; // Debug
-
-	/**
-	 * @todo Remove bias usage
-	 */
-	camera.bias = PI * .475;
+	camera.setAspectRatio(1);
 
 	return camera;
 }

@@ -25,7 +25,7 @@ export class Instance extends _Instance {
 			return;
 		}
 
-		if (keys.Space && this.#canJump) {
+		/* if (keys.Space && this.#canJump) {
 			this.#handleJump();
 
 			this.#canJump = false;
@@ -41,14 +41,14 @@ export class Instance extends _Instance {
 			0,
 			keys.KeyW + keys.KeyS,
 		);
-		normalizedKeyMovement.normalize();
+		normalizedKeyMovement.normalize(); */
 		// normalizedKeyMovement[1] -= Instance.GRAVITY;
 
-		const accelDir = camera.getMoveDirection(normalizedKeyMovement);
+		// const accelDir = camera.getMoveDirection(normalizedKeyMovement);
 
-		const prevVelocity = new Vector3(camera.getVelocity());
+		// const prevVelocity = new Vector3(camera.getVelocity());
 
-		let velocity = this.#moveGround(accelDir, prevVelocity, deltaTime);
+		// let velocity = this.#moveGround(accelDir, prevVelocity, deltaTime);
 
 		const cameraHull = camera.getHull();
 
@@ -70,16 +70,14 @@ export class Instance extends _Instance {
 			} */
 		}
 
-		camera.getPosition().add(velocity);
-		camera.setVelocity(velocity);
+		// camera.getPosition().add(velocity);
+		// camera.setVelocity(velocity);
 
 		camera.update();
 
 		this.getDebugger().update({
 			deltaTime: deltaTime.toPrecision(2),
 			pos: camera.getPosition(),
-			rot: camera.getRotation(),
-			spaceKey: Boolean(keys.Space),
 			canJump: this.#canJump,
 		});
 	}
@@ -179,6 +177,6 @@ export class Instance extends _Instance {
 	#handleJump() {
 		const camera = this._renderer.getCamera();
 
-		camera.getVelocity()[1] = 2;
+		// camera.getVelocity()[1] = 2;
 	}
 }

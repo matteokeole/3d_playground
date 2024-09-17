@@ -3,7 +3,7 @@ import {FRAMES_PER_SECOND} from "../../index.js";
 import {Instance} from "./Instance.js";
 import {VisibilityRenderer} from "./VisibilityRenderer.js";
 
-import {createCamera, createScene} from "./Scene/obj.js";
+import {createCamera, createScene} from "./Scene/visibility.js";
 
 export default async function() {
 	const canvas = document.createElement("canvas");
@@ -35,6 +35,8 @@ export default async function() {
 	renderer.setCamera(createCamera(viewport[0] / viewport[1]));
 
 	const scene = await createScene();
+
+	scene.clusterize();
 
 	renderer.setScene(scene);
 

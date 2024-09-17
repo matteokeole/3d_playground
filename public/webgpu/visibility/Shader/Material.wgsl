@@ -4,30 +4,7 @@ struct BarycentricDerivatives {
 	ddy: vec3f,
 }
 
-struct TrianglePosition {
-	pos0: vec3f,
-	pos1: vec3f,
-	pos2: vec3f,
-}
-
-/* fn fetchTriangleIndices(instanceIndex: u32, triangleIndex: u32) -> vec3f {
-	let startIndex: u32 = instanceBuffer[instanceIndex].visibilityStartIndexPositionGeometryMaterialIndex.x;
-
-	return visibilityIndexBuffer[startIndex + 3 * 4 * triangleIndex];
-}
-
-fn fetchTrianglePosition(instanceIndex: u32, triangleIndices: vec3f) -> TrianglePosition {
-	let startPos: u32 = instanceBuffer[instanceIndex].visibilityStartIndexPositionGeometryMaterialIndex.y;
-
-	var trianglePosition: TrianglePosition;
-	trianglePosition.pos0.xyz = vec3f(visibilityPositionBuffer[startPos + 12 * triangleIndices.x]);
-	trianglePosition.pos1.xyz = vec3f(visibilityPositionBuffer[startPos + 12 * triangleIndices.y]);
-	trianglePosition.pos2.xyz = vec3f(visibilityPositionBuffer[startPos + 12 * triangleIndices.z]);
-
-	return trianglePosition;
-} */
-
-fn computeBarycentricCoordinates(a: vec3f, b: vec3f, c: vec3f, p: vec3f, u: ptr<function, f32>, v: ptr<function, f32>, w: ptr<function, f32>) {
+fn computeBarycentricCoordinates(a: vec3f, b: vec3f, c: vec3f, p: vec3f) -> vec3f {
 	let v0: vec3f = b - a;
 	let v1: vec3f = c - a;
 	let v2: vec3f = p - a;
@@ -39,13 +16,18 @@ fn computeBarycentricCoordinates(a: vec3f, b: vec3f, c: vec3f, p: vec3f, u: ptr<
 	let d21: f32 = dot(v2, v1);
 	let denom: f32 = d00 * d11 - d01 * d01;
 
-	*v = (d11 * d20 - d01 * d21) / denom;
-	*w = (d00 * d21 - d01 * d20) / denom;
-	*u = 1 - *v - *w;
+	let v: f32 = (d11 * d20 - d01 * d21) / denom;
+	let w: f32 = (d00 * d21 - d01 * d20) / denom;
+	let u: f32 = 1 - v - w;
+
+	return vec3f(u, v, w);
 }
 
-/* fn calculateBarycentricDerivatives(v0: vec4f, v1: vec4f, v2: vec4f, uv: vec2f, viewport: vec2f) -> BarycentricDerivatives {
-	var deriv: BarycentricDerivatives;
+// uv is NDC (Normalized Device Coordinates)
+// viewport[0] is width
+// viewport[1] is height
+fn computeBarycentricDerivatives(v0: vec4f, v1: vec4f, v2: vec4f, uv: vec2f, viewport: vec2f) -> BarycentricDerivatives {
+	var barycentricDerivatives: BarycentricDerivatives;
 
 	let invW: vec3f = rcpvec3f(vec3f(v0.w, v1.w, v2.w));
 
@@ -55,44 +37,42 @@ fn computeBarycentricCoordinates(a: vec3f, b: vec3f, c: vec3f, p: vec3f, u: ptr<
 
 	let invDet: f32 = rcpf32(determinant(mat2x2f(ndc2 - ndc1, ndc0 - ndc1)));
 
-	deriv.ddx = vec3f(ndc1.y - ndc2.y, ndc2.y - ndc0.y, ndc0.y - ndc1.y) * invDet * invW;
-	deriv.ddy = vec3f(ndc2.x - ndc1.x, ndc0.x - ndc2.x, ndc1.x - ndc0.x) * invDet * invW;
+	barycentricDerivatives.ddx = vec3f(ndc1.y - ndc2.y, ndc2.y - ndc0.y, ndc0.y - ndc1.y) * invDet * invW;
+	barycentricDerivatives.ddy = vec3f(ndc2.x - ndc1.x, ndc0.x - ndc2.x, ndc1.x - ndc0.x) * invDet * invW;
 
-	var ddxSum: f32 = dot(deriv.ddx, vec3f(1, 1, 1));
-	var ddySum: f32 = dot(deriv.ddy, vec3f(1, 1, 1));
+	var ddxSum: f32 = dot(barycentricDerivatives.ddx, vec3f(1, 1, 1));
+	var ddySum: f32 = dot(barycentricDerivatives.ddy, vec3f(1, 1, 1));
 
 	let deltaVec: vec2f = uv - ndc0;
 	let interpInvW: f32 = invW.x + deltaVec.x*ddxSum + deltaVec.y*ddySum;
 	let interpW: f32 = rcpf32(interpInvW);
 
-	deriv.lambda.x = interpW * (invW[0] + deltaVec.x*deriv.ddx.x + deltaVec.y*deriv.ddy.x);
-	deriv.lambda.y = interpW * (0.0f    + deltaVec.x*deriv.ddx.y + deltaVec.y*deriv.ddy.y);
-	deriv.lambda.z = interpW * (0.0f    + deltaVec.x*deriv.ddx.z + deltaVec.y*deriv.ddy.z);
+	barycentricDerivatives.lambda.x = interpW * (invW[0] + deltaVec.x*barycentricDerivatives.ddx.x + deltaVec.y*barycentricDerivatives.ddy.x);
+	barycentricDerivatives.lambda.y = interpW * (0.0f    + deltaVec.x*barycentricDerivatives.ddx.y + deltaVec.y*barycentricDerivatives.ddy.y);
+	barycentricDerivatives.lambda.z = interpW * (0.0f    + deltaVec.x*barycentricDerivatives.ddx.z + deltaVec.y*barycentricDerivatives.ddy.z);
 
-	deriv.ddx *= (2.0f/viewport.x);
-	deriv.ddy *= (2.0f/viewport.y);
+	barycentricDerivatives.ddx *= (2.0f/viewport.x);
+	barycentricDerivatives.ddy *= (2.0f/viewport.y);
 	ddxSum    *= (2.0f/viewport.x);
 	ddySum    *= (2.0f/viewport.y);
 
-	deriv.ddy *= -1.0f;
+	barycentricDerivatives.ddy *= -1.0f;
 	ddySum    *= -1.0f;
 
 	let interpW_ddx: f32 = 1.0f / (interpInvW + ddxSum);
 	let interpW_ddy: f32 = 1.0f / (interpInvW + ddySum);
 
-	deriv.ddx = interpW_ddx*(deriv.lambda*interpInvW + deriv.ddx) - deriv.lambda;
-	deriv.ddy = interpW_ddy*(deriv.lambda*interpInvW + deriv.ddy) - deriv.lambda;  
+	barycentricDerivatives.ddx = interpW_ddx*(barycentricDerivatives.lambda*interpInvW + barycentricDerivatives.ddx) - barycentricDerivatives.lambda;
+	barycentricDerivatives.ddy = interpW_ddy*(barycentricDerivatives.lambda*interpInvW + barycentricDerivatives.ddy) - barycentricDerivatives.lambda;
 
-	return deriv;
+	return barycentricDerivatives;
 }
 
-fn interpolateWithBarycentricDerivatives(derivatives: BarycentricDerivatives, v0: f32, v1: f32, v2: f32) -> vec3f {
-	let mergedVertex: vec3f = vec3f(v0, v1, v2);
-
+fn interpolateWithBarycentricDerivatives(derivatives: BarycentricDerivatives, mergedV: vec3f) -> vec3f {
 	return vec3f(
-		dot(mergedVertex, derivatives.lambda),
-		dot(mergedVertex, derivatives.ddx),
-		dot(mergedVertex, derivatives.ddy),
+		dot(mergedV, derivatives.lambda),
+		dot(mergedV, derivatives.ddx),
+		dot(mergedV, derivatives.ddy),
 	);
 }
 
@@ -106,4 +86,4 @@ fn rcpvec3f(a: vec3f) -> vec3f {
 		1 / a.y,
 		1 / a.z,
 	);
-} */
+}
