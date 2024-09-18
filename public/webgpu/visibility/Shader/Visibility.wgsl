@@ -9,6 +9,7 @@
 struct View {
 	viewport: vec4u,
 	viewProjection: mat4x4f,
+	position: vec3f,
 }
 
 struct Cluster {
@@ -31,3 +32,6 @@ struct VertexOutput {
 	@location(0) @interpolate(flat) clusterIndex: u32,
 	@location(1) @interpolate(flat) triangleIndex: u32,
 }
+
+const TRIANGLES_PER_CLUSTER: u32 = 128;
+const INDICES_PER_CLUSTER: u32 = 3 * TRIANGLES_PER_CLUSTER;

@@ -159,9 +159,9 @@ async function createScene() {
 	return scene;
 }
 
-export async function createLookAtTestScene() {
+async function createLookAtTestScene() {
 	const fileLoader = new FileLoader();
-	const response = await fileLoader.load("assets/models/living_room/living_room.obj");
+	const response = await fileLoader.load("assets/models/suzanne.obj");
 	const text = await response.text();
 
 	const objParser = new OBJParser();
@@ -170,16 +170,15 @@ export async function createLookAtTestScene() {
 	const geometry = new Geometry({
 		vertices: obj.vertices,
 		indices: obj.indices,
-		normals: Float32Array.of(),
+		normals: obj.normals,
 		tangents: Float32Array.of(),
 		uvs: Float32Array.of(),
 	});
 
 	const mesh = new Mesh(geometry, null);
-	// mesh.setPosition(new Vector3(-10, -0.3, 0));
-	// mesh.setScale(new Vector3().addScalar(0.04));
+	mesh.setPosition(new Vector3(2.5, -1.35, -1));
 	// mesh.setRotation(new Vector3(-PI / 2, 0, PI));
-	// mesh.updateProjection();
+	mesh.updateProjection();
 
 	const scene = new Scene();
 
@@ -211,7 +210,7 @@ function createCamera() {
 
 function createLookAtTestCamera() {
 	const camera = new PerspectiveCamera({
-		position: new Vector3(0, 0, -2),
+		position: new Vector3(0, 0, 0),
 		hull: null,
 		fieldOfView: 60,
 		nearClipPlane: 0.1,

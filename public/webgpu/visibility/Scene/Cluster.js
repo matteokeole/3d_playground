@@ -7,27 +7,27 @@ import {FIELD_OF_VIEW} from "../../../index.js";
 
 const polytopeGeometry = new PolytopeGeometry({
 	vertices: Float32Array.of(
-		0, 0, 0,
-		1, 0, 0,
-		0, -1, 0,
-		// 2, -1, 0,
-		// 3, 0, 0,
+		-1, -1,  5,
+		 1, -1,  5,
+		 0,  1,  5,
 	),
 	indices: Uint32Array.of(
 		0, 1, 2,
-		// 1, 3, 2,
-		// 1, 4, 3,
 	),
 });
 
 export async function createScene() {
-	const cluster = new Mesh(polytopeGeometry, null);
-	cluster.setPosition(new Vector3(-1, 0.5, 3));
-	cluster.updateProjection();
+	const cluster1 = new Mesh(polytopeGeometry, null);
+	cluster1.setPosition(new Vector3(-1.5, -0.5, -1));
+	cluster1.updateProjection();
+
+	const cluster2 = new Mesh(polytopeGeometry, null);
+	cluster2.setPosition(new Vector3(1.5, 0.5, 1));
+	cluster2.updateProjection();
 
 	const scene = new Scene();
 
-	scene.addMeshes(polytopeGeometry, [cluster]);
+	scene.addMeshes(polytopeGeometry, [cluster1, cluster2]);
 
 	return scene;
 }

@@ -1,9 +1,11 @@
+import {Vector3} from "../../math/index.js";
 import {Parser} from "../index.js";
 
 /**
  * @typedef {Object} OBJData
  * @property {Float32Array} vertices
  * @property {Uint32Array} indices
+ * @property {Float32Array} normals
  */
 
 export class OBJParser extends Parser {
@@ -19,59 +21,64 @@ export class OBJParser extends Parser {
 				vertices.push(float);
 			}
 		},
-		/* vn(parts, {normals}) {
-			const parsedParts = parts.map(parseFloat);
+		vn(parts, {unsortedNormals}) {
+			const normal = new Vector3(
+				parseFloat(parts[0]),
+				parseFloat(parts[1]),
+				parseFloat(parts[2]),
+			);
 
-			normals.push(parsedParts);
-		}, */
+			unsortedNormals.push(...normal);
+		},
 		/* vt(parts, {uvs}) {
 			const parsedParts = parts.map(parseFloat);
 
 			uvs.push(parsedParts);
 		}, */
-		f(parts, {indices, vertices}) {
+		f(parts, {vertexIndices, unsortedNormals, normals, vertices}) {
 			const triangleCount = parts.length - 2;
 			const currentVertexCount = vertices.length / 3;
 
 			for (let i = 0; i < triangleCount; i++) {
-				OBJParser.#addVertex(parts[0], indices, currentVertexCount);
-				OBJParser.#addVertex(parts[i + 1], indices, currentVertexCount);
-				OBJParser.#addVertex(parts[i + 2], indices, currentVertexCount);
+				OBJParser.#addVertex(parts[0], currentVertexCount, {vertexIndices, unsortedNormals, normals});
+				OBJParser.#addVertex(parts[i + 1], currentVertexCount, {vertexIndices, unsortedNormals, normals});
+				OBJParser.#addVertex(parts[i + 2], currentVertexCount, {vertexIndices, unsortedNormals, normals});
 			}
 		},
 	};
 
 	/**
-	 * @param {String} faceTriangle
-	 * @param {Number[]} indices
+	 * @param {String} face
 	 * @param {Number} vertexCount
 	 */
-	static #addVertex(faceTriangle, indices, vertexCount) {
-		const vertexUvNormalString = faceTriangle.split("/");
-		let index = parseInt(vertexUvNormalString[0]);
+	static #addVertex(face, vertexCount, {vertexIndices, unsortedNormals, normals}) {
+		const splittedFace = face.split("/");
+		let vertexIndex = parseInt(splittedFace[0]);
 
-		if (index < 0) {
-			index += vertexCount;
+		if (vertexIndex < 0) {
+			vertexIndex += vertexCount;
 		}
 
-		indices.push(index - 1);
+		vertexIndices.push(vertexIndex - 1);
 
-		/* for (let i = 0; i < vertexUvNormalString.length; i++) {
-			const objectIndexString = vertexUvNormalString[i];
+		// let uvIndex;
+		let normalIndex;
 
-			if (!objectIndexString) {
-				return;
+		if (splittedFace.length === 3) {
+			normalIndex = parseInt(splittedFace[2]);
+
+			if (normalIndex < 0) {
+				normalIndex += vertexCount;
 			}
 
-			const objectIndex = parseInt(objectIndexString);
-			let index = objectIndex;
+			const normal = new Vector3(
+				unsortedNormals[normalIndex * 3 + 0],
+				// unsortedNormals[normalIndex * 3 + 1],
+				// unsortedNormals[normalIndex * 3 + 2],
+			);
 
-			if (objectIndex < 0) {
-				index += vertexData[i].length;
-			}
-
-			webglVertexData[i].push(...vertexData[i][index]);
-		} */
+			normals.push(unsortedNormals[normalIndex * 3 + 0]);
+		}
 	}
 
 	/**
@@ -81,13 +88,12 @@ export class OBJParser extends Parser {
 		const lines = text.split("\n");
 		const lineExpression = /(\w*)(?: )*(.*)/;
 		const vertices = [];
-		const indices = [];
+		const vertexIndices = [];
 		const uvs = [
 			[0, 0],
 		];
-		const normals = [
-			[0, 0, 0],
-		];
+		const unsortedNormals = [];
+		const normals = [];
 		const vertexData = [
 			vertices,
 			uvs,
@@ -129,7 +135,7 @@ export class OBJParser extends Parser {
 			const keywordHandler = OBJParser.#KEYWORDS_HANDLERS[keyword];
 			const lineSplits = line.split(/\s+/).slice(1);
 
-			keywordHandler(lineSplits, {vertices, indices, uvs, normals, vertexData, webglVertexData});
+			keywordHandler(lineSplits, {vertices, vertexIndices, unsortedNormals, normals, uvs, vertexData, webglVertexData});
 		}
 
 		/**
@@ -138,7 +144,8 @@ export class OBJParser extends Parser {
 		const data = {};
 
 		data.vertices = new Float32Array(vertices);
-		data.indices = new Uint32Array(indices);
+		data.indices = new Uint32Array(vertexIndices);
+		data.normals = new Float32Array(normals);
 
 		return data;
 	}

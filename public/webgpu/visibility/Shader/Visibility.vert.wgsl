@@ -3,9 +3,6 @@ struct VertexInput {
 	@builtin(vertex_index) localVertexIndex: u32,
 }
 
-const TRIANGLES_PER_CLUSTER: u32 = 128;
-const INDICES_PER_CLUSTER: u32 = 3 * TRIANGLES_PER_CLUSTER;
-
 @vertex
 fn main(in: VertexInput) -> VertexOutput {
 	let globalVertexIndex: u32 = in.clusterIndex * INDICES_PER_CLUSTER + in.localVertexIndex;

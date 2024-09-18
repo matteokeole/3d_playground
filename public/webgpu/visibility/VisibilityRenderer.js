@@ -13,7 +13,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 		this._buffers.vertexStorage = this.#createVertexStorageBuffer();
 		this._buffers.indexStorage = this.#createIndexStorageBuffer();
 		this._buffers.clusterStorage = this.#createClusterStorageBuffer();
-		this._buffers.geometryStorage = this.#createGeometryStorageBuffer();
+		this._buffers.normalStorage = this.#createNormalStorageBuffer();
 		this._buffers.meshStorage = this.#createMeshStorageBuffer();
 
 		this._buffers.indirect = this.#createGeometryIndirectBuffer();
@@ -156,7 +156,10 @@ export class VisibilityRenderer extends WebGPURenderer {
 	#createViewUniformBuffer() {
 		const viewUniformBuffer = this._device.createBuffer({
 			label: "View uniform",
-			size: 20 * Float32Array.BYTES_PER_ELEMENT,
+			size:
+				4  * Uint32Array.BYTES_PER_ELEMENT +
+				16 * Float32Array.BYTES_PER_ELEMENT +
+				4  * Float32Array.BYTES_PER_ELEMENT,
 			usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
 		});
 
@@ -273,30 +276,52 @@ export class VisibilityRenderer extends WebGPURenderer {
 		return clusterStorageBuffer;
 	}
 
-	/**
-	 * NOT USED
-	 */
-	#createGeometryStorageBuffer() {
+	#createNormalStorageBuffer() {
 		const geometries = this._scene.getGeometries();
+		let normalComponentCount = 0;
 
-		const geometryStorageBuffer = this._device.createBuffer({
-			label: "Geometry",
-			size: geometries.length * Uint32Array.BYTES_PER_ELEMENT,
+		for (let i = 0; i < geometries.length; i++) {
+			const geometry = geometries[i];
+			const normals = geometry.getNormals();
+
+			if (normals.length === 0) {
+				console.warn("Found geometry without normals.");
+
+				const normalStorageBuffer = this._device.createBuffer({
+					label: "Normal",
+					size: 3 * Float32Array.BYTES_PER_ELEMENT,
+					usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+				});
+
+				return normalStorageBuffer;
+			}
+
+			normalComponentCount += geometry.getNormals().length;
+		}
+
+		const normalStorageBuffer = this._device.createBuffer({
+			label: "Normal",
+			size: normalComponentCount * Float32Array.BYTES_PER_ELEMENT,
 			usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
 			mappedAtCreation: true,
 		});
 
-		const geometryStorageBufferMap = new Uint32Array(geometryStorageBuffer.getMappedRange());
+		const normalStorageBufferMap = new Float32Array(normalStorageBuffer.getMappedRange());
+
+		let offset = 0;
 
 		for (let i = 0; i < geometries.length; i++) {
 			const geometry = geometries[i];
+			const normals = geometry.getNormals();
 
-			geometryStorageBufferMap[i] = geometry.getTriangleCount();
+			normalStorageBufferMap.set(normals, offset);
+
+			offset += normals.length;
 		}
 
-		geometryStorageBuffer.unmap();
+		normalStorageBuffer.unmap();
 
-		return geometryStorageBuffer;
+		return normalStorageBuffer;
 	}
 
 	#createMeshStorageBuffer() {
@@ -553,7 +578,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 				}, {
 					binding: 3,
 					resource: {
-						buffer: this._buffers.geometryStorage,
+						buffer: this._buffers.normalStorage,
 					},
 				},
 			],
@@ -775,15 +800,17 @@ export class VisibilityRenderer extends WebGPURenderer {
 	}
 
 	#writeViewUniformBuffer() {
-		const viewport = this.getViewport();
+		const viewport = new Uint32Array(this.getViewport());
 
 		this._device.queue.writeBuffer(this._buffers.viewUniform, 0, viewport);
 	}
 
 	#writeCameraUniformBuffer() {
 		const viewProjection = this._camera.getViewProjection();
+		const position = this._camera.getPosition();
 
-		this._device.queue.writeBuffer(this._buffers.viewUniform, 4 * Float32Array.BYTES_PER_ELEMENT, viewProjection);
+		this._device.queue.writeBuffer(this._buffers.viewUniform, 4 * Uint32Array.BYTES_PER_ELEMENT, viewProjection);
+		this._device.queue.writeBuffer(this._buffers.viewUniform, 4 * Uint32Array.BYTES_PER_ELEMENT + 16 * Float32Array.BYTES_PER_ELEMENT, position);
 	}
 
 	/**
