@@ -161,7 +161,7 @@ async function createScene() {
 
 async function createLookAtTestScene() {
 	const fileLoader = new FileLoader();
-	const response = await fileLoader.load("assets/models/suzanne.obj");
+	const response = await fileLoader.load("assets/models/cube.obj");
 	const text = await response.text();
 
 	const objParser = new OBJParser();
@@ -176,7 +176,7 @@ async function createLookAtTestScene() {
 	});
 
 	const mesh = new Mesh(geometry, null);
-	mesh.setPosition(new Vector3(2.5, -1.35, -1));
+	// mesh.setPosition(new Vector3(2.5, -1.35, -1));
 	// mesh.setRotation(new Vector3(-PI / 2, 0, PI));
 	mesh.updateProjection();
 
@@ -210,7 +210,7 @@ function createCamera() {
 
 function createLookAtTestCamera() {
 	const camera = new PerspectiveCamera({
-		position: new Vector3(0, 0, 0),
+		position: new Vector3(0, 0, -4),
 		hull: null,
 		fieldOfView: 60,
 		nearClipPlane: 0.1,

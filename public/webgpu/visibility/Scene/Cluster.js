@@ -17,17 +17,10 @@ const polytopeGeometry = new PolytopeGeometry({
 });
 
 export async function createScene() {
-	const cluster1 = new Mesh(polytopeGeometry, null);
-	cluster1.setPosition(new Vector3(-1.5, -0.5, -1));
-	cluster1.updateProjection();
-
-	const cluster2 = new Mesh(polytopeGeometry, null);
-	cluster2.setPosition(new Vector3(1.5, 0.5, 1));
-	cluster2.updateProjection();
-
+	const polytope = new Mesh(polytopeGeometry, null);
 	const scene = new Scene();
 
-	scene.addMeshes(polytopeGeometry, [cluster1, cluster2]);
+	scene.addMeshes(polytopeGeometry, [polytope]);
 
 	return scene;
 }

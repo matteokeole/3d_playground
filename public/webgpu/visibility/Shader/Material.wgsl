@@ -67,6 +67,39 @@ fn linearizeDepth(depth: f32) -> f32 {
 	return (2 * NEAR) / (FAR + NEAR - depth * (FAR - NEAR));	
 }
 
+fn computeBarycentricCoordinates(a: vec3f, b: vec3f, c: vec3f, p: vec3f, u: ptr<function, f32>, v: ptr<function, f32>, w: ptr<function, f32>) {
+	let v0: vec3f = b - a;
+	let v1: vec3f = c - a;
+	let v2: vec3f = p - a;
+
+	let d00: f32 = dot(v0, v0);
+	let d01: f32 = dot(v0, v1);
+	let d11: f32 = dot(v1, v1);
+	let d20: f32 = dot(v2, v0);
+	let d21: f32 = dot(v2, v1);
+	let denom: f32 = d00 * d11 - d01 * d01;
+
+	*v = (d11 * d20 - d01 * d21) / denom;
+	*w = (d00 * d21 - d01 * d20) / denom;
+	*u = 1 - *v - *w;
+}
+
+fn computeBarycentricCoordinates2(V0: vec3f, V1: vec3f, V2: vec3f, P: vec3f, u: ptr<function, f32>, v: ptr<function, f32>, w: ptr<function, f32>) {
+	let v0v1 = V1 - V0;
+	let v0v2 = V2 - V0;
+	let v0p = P - V0;
+
+	// Cross products to compute areas
+	let areaTotal = length(cross(v0v1, v0v2));
+	let area1 = length(cross(v0p, v0v2));
+	let area2 = length(cross(v0v1, v0p));
+
+	// Barycentric coordinates
+	*v = area1 / areaTotal;
+	*w = area2 / areaTotal;
+	*u = 1 - *v - *w;
+}
+
 fn computeBarycentricDerivatives(pt0: vec4f, pt1: vec4f, pt2: vec4f, pixelNdc: vec2f, winSize: vec2f) -> BarycentricDerivatives {
 	var ret: BarycentricDerivatives;
 
