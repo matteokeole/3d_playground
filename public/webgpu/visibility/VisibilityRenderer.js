@@ -216,6 +216,10 @@ export class VisibilityRenderer extends WebGPURenderer {
 	}
 
 	#createGeometryIndirectBuffer() {
+		const indicesPerCluster = 128 * 3;
+		const clusterCount = this._scene.getClusteredMeshes().clusters.length;
+		const firstIndex = 0;
+
 		const indirectBuffer = this._device.createBuffer({
 			label: "Geometry indirect",
 			size: WebGPURenderer._INDIRECT_BUFFER_SIZE * Uint32Array.BYTES_PER_ELEMENT,
@@ -224,29 +228,10 @@ export class VisibilityRenderer extends WebGPURenderer {
 		});
 		const indirectBufferMap = new Uint32Array(indirectBuffer.getMappedRange());
 
-		let firstIndex = 0;
-		let offset = 0;
-
-		const indicesPerCluster = 128 * 3;
-		const clusterCount = this._scene.getClusteredMeshes().clusters.length;
-
-		indirectBufferMap[offset + 0] = indicesPerCluster; // The number of indices to draw per cluster
-		indirectBufferMap[offset + 1] = clusterCount; // The number of clusters to draw
-		indirectBufferMap[offset + 2] = firstIndex; // Offset into the index buffer, in indices, begin drawing from
-
-		// Create a indirect sub-buffer for each unique geometry
-		/* for (let i = 0; i < geometries.length; i++) {
-			const geometry = geometries[i];
-			const indexCount = geometry.getIndices().length;
-			const instanceCount = this._scene.getInstanceCount(geometry);
-
-			indirectBufferMap[offset + 0] = indexCount; // The number of indices to draw
-			indirectBufferMap[offset + 1] = instanceCount; // The number of instances to draw
-			indirectBufferMap[offset + 2] = firstIndex; // Offset into the index buffer, in indices, begin drawing from
-
-			firstIndex += indexCount;
-			offset += WebGPURenderer._INDIRECT_BUFFER_SIZE;
-		} */
+		// Instance = Cluster
+		indirectBufferMap[0] = indicesPerCluster; // The number of indices per instance to draw
+		indirectBufferMap[1] = clusterCount; // The number of instances to draw
+		indirectBufferMap[2] = firstIndex; // Offset into the index buffer, in indices, to begin drawing from
 
 		indirectBuffer.unmap();
 

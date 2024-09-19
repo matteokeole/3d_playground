@@ -61,7 +61,11 @@ export class OBJParser extends Parser {
 
 		vertexIndices.push(vertexIndex - 1);
 
+		/**
+		 * @todo Parse UVs
+		 */
 		// let uvIndex;
+
 		let normalIndex;
 
 		if (splittedFace.length === 3) {
@@ -73,11 +77,11 @@ export class OBJParser extends Parser {
 
 			const normal = new Vector3(
 				unsortedNormals[normalIndex * 3 + 0],
-				// unsortedNormals[normalIndex * 3 + 1],
-				// unsortedNormals[normalIndex * 3 + 2],
+				unsortedNormals[normalIndex * 3 + 1],
+				unsortedNormals[normalIndex * 3 + 2],
 			);
 
-			normals.push(unsortedNormals[normalIndex * 3 + 0]);
+			normals.push(normal[0], normal[1], normal[2]);
 		}
 	}
 

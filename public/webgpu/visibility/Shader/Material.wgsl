@@ -106,13 +106,13 @@ fn computeBarycentricCoordinates2(V0: vec3<f32>, V1: vec3<f32>, V2: vec3<f32>, P
 fn computeBarycentricDerivatives(pt0: vec4f, pt1: vec4f, pt2: vec4f, pixelNdc: vec2f, winSize: vec2f) -> BarycentricDerivatives {
 	var ret: BarycentricDerivatives;
 
-	let invW: vec3f = rcpvec3f(vec3f(pt0.w, pt1.w, pt2.w));
+	let invW: vec3f = rcp(vec3f(pt0.w, pt1.w, pt2.w));
 
 	let ndc0: vec2f = pt0.xy * invW.x;
 	let ndc1: vec2f = pt1.xy * invW.y;
 	let ndc2: vec2f = pt2.xy * invW.z;
 
-	let invDet: f32 = rcpf32(determinant(mat2x2f(ndc2 - ndc1, ndc0 - ndc1)));
+	let invDet: f32 = 1 / determinant(mat2x2f(ndc2 - ndc1, ndc0 - ndc1));
 	ret.ddx = vec3f(ndc1.y - ndc2.y, ndc2.y - ndc0.y, ndc0.y - ndc1.y) * invDet * invW;
 	ret.ddy = vec3f(ndc2.x - ndc1.x, ndc0.x - ndc2.x, ndc1.x - ndc0.x) * invDet * invW;
 	var ddxSum: f32 = dot(ret.ddx, vec3f(1));
@@ -120,7 +120,7 @@ fn computeBarycentricDerivatives(pt0: vec4f, pt1: vec4f, pt2: vec4f, pixelNdc: v
 
 	let deltaVec: vec2f = pixelNdc - ndc0;
 	let interpInvW: f32 = invW.x + deltaVec.x * ddxSum + deltaVec.y * ddySum;
-	let interpW: f32 = rcpf32(interpInvW);
+	let interpW: f32 = 1 / interpInvW;
 
 	ret.lambda.x = interpW * (invW[0] + deltaVec.x * ret.ddx.x + deltaVec.y * ret.ddy.x);
 	ret.lambda.y = interpW * (0.0f    + deltaVec.x * ret.ddx.y + deltaVec.y * ret.ddy.y);
@@ -143,81 +143,15 @@ fn computeBarycentricDerivatives(pt0: vec4f, pt1: vec4f, pt2: vec4f, pixelNdc: v
 	return ret;
 }
 
-fn computeBarycentricDerivativesConfetti(pt0: vec4f, pt1: vec4f, pt2: vec4f, pixelNdc: vec2f, two_over_windowsize: vec2f) -> BarycentricDerivatives {
-	var ret: BarycentricDerivatives;
-
-	let invW: vec3f = rcpvec3f(vec3f(pt0.w, pt1.w, pt2.w));
-
-	//Project points on screen to calculate post projection positions in 2D
-	let ndc0: vec2f = pt0.xy * invW.x;
-	let ndc1: vec2f = pt1.xy * invW.y;
-	let ndc2: vec2f = pt2.xy * invW.z;
-
-	// Computing partial derivatives and prospective correct attribute interpolation with barycentric coordinates
-	// Equation for calculation taken from Appendix A of DAIS paper:
-	// https://cg.ivd.kit.edu/publications/2015/dais/DAIS.pdf
-
-	// Calculating inverse of determinant(rcp of area of triangle).
-	let invDet: f32 = rcpf32(determinant(mat2x2f(ndc2 - ndc1, ndc0 - ndc1)));
-
-	//determining the partial derivatives
-	// ddx[i] = (y[i+1] - y[i-1])/Determinant
-	ret.ddx = vec3f(ndc1.y - ndc2.y, ndc2.y - ndc0.y, ndc0.y - ndc1.y) * invDet * invW;
-	ret.ddy = vec3f(ndc2.x - ndc1.x, ndc0.x - ndc2.x, ndc1.x - ndc0.x) * invDet * invW;
-	// sum of partial derivatives.
-	var ddxSum: f32 = dot(ret.ddx, vec3f(1,1,1));
-	var ddySum: f32 = dot(ret.ddy, vec3f(1,1,1));
-	
-	// Delta vector from pixel's screen position to vertex 0 of the triangle.
-	let deltaVec: vec2f = pixelNdc - ndc0;
-
-	// Calculating interpolated W at point.
-	let interpInvW: f32 = invW.x + deltaVec.x*ddxSum + deltaVec.y*ddySum;
-	let interpW: f32 = rcpf32(interpInvW);
-	// The barycentric co-ordinate (lambda) is determined by perspective-correct interpolation. 
-	// Equation taken from DAIS paper.
-	ret.lambda.x = interpW * (invW[0] + deltaVec.x*ret.ddx.x + deltaVec.y*ret.ddy.x);
-	ret.lambda.y = interpW * (0.0f    + deltaVec.x*ret.ddx.y + deltaVec.y*ret.ddy.y);
-	ret.lambda.z = interpW * (0.0f    + deltaVec.x*ret.ddx.z + deltaVec.y*ret.ddy.z);
-
-	//Scaling from NDC to pixel units
-	ret.ddx *= two_over_windowsize.x;
-	ret.ddy *= two_over_windowsize.y;
-	ddxSum    *= two_over_windowsize.x;
-	ddySum    *= two_over_windowsize.y;
-
-	ret.ddy *= -1.0f;
-	ddySum *= -1.0f;
-
-	// This part fixes the derivatives error happening for the projected triangles.
-	// Instead of calculating the derivatives constantly across the 2D triangle we use a projected version
-	// of the gradients, this is more accurate and closely matches GPU raster behavior.
-	// Final gradient equation: ddx = (((lambda/w) + ddx) / (w+|ddx|)) - lambda
-
-	// Calculating interpW at partial derivatives position sum.
-	let interpW_ddx: f32 = 1.0f / (interpInvW + ddxSum);
-	let interpW_ddy: f32 = 1.0f / (interpInvW + ddySum);
-
-	// Calculating perspective projected derivatives.
-	ret.ddx = interpW_ddx*(ret.lambda*interpInvW + ret.ddx) - ret.lambda;
-	ret.ddy = interpW_ddy*(ret.lambda*interpInvW + ret.ddy) - ret.lambda;  
-
-	return ret;
-}
-
 fn interpolateWithBarycentricDerivatives3x3(barycentricDerivatives: BarycentricDerivatives, attributes: mat3x3f) -> vec3f {
 	return vec3f(
 		dot(attributes[0], barycentricDerivatives.lambda),
-		dot(attributes[1], barycentricDerivatives.lambda),
-		dot(attributes[2], barycentricDerivatives.lambda),
+		dot(attributes[1], barycentricDerivatives.ddx),
+		dot(attributes[2], barycentricDerivatives.ddy),
 	);
 }
 
-fn rcpf32(a: f32) -> f32 {
-	return 1 / a;
-}
-
-fn rcpvec3f(a: vec3f) -> vec3f {
+fn rcp(a: vec3f) -> vec3f {
 	return vec3f(
 		1 / a.x,
 		1 / a.y,
@@ -227,6 +161,7 @@ fn rcpvec3f(a: vec3f) -> vec3f {
 
 fn fetchTriangle(clusterIndex: u32, clusterTriangleIndex: u32) -> array<vec4f, 3> {
 	let offset: u32 = clusterIndex * INDICES_PER_CLUSTER + clusterTriangleIndex * 3;
+
 	let i0: u32 = indexBuffer[offset + 0];
 	let i1: u32 = indexBuffer[offset + 1];
 	let i2: u32 = indexBuffer[offset + 2];
@@ -249,18 +184,11 @@ fn fetchVertex(vertexBufferOffset: u32) -> vec4f {
 }
 
 fn fetchNormals(clusterIndex: u32, clusterTriangleIndex: u32) -> array<vec3f, 3> {
-	const clusterSizeIndices: u32 = INDICES_PER_CLUSTER;
-	const componentsPerTriangle: u32 = 9;
-	let clusterOffset: u32 = clusterIndex * clusterSizeIndices;
-	let globalTriangleIndex: u32 = clusterOffset + clusterTriangleIndex * componentsPerTriangle;
+	let offset: u32 = clusterIndex * TRIANGLES_PER_CLUSTER * 9 + clusterTriangleIndex * 9;
 
-	let i0: u32 = globalTriangleIndex + 0;
-	let i1: u32 = globalTriangleIndex + 1;
-	let i2: u32 = globalTriangleIndex + 2;
-
-	let n0: vec3f = fetchNormal(i0 * 3);
-	let n1: vec3f = fetchNormal(i1 * 3);
-	let n2: vec3f = fetchNormal(i2 * 3);
+	let n0: vec3f = fetchNormal(offset + 0 * 3);
+	let n1: vec3f = fetchNormal(offset + 1 * 3);
+	let n2: vec3f = fetchNormal(offset + 2 * 3);
 
 	return array(n0, n1, n2);
 }
