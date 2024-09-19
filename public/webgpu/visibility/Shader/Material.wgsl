@@ -162,15 +162,15 @@ fn rcp(a: vec3f) -> vec3f {
 fn fetchTriangle(clusterIndex: u32, clusterTriangleIndex: u32) -> array<vec4f, 3> {
 	let offset: u32 = clusterIndex * INDICES_PER_CLUSTER + clusterTriangleIndex * 3;
 
-	let i0: u32 = indexBuffer[offset + 0];
-	let i1: u32 = indexBuffer[offset + 1];
-	let i2: u32 = indexBuffer[offset + 2];
+	let index0: u32 = indexBuffer[offset + 0];
+	let index1: u32 = indexBuffer[offset + 1];
+	let index2: u32 = indexBuffer[offset + 2];
 
-	let v0: vec4f = fetchVertex(i0 * 3);
-	let v1: vec4f = fetchVertex(i1 * 3);
-	let v2: vec4f = fetchVertex(i2 * 3);
+	let vertex0: vec4f = fetchVertex(index0 * 3);
+	let vertex1: vec4f = fetchVertex(index1 * 3);
+	let vertex2: vec4f = fetchVertex(index2 * 3);
 
-	return array(v0, v1, v2);
+	return array(vertex0, vertex1, vertex2);
 }
 
 fn fetchVertex(vertexBufferOffset: u32) -> vec4f {
@@ -186,11 +186,11 @@ fn fetchVertex(vertexBufferOffset: u32) -> vec4f {
 fn fetchNormals(clusterIndex: u32, clusterTriangleIndex: u32) -> array<vec3f, 3> {
 	let offset: u32 = clusterIndex * TRIANGLES_PER_CLUSTER * 9 + clusterTriangleIndex * 9;
 
-	let n0: vec3f = fetchNormal(offset + 0 * 3);
-	let n1: vec3f = fetchNormal(offset + 1 * 3);
-	let n2: vec3f = fetchNormal(offset + 2 * 3);
+	let normal0: vec3f = fetchNormal(offset + 0 * 3);
+	let normal1: vec3f = fetchNormal(offset + 1 * 3);
+	let normal2: vec3f = fetchNormal(offset + 2 * 3);
 
-	return array(n0, n1, n2);
+	return array(normal0, normal1, normal2);
 }
 
 fn fetchNormal(normalBufferOffset: u32) -> vec3f {

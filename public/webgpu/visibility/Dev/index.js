@@ -161,7 +161,7 @@ async function createScene() {
 
 async function createLookAtTestScene() {
 	const fileLoader = new FileLoader();
-	const response = await fileLoader.load("assets/models/suzanne.obj");
+	const response = await fileLoader.load("assets/models/teapot2.obj");
 	const text = await response.text();
 
 	const objParser = new OBJParser();
@@ -177,7 +177,9 @@ async function createLookAtTestScene() {
 
 	const mesh = new Mesh(geometry, null);
 
-	mesh.setPosition(new Vector3(2.5, -1.35, -1));
+	// mesh.setPosition(new Vector3(2.5, -1.35, -1));
+	mesh.setRotation(new Vector3(-PI / 2, 0, 0));
+	mesh.setScale(new Vector3(0.2, 0.2, 0.2));
 	mesh.updateProjection();
 
 	const scene = new Scene();

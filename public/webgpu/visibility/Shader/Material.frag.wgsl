@@ -15,8 +15,6 @@ const VISUALIZATION_MODE_PHONG_SHADING: u32 = 21;
 
 const VISUALIZATION_MODE: u32 = VISUALIZATION_MODE_PHONG_SHADING;
 
-const LIGHT_POSITION: vec3f = vec3f(0, 0, -0.01);
-
 @fragment
 fn main(in: In) -> @location(0) vec4f {
 	let uvf: vec2f = in.position.xy;
@@ -166,14 +164,11 @@ fn visualizePhongShading(triangle: array<vec4f, 3>, normals: array<vec3f, 3>, uv
 	let v: f32 = derivatives.lambda.y;
 	let w: f32 = derivatives.lambda.z;
 
-	let normal: vec3f = (u * normals[0] + v * normals[1] + w * normals[2]);
-
-	return normal * 0.5 + 0.5;
-
 	// let normal: vec3f = normalize(interpolateWithBarycentricDerivatives3x3(derivatives, mat3x3f(normals[0], normals[1], normals[2])));
-	// let surfaceToLight: vec3f = normalize(-view.position);
+	let normal: vec3f = (u * normals[0] + v * normals[1] + w * normals[2]);
+	let surfaceToLight: vec3f = normalize(vec3f(p.xy, 1) - view.position);
 
-	// let shade: f32 = max(dot(normal, -surfaceToLight), 0);
+	let shade: f32 = max(dot(normal, -surfaceToLight), 0);
 
-	// return vec3f(shade);
+	return vec3f(shade);
 }
