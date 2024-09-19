@@ -161,7 +161,7 @@ async function createScene() {
 
 async function createLookAtTestScene() {
 	const fileLoader = new FileLoader();
-	const response = await fileLoader.load("assets/models/cube.obj");
+	const response = await fileLoader.load("assets/models/Bunny/bunny_high.obj");
 	const text = await response.text();
 
 	const objParser = new OBJParser();
