@@ -2,9 +2,8 @@
 @group(1) @binding(0) var<storage> vertexBuffer: array<f32>;
 @group(1) @binding(1) var<storage> indexBuffer: array<u32>;
 @group(1) @binding(2) var<storage> clusters: array<Cluster>;
-// @group(1) @binding(3) var<storage> geometries: array<Geometry>;
 @group(2) @binding(0) var<storage> meshes: array<Mesh>;
-// @group() @binding() var<storage> materials: array<Material>;
+@group(2) @binding(1) var<storage> geometries: array<Geometry>;
 
 struct View {
 	viewport: vec4u,
@@ -16,15 +15,14 @@ struct Cluster {
 	meshIndex: u32,
 }
 
-// Unused
-struct Geometry {
-	triangleCount: u32,
-}
-
 struct Mesh {
 	world: mat4x4f,
-	// geometryIndex: u32,
-	// materialIndex: u32,
+	geometryIndex: u32,
+	clusterOffset: u32,
+}
+
+struct Geometry {
+	triangleOffset: u32,
 }
 
 struct VertexInput {
@@ -40,3 +38,4 @@ struct VertexOutput {
 
 const TRIANGLES_PER_CLUSTER: u32 = 128;
 const INDICES_PER_CLUSTER: u32 = 3 * TRIANGLES_PER_CLUSTER;
+const VISIBILITY_CLUSTER_MASK: u32 = 7;

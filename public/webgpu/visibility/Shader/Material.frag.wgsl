@@ -2,7 +2,7 @@
 const VISUALIZATION_MODE_TRIANGLE: u32 = 1;
 const VISUALIZATION_MODE_CLUSTER: u32 = 2;
 const VISUALIZATION_MODE_MESH: u32 = 3;
-// const VISUALIZATION_MODE_GEOMETRY: u32 = 4;
+const VISUALIZATION_MODE_GEOMETRY: u32 = 4;
 
 // Data visualization modes
 const VISUALIZATION_MODE_DEPTH: u32 = 0;
@@ -14,7 +14,7 @@ const VISUALIZATION_MODE_BARYCENTRIC_COORDINATES: u32 = 12;
 const VISUALIZATION_MODE_FLAT_SHADING: u32 = 20;
 const VISUALIZATION_MODE_PHONG_SHADING: u32 = 21;
 
-const VISUALIZATION_MODE: u32 = VISUALIZATION_MODE_PHONG_SHADING;
+const VISUALIZATION_MODE: u32 = VISUALIZATION_MODE_TRIANGLE;
 
 @fragment
 fn main(in: In) -> @location(0) vec4f {
@@ -43,6 +43,20 @@ fn main(in: In) -> @location(0) vec4f {
 			let cluster: Cluster = clusters[clusterIndex - 1];
 
 			color = intToColor(cluster.meshIndex + 1);
+		}
+
+		color = color * 0.8 + 0.2;
+	}
+	else if (VISUALIZATION_MODE == VISUALIZATION_MODE_GEOMETRY) {
+		let visibility: u32 = textureLoad(visibilityTexture, uv).r;
+		let clusterIndex: u32 = visibility >> VISIBILITY_CLUSTER_MASK;
+
+		if (clusterIndex > 0) {
+			let zeroBasedClusterIndex: u32 = clusterIndex - 1;
+			let cluster: Cluster = clusters[zeroBasedClusterIndex];
+			let mesh: Mesh = meshes[cluster.meshIndex];
+
+			color = intToColor(mesh.geometryIndex + 1);
 		}
 
 		color = color * 0.8 + 0.2;

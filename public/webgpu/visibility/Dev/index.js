@@ -153,7 +153,7 @@ async function createScene() {
 
 	scene.addMeshes(planeGeometry, [plane]);
 	scene.addMeshes(slopeGeometry, [slope]);
-	scene.addMeshes(boxGeometry, [leftBox, bridge, centerBox, rightBox]);
+	// scene.addMeshes(boxGeometry, [leftBox, bridge, centerBox, rightBox]);
 	// scene.addMeshes(squareWallGeometry, [squareWall1, squareWall2, squareWall3, squareWall4]);
 
 	return scene;
@@ -175,17 +175,36 @@ async function createLookAtTestScene() {
 		uvs: Float32Array.of(),
 	});
 
+	const response2 = await fileLoader.load("assets/models/Bunny/bunny_high.obj");
+	const text2 = await response2.text();
+	const obj2 = objParser.parse(text2);
+	const geometry2 = new Geometry({
+		vertices: obj2.vertices,
+		indices: obj2.indices,
+		normals: obj2.normals,
+		tangents: Float32Array.of(),
+		uvs: Float32Array.of(),
+	});
+	const mesh2 = new Mesh(geometry2, null);
+
 	const mesh = new Mesh(geometry, null);
 
-	// Suzanne
-	mesh.setPosition(new Vector3(0, 0, 3.5));
-	mesh.setRotation(new Vector3(0, PI, 0));
+	mesh2.setPosition(new Vector3(1.5, 0, 3.5));
+	mesh2.setRotation(new Vector3(0, PI, 0));
+	mesh2.updateProjection();
 
+	// Suzanne
+	mesh.setPosition(new Vector3(-1.5, 0, 3.5));
+	mesh.setRotation(new Vector3(0, PI, 0));
 	mesh.updateProjection();
 
 	const scene = new Scene();
 
-	scene.addMeshes(geometry, [mesh]);
+	/**
+	 * @todo Display multiple meshes
+	 */
+	// scene.addMeshes(geometry, [mesh]);
+	// scene.addMeshes(geometry2, [mesh2]);
 
 	return scene;
 }

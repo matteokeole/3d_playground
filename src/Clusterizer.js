@@ -13,12 +13,14 @@ import {Geometry} from "./Geometry/index.js";
  * @property {Number} indexCount
  */
 
+/**
+ * @deprecated
+ */
 export class Clusterizer {
 	/**
 	 * @param {Geometry} geometry
 	 */
 	static clusterize(geometry) {
-		const vertices = geometry.getVertices();
 		const indices = geometry.getIndices();
 		const triangleCount = indices.length / 3;
 

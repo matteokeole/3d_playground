@@ -83,10 +83,14 @@ export class Scene {
 			this.#instancesByGeometry.set(geometry, []);
 		}
 
+		const geometryIndex = this.#geometries.length;
+
 		this.#geometries.push(geometry);
 
 		for (let i = 0; i < meshes.length; i++) {
 			const mesh = meshes[i];
+
+			mesh.setGeometryIndex(geometryIndex);
 
 			this.#instancesByGeometry.get(geometry).push(mesh);
 			this.#meshes.push(mesh);

@@ -17,6 +17,7 @@ struct Cluster {
 
 struct Mesh {
 	world: mat4x4f,
+	geometryIndex: u32,
 }
 
 struct BarycentricDerivatives {

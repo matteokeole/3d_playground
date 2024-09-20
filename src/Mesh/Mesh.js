@@ -11,6 +11,8 @@ export class Mesh {
 	 */
 	_geometry;
 
+	#geometryIndex;
+
 	/**
 	 * @type {Material}
 	 */
@@ -48,6 +50,7 @@ export class Mesh {
 	 */
 	constructor(geometry, material, debugName) {
 		this._geometry = geometry;
+		this.#geometryIndex = 0;
 		this._material = material;
 		this.#projection = Matrix4.identity();
 		this.#position = new Vector3();
@@ -62,6 +65,17 @@ export class Mesh {
 
 	getGeometry() {
 		return this._geometry;
+	}
+
+	getGeometryIndex() {
+		return this.#geometryIndex;
+	}
+
+	/**
+	 * @param {Number} geometryIndex
+	 */
+	setGeometryIndex(geometryIndex) {
+		this.#geometryIndex = geometryIndex;
 	}
 
 	getMaterial() {

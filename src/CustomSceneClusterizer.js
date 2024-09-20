@@ -2,8 +2,14 @@ import {Scene} from "./Scene/index.js";
 
 /**
  * @typedef {Object} ClusteredMeshes
+ * @property {ClusteredMesh[]} meshes
  * @property {Uint32Array} indexBuffer
  * @property {Cluster[]} clusters
+ */
+
+/**
+ * @typedef {Object} ClusteredMesh
+ * @property {Number} clusterCount
  */
 
 /**
@@ -42,6 +48,7 @@ export class CustomSceneClusterizer {
 		 */
 		const clusteredMeshes = {};
 
+		clusteredMeshes.meshes = [];
 		clusteredMeshes.clusters = [];
 
 		const clusteredGeometries = [];
@@ -84,12 +91,13 @@ export class CustomSceneClusterizer {
 
 		clusteredMeshes.indexBuffer = new Uint32Array(totalIndexCount);
 		let indexOffset = 0;
+		let meshIndexOffset = 0;
 
 		for (let clusteredGeometryIndex = 0; clusteredGeometryIndex < clusteredGeometries.length; clusteredGeometryIndex++) {
 			const clusteredGeometry = clusteredGeometries[clusteredGeometryIndex];
 			const geometry = scene.getGeometries()[clusteredGeometry.geometryIndex];
 
-			for (let meshIndex = 0; meshIndex < clusteredGeometry.meshCount; meshIndex++) {
+			for (let meshIndex = 0; meshIndex < clusteredGeometry.meshCount; meshIndex++, meshIndexOffset++) {
 				// Set geometry indices
 				clusteredMeshes.indexBuffer.set(geometry.getIndices(), indexOffset);
 
@@ -101,10 +109,19 @@ export class CustomSceneClusterizer {
 					 */
 					const cluster = {};
 
-					cluster.meshIndex = meshIndex;
+					cluster.meshIndex = meshIndexOffset;
 
 					clusteredMeshes.clusters.push(cluster);
 				}
+
+				/**
+				 * @type {ClusteredMesh}
+				 */
+				const clusteredMesh = {};
+
+				clusteredMesh.clusterCount = clusteredGeometry.clusterCount;
+
+				clusteredMeshes.meshes.push(clusteredMesh);
 			}
 		}
 

@@ -6,6 +6,7 @@
 @group(2) @binding(2) var<storage> clusters: array<Cluster>;
 @group(2) @binding(3) var<storage> normalBuffer: array<f32>;
 @group(3) @binding(0) var<storage> meshes: array<Mesh>;
+@group(3) @binding(1) var<storage> geometries: array<Geometry>;
 
 struct View {
 	viewport: vec4u,
@@ -17,12 +18,13 @@ struct Cluster {
 	meshIndex: u32,
 }
 
-struct Geometry {
-	triangleCount: u32,
-}
-
 struct Mesh {
 	world: mat4x4f,
+	geometryIndex: u32,
+}
+
+struct Geometry {
+	triangleOffset: u32,
 }
 
 struct BarycentricDerivatives {

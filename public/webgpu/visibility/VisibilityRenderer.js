@@ -15,6 +15,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 		this._buffers.clusterStorage = this.#createClusterStorageBuffer();
 		this._buffers.normalStorage = this.#createNormalStorageBuffer();
 		this._buffers.meshStorage = this.#createMeshStorageBuffer();
+		this._buffers.geometryStorage = this.#createGeometryStorageBuffer();
 
 		this._buffers.indirect = this.#createGeometryIndirectBuffer();
 
@@ -311,25 +312,58 @@ export class VisibilityRenderer extends WebGPURenderer {
 
 	#createMeshStorageBuffer() {
 		const meshes = this._scene.getMeshes();
+		const clusteredMeshes = this._scene.getClusteredMeshes();
 
 		const meshStorageBuffer = this._device.createBuffer({
 			label: "Mesh",
-			size: meshes.length * 16 * Float32Array.BYTES_PER_ELEMENT,
+			size: meshes.length * 20 * Float32Array.BYTES_PER_ELEMENT,
 			usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
 			mappedAtCreation: true,
 		});
 
 		const meshStorageBufferMap = new Float32Array(meshStorageBuffer.getMappedRange());
+		let clusterOffset = 0;
 
 		for (let i = 0; i < meshes.length; i++) {
 			const mesh = meshes[i];
+			const clusteredMesh = clusteredMeshes.meshes[i];
 
-			meshStorageBufferMap.set(mesh.getProjection(), i * 16);
+			meshStorageBufferMap.set(mesh.getProjection(), i * 20);
+			meshStorageBufferMap[i * 20 + 16] = mesh.getGeometryIndex();
+			meshStorageBufferMap[i * 20 + 17] = clusterOffset;
+
+			clusterOffset += clusteredMesh.clusterCount;
 		}
 
 		meshStorageBuffer.unmap();
 
 		return meshStorageBuffer;
+	}
+
+	#createGeometryStorageBuffer() {
+		const geometries = this._scene.getGeometries();
+
+		const geometryStorageBuffer = this._device.createBuffer({
+			label: "Geometry",
+			size: geometries.length * 1 * Uint32Array.BYTES_PER_ELEMENT,
+			usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+			mappedAtCreation: true,
+		});
+
+		const geometryStorageBufferMap = new Uint32Array(geometryStorageBuffer.getMappedRange());
+		let triangleOffset = 0;
+
+		for (let i = 0; i < geometries.length; i++) {
+			const geometry = geometries[i];
+
+			geometryStorageBufferMap[i] = triangleOffset;
+
+			triangleOffset += geometry.getTriangleCount();
+		}
+
+		geometryStorageBuffer.unmap();
+
+		return geometryStorageBuffer;
 	}
 
 	#createViewBindGroupLayout() {
@@ -381,13 +415,6 @@ export class VisibilityRenderer extends WebGPURenderer {
 						type: "read-only-storage",
 					},
 				},
-				/* {
-					binding: 4,
-					visibility: GPUShaderStage.FRAGMENT,
-					buffer: {
-						type: "read-only-storage",
-					},
-				}, */
 			],
 		});
 
@@ -484,6 +511,13 @@ export class VisibilityRenderer extends WebGPURenderer {
 						type: "read-only-storage",
 					},
 				},
+				{
+					binding: 1,
+					visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+					buffer: {
+						type: "read-only-storage",
+					},
+				},
 			],
 		});
 
@@ -574,15 +608,8 @@ export class VisibilityRenderer extends WebGPURenderer {
 					binding: 3,
 					resource: {
 						buffer: this._buffers.normalStorage,
-						// buffer: this._buffers.normalIndexStorage,
 					},
 				},
-				/* {
-					binding: 4,
-					resource: {
-						buffer: this._buffers.normalStorage,
-					},
-				}, */
 			],
 		});
 
@@ -660,6 +687,12 @@ export class VisibilityRenderer extends WebGPURenderer {
 					binding: 0,
 					resource: {
 						buffer: this._buffers.meshStorage,
+					},
+				},
+				{
+					binding: 1,
+					resource: {
+						buffer: this._buffers.geometryStorage,
 					},
 				},
 			],

@@ -8,10 +8,11 @@ fn main(in: In) -> @location(0) vec4f {
 
 	let clusterIndex: u32 = visibility >> VISIBILITY_CLUSTER_MASK;
 	let zeroBasedClusterIndex: u32 = clusterIndex - 1;
-	let zeroBasedTriangleIndex: u32 = visibility & VISIBILITY_TRIANGLE_MASK;
-
 	let cluster: Cluster = clusters[zeroBasedClusterIndex];
+
+	let zeroBasedTriangleIndex: u32 = visibility & VISIBILITY_TRIANGLE_MASK;
 	let triangle: array<vec4f, 3> = fetchTriangle(zeroBasedClusterIndex, zeroBasedTriangleIndex);
+
 	let mesh: Mesh = meshes[cluster.meshIndex];
 
 	let color: vec3f = visualizeWireframe(triangle, mesh.world, uv);
