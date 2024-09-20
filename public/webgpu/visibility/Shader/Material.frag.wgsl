@@ -6,7 +6,7 @@ const VISUALIZATION_MODE_MESH: u32 = 3;
 
 // Data visualization modes
 const VISUALIZATION_MODE_DEPTH: u32 = 0;
-const VISUALIZATION_MODE_NORMAL: u32 = 10;
+const VISUALIZATION_MODE_FACE_NORMAL: u32 = 10;
 const VISUALIZATION_MODE_BARYCENTRIC_COORDINATES: u32 = 11;
 
 // Shading visualization modes
@@ -20,6 +20,21 @@ fn main(in: In) -> @location(0) vec4f {
 	let uvf: vec2f = in.position.xy;
 	let uv: vec2u = vec2u(in.position.xy);
 	var color: vec3f;
+
+	let visibility: u32 = textureLoad(visibilityTexture, uv).r;
+	let clusterIndex: u32 = visibility >> VISIBILITY_CLUSTER_MASK;
+
+	let zeroBasedClusterIndex: u32 = clusterIndex - 1;
+	let cluster: Cluster = clusters[zeroBasedClusterIndex];
+	let mesh: Mesh = meshes[cluster.meshIndex];
+
+	let zeroBasedTriangleIndex: u32 = visibility & VISIBILITY_TRIANGLE_MASK;
+	let triangle: array<vec4f, 3> = fetchTriangle(zeroBasedClusterIndex, zeroBasedTriangleIndex);
+	let normals: array<vec3f, 3> = fetchNormals(zeroBasedClusterIndex, zeroBasedTriangleIndex);
+
+	color = visualizePhongShading(triangle, normals, uvf, mesh.world);
+
+	return vec4f(color, 1);
 
 	if (VISUALIZATION_MODE == VISUALIZATION_MODE_TRIANGLE) {
 		let visibility: u32 = textureLoad(visibilityTexture, uv).r;
@@ -51,7 +66,7 @@ fn main(in: In) -> @location(0) vec4f {
 
 		color = vec3f(linearDepth);
 	}
-	else if (VISUALIZATION_MODE == VISUALIZATION_MODE_NORMAL) {
+	else if (VISUALIZATION_MODE == VISUALIZATION_MODE_FACE_NORMAL) {
 		let visibility: u32 = textureLoad(visibilityTexture, uv).r;
 		let clusterIndex: u32 = visibility >> VISIBILITY_CLUSTER_MASK;
 
@@ -131,7 +146,7 @@ fn visualizeBarycentricCoordinates(triangle: array<vec4f, 3>, uv: vec2f, world: 
 	let a: vec4f = view.viewProjection * world * triangle[0];
 	let b: vec4f = view.viewProjection * world * triangle[1];
 	let c: vec4f = view.viewProjection * world * triangle[2];
-	let p: vec2f = getNdcUv(uv);
+	let p: vec2f = ndc(uv);
 
 	let derivatives: BarycentricDerivatives = computeBarycentricDerivatives(a, b, c, p, vec2f(view.viewport.zw));
 
@@ -149,14 +164,14 @@ fn visualizeFlatShading(triangle: array<vec4f, 3>, world: mat4x4f) -> vec3f {
 
 	let shade: f32 = max(dot(normal, -surfaceToLight), 0);
 
-	return vec3f(shade);
+	return vec3f(shade) * (vec3f(108, 110, 73) / 255 + .2);
 }
 
 fn visualizePhongShading(triangle: array<vec4f, 3>, normals: array<vec3f, 3>, uv: vec2f, world: mat4x4f) -> vec3f {
 	let a: vec4f = view.viewProjection * world * triangle[0];
 	let b: vec4f = view.viewProjection * world * triangle[1];
 	let c: vec4f = view.viewProjection * world * triangle[2];
-	let p: vec2f = getNdcUv(uv);
+	let p: vec2f = ndc(uv);
 
 	let derivatives: BarycentricDerivatives = computeBarycentricDerivatives(a, b, c, p, vec2f(view.viewport.zw));
 
@@ -164,11 +179,23 @@ fn visualizePhongShading(triangle: array<vec4f, 3>, normals: array<vec3f, 3>, uv
 	let v: f32 = derivatives.lambda.y;
 	let w: f32 = derivatives.lambda.z;
 
-	// let normal: vec3f = normalize(interpolateWithBarycentricDerivatives3x3(derivatives, mat3x3f(normals[0], normals[1], normals[2])));
-	let normal: vec3f = (u * normals[0] + v * normals[1] + w * normals[2]);
-	let surfaceToLight: vec3f = normalize(vec3f(p.xy, 1) - view.position);
+	let normalMat: mat3x3f = mat3x3f(
+		normals[0].x, normals[1].x, normals[2].x,
+		normals[0].y, normals[1].y, normals[2].y,
+		normals[0].z, normals[1].z, normals[2].z,
+	);
 
-	let shade: f32 = max(dot(normal, -surfaceToLight), 0);
+	// let normal: vec3f = normalize(interpolateWithBarycentricDerivatives3x3(derivatives, normalMat));
+	let normal: vec3f = normalize(u * normals[0] + v * normals[1] + w * normals[2]);
+	// let surfaceToLight: vec3f = normalize(vec3f(p.xy, 1) - view.position);
 
-	return vec3f(shade);
+	// let shade: f32 = max(dot(normal, -surfaceToLight), 0);
+
+	let deltas: vec3f = fwidth(derivatives.lambda);
+	let barys: vec3f = smoothstep(vec3f(0), deltas, derivatives.lambda);
+	let minBary: f32 = min(barys.x, min(barys.y, barys.z));
+
+	const albedo: vec3f = vec3f(1, 0.2, 0);
+
+	return albedo * minBary;
 }

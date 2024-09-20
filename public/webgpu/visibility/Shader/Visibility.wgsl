@@ -27,6 +27,11 @@ struct Mesh {
 	// materialIndex: u32,
 }
 
+struct VertexInput {
+	@builtin(instance_index) clusterIndex: u32,
+	@builtin(vertex_index) localVertexIndex: u32,
+}
+
 struct VertexOutput {
 	@builtin(position) position: vec4f,
 	@location(0) @interpolate(flat) clusterIndex: u32,

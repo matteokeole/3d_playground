@@ -27,9 +27,9 @@ export default async function() {
 	);
 	await renderer.loadShader(
 		"material",
-		"public/webgpu/visibility/Shader/Material.wgsl",
+		"public/webgpu/visibility/Shader/Wireframe/Wireframe.wgsl",
 		"public/webgpu/visibility/Shader/Material.vert.wgsl",
-		"public/webgpu/visibility/Shader/Material.frag.wgsl",
+		"public/webgpu/visibility/Shader/Wireframe/Wireframe.frag.wgsl",
 	);
 
 	const viewport = new Vector2(innerWidth, innerHeight);
@@ -161,7 +161,9 @@ async function createScene() {
 
 async function createLookAtTestScene() {
 	const fileLoader = new FileLoader();
-	const response = await fileLoader.load("assets/models/teapot2.obj");
+	// const response = await fileLoader.load("assets/models/Suzanne/Suzanne.obj");
+	// const response = await fileLoader.load("assets/models/suzanne.obj");
+	const response = await fileLoader.load("assets/models/living_room/living_room.obj");
 	const text = await response.text();
 
 	const objParser = new OBJParser();
@@ -177,9 +179,9 @@ async function createLookAtTestScene() {
 
 	const mesh = new Mesh(geometry, null);
 
-	// mesh.setPosition(new Vector3(2.5, -1.35, -1));
-	mesh.setRotation(new Vector3(-PI / 2, 0, 0));
-	mesh.setScale(new Vector3(0.2, 0.2, 0.2));
+	mesh.setPosition(new Vector3(0, 0, 3.5));
+	mesh.setRotation(new Vector3(0, PI, 0));
+	// mesh.setScale(new Vector3(0.2, 0.2, 0.2));
 	mesh.updateProjection();
 
 	const scene = new Scene();

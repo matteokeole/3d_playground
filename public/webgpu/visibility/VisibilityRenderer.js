@@ -69,7 +69,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 			primitive: {
 				topology: "triangle-list",
 				frontFace: "cw",
-				// cullMode: "back",
+				cullMode: "back",
 			},
 			depthStencil: {
 				format: "depth24plus",
@@ -376,11 +376,18 @@ export class VisibilityRenderer extends WebGPURenderer {
 				},
 				{
 					binding: 3,
-					visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+					visibility: GPUShaderStage.FRAGMENT,
 					buffer: {
 						type: "read-only-storage",
 					},
 				},
+				/* {
+					binding: 4,
+					visibility: GPUShaderStage.FRAGMENT,
+					buffer: {
+						type: "read-only-storage",
+					},
+				}, */
 			],
 		});
 
@@ -550,22 +557,32 @@ export class VisibilityRenderer extends WebGPURenderer {
 					resource: {
 						buffer: this._buffers.vertexStorage,
 					},
-				}, {
+				},
+				{
 					binding: 1,
 					resource: {
 						buffer: this._buffers.indexStorage,
 					},
-				}, {
+				},
+				{
 					binding: 2,
 					resource: {
 						buffer: this._buffers.clusterStorage,
 					},
-				}, {
+				},
+				{
 					binding: 3,
 					resource: {
 						buffer: this._buffers.normalStorage,
+						// buffer: this._buffers.normalIndexStorage,
 					},
 				},
+				/* {
+					binding: 4,
+					resource: {
+						buffer: this._buffers.normalStorage,
+					},
+				}, */
 			],
 		});
 

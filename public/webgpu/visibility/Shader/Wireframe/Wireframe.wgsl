@@ -1,10 +1,8 @@
 @group(0) @binding(0) var<uniform> view: View;
-@group(1) @binding(0) var depthTexture: texture_depth_2d;
 @group(1) @binding(1) var visibilityTexture: texture_storage_2d<rg32uint, read>;
 @group(2) @binding(0) var<storage> vertexBuffer: array<f32>;
 @group(2) @binding(1) var<storage> indexBuffer: array<u32>;
 @group(2) @binding(2) var<storage> clusters: array<Cluster>;
-@group(2) @binding(3) var<storage> normalBuffer: array<f32>;
 @group(3) @binding(0) var<storage> meshes: array<Mesh>;
 
 struct View {
@@ -15,10 +13,6 @@ struct View {
 
 struct Cluster {
 	meshIndex: u32,
-}
-
-struct Geometry {
-	triangleCount: u32,
 }
 
 struct Mesh {
@@ -39,35 +33,6 @@ const VISIBILITY_CLUSTER_MASK: u32 = 7;
 const VISIBILITY_TRIANGLE_MASK: u32 = 0x7f;
 const TRIANGLES_PER_CLUSTER: u32 = 128;
 const INDICES_PER_CLUSTER: u32 = 3 * TRIANGLES_PER_CLUSTER;
-const NEAR: f32 = 0.1;
-const FAR: f32 = 10;
-
-fn intToColor(int: u32) -> vec3f {
-	var hash: u32 = murmurMix(int);
-	var color: vec3f = vec3f(
-		f32((hash >>  0) & 255),
-		f32((hash >>  8) & 255),
-		f32((hash >> 16) & 255),
-	);
-
-	return color * (1.0f / 255.0f);
-}
-
-fn murmurMix(_hash: u32) -> u32 {
-	var hash: u32 = _hash;
-
-	hash ^= hash >> 16;
-	hash *= 0x85ebca6b;
-	hash ^= hash >> 13;
-	hash *= 0xc2b2ae35;
-	hash ^= hash >> 16;
-
-	return hash;
-}
-
-fn linearizeDepth(depth: f32) -> f32 {
-	return (2 * NEAR) / (FAR + NEAR - depth * (FAR - NEAR));	
-}
 
 fn computeBarycentricDerivatives(pt0: vec4f, pt1: vec4f, pt2: vec4f, pixelNdc: vec2f, winSize: vec2f) -> BarycentricDerivatives {
 	var ret: BarycentricDerivatives;
@@ -109,18 +74,6 @@ fn computeBarycentricDerivatives(pt0: vec4f, pt1: vec4f, pt2: vec4f, pixelNdc: v
 	return ret;
 }
 
-fn interpolateWithBarycentricDerivatives3x3(derivatives: BarycentricDerivatives, attributes: mat3x3f) -> vec3f {
-	let a0: vec3f = attributes[0];
-	let a1: vec3f = attributes[1];
-	let a2: vec3f = attributes[2];
-
-	return vec3f(
-		dot(a0, derivatives.lambda),
-		dot(a1, derivatives.lambda),
-		dot(a2, derivatives.lambda),
-	);
-}
-
 fn fetchTriangle(clusterIndex: u32, clusterTriangleIndex: u32) -> array<vec4f, 3> {
 	let offset: u32 = clusterIndex * INDICES_PER_CLUSTER + clusterTriangleIndex * 3;
 
@@ -143,27 +96,6 @@ fn fetchVertex(vertexBufferOffset: u32) -> vec4f {
 	let vertex: vec4f = vec4f(x, y, z, 1);
 
 	return vertex;
-}
-
-fn fetchNormals(clusterIndex: u32, clusterTriangleIndex: u32) -> array<vec3f, 3> {
-	let offset: u32 = clusterIndex * TRIANGLES_PER_CLUSTER * 9 + clusterTriangleIndex * 9;
-
-	let normal0: vec3f = fetchNormal(offset + 0 * 3);
-	let normal1: vec3f = fetchNormal(offset + 1 * 3);
-	let normal2: vec3f = fetchNormal(offset + 2 * 3);
-
-	return array(normal0, normal1, normal2);
-}
-
-fn fetchNormal(normalBufferOffset: u32) -> vec3f {
-	let x: f32 = normalBuffer[normalBufferOffset + 0];
-	let y: f32 = normalBuffer[normalBufferOffset + 1];
-	let z: f32 = normalBuffer[normalBufferOffset + 2];
-
-	// Must be already normalized
-	let normal: vec3f = vec3f(x, y, z);
-
-	return normalize(normal);
 }
 
 // Returns a UV vector in normalized device coordinates (NDC).
