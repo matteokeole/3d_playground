@@ -109,16 +109,12 @@ fn computeBarycentricDerivatives(pt0: vec4f, pt1: vec4f, pt2: vec4f, pixelNdc: v
 	return ret;
 }
 
-fn interpolateWithBarycentricDerivatives3x3(derivatives: BarycentricDerivatives, attributes: mat3x3f) -> vec3f {
-	let a0: vec3f = attributes[0];
-	let a1: vec3f = attributes[1];
-	let a2: vec3f = attributes[2];
+fn interpolate3x1(derivatives: BarycentricDerivatives, a: f32, b: f32, c: f32) -> f32 {
+	return derivatives.lambda.x * a + derivatives.lambda.y * b + derivatives.lambda.z * c;
+}
 
-	return vec3f(
-		dot(a0, derivatives.lambda),
-		dot(a1, derivatives.lambda),
-		dot(a2, derivatives.lambda),
-	);
+fn interpolate3x3(derivatives: BarycentricDerivatives, a: vec3f, b: vec3f, c: vec3f) -> vec3f {
+	return derivatives.lambda.x * a + derivatives.lambda.y * b + derivatives.lambda.z * c;
 }
 
 fn fetchTriangle(clusterIndex: u32, clusterTriangleIndex: u32) -> array<vec4f, 3> {

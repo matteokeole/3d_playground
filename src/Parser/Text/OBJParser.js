@@ -59,7 +59,9 @@ export class OBJParser extends Parser {
 			vertexIndex += vertexCount;
 		}
 
-		vertexIndices.push(vertexIndex - 1);
+		vertexIndex -= 1;
+
+		vertexIndices.push(vertexIndex);
 
 		/**
 		 * @todo Parse UVs
@@ -74,6 +76,8 @@ export class OBJParser extends Parser {
 			if (normalIndex < 0) {
 				normalIndex += vertexCount;
 			}
+
+			normalIndex -= 1;
 
 			const normal = new Vector3(
 				unsortedNormals[normalIndex * 3 + 0],
