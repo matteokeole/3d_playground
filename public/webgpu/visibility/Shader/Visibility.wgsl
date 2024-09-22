@@ -1,9 +1,9 @@
 @group(0) @binding(0) var<uniform> view: View;
 @group(1) @binding(0) var<storage> vertexBuffer: array<f32>;
 @group(1) @binding(1) var<storage> indexBuffer: array<u32>;
-@group(1) @binding(2) var<storage> clusters: array<Cluster>;
-@group(2) @binding(0) var<storage> meshes: array<Mesh>;
-@group(2) @binding(1) var<storage> geometries: array<Geometry>;
+@group(1) @binding(2) var<storage> clusterBuffer: array<Cluster>;
+@group(2) @binding(0) var<storage> meshBuffer: array<Mesh>;
+@group(2) @binding(1) var<storage> geometryBuffer: array<Geometry>;
 
 struct View {
 	viewport: vec4u,
@@ -18,11 +18,10 @@ struct Cluster {
 struct Mesh {
 	world: mat4x4f,
 	geometryIndex: u32,
-	clusterOffset: u32,
 }
 
 struct Geometry {
-	triangleOffset: u32,
+	vertexBufferOffset: u32, // Offset in indices where the geometry starts in the vertex buffer
 }
 
 struct VertexInput {

@@ -168,29 +168,18 @@ export class VisibilityRenderer extends WebGPURenderer {
 	}
 
 	#createVertexStorageBuffer() {
-		const meshes = this._scene.getMeshes();
-		let vertexCount = 0;
-
-		for (let i = 0; i < meshes.length; i++) {
-			vertexCount += meshes[i].getGeometry().getVertices().length;
-		}
+		const vertexBuffer = this._scene.getClusteredMeshes().vertexBuffer;
 
 		const vertexStorageBuffer = this._device.createBuffer({
 			label: "Vertex buffer",
-			size: vertexCount * Float32Array.BYTES_PER_ELEMENT,
+			size: vertexBuffer.byteLength,
 			usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
 			mappedAtCreation: true,
 		});
 
 		const vertexStorageBufferMap = new Float32Array(vertexStorageBuffer.getMappedRange());
 
-		for (let i = 0, offset = 0; i < meshes.length; i++) {
-			const vertices = meshes[i].getGeometry().getVertices();
-
-			vertexStorageBufferMap.set(vertices, offset);
-
-			offset += vertices.length;
-		}
+		vertexStorageBufferMap.set(vertexBuffer);
 
 		vertexStorageBuffer.unmap();
 
@@ -312,7 +301,6 @@ export class VisibilityRenderer extends WebGPURenderer {
 
 	#createMeshStorageBuffer() {
 		const meshes = this._scene.getMeshes();
-		const clusteredMeshes = this._scene.getClusteredMeshes();
 
 		const meshStorageBuffer = this._device.createBuffer({
 			label: "Mesh",
@@ -321,18 +309,26 @@ export class VisibilityRenderer extends WebGPURenderer {
 			mappedAtCreation: true,
 		});
 
-		const meshStorageBufferMap = new Float32Array(meshStorageBuffer.getMappedRange());
-		let clusterOffset = 0;
+		const mappedRange = meshStorageBuffer.getMappedRange();
+		const meshStorageBufferMap = new Float32Array(mappedRange);
 
+		/**
+		 * @todo Find a better way of writing ints and floats without creating two different views
+		 */
+		// Set mesh world
 		for (let i = 0; i < meshes.length; i++) {
 			const mesh = meshes[i];
-			const clusteredMesh = clusteredMeshes.meshes[i];
 
 			meshStorageBufferMap.set(mesh.getProjection(), i * 20);
-			meshStorageBufferMap[i * 20 + 16] = mesh.getGeometryIndex();
-			meshStorageBufferMap[i * 20 + 17] = clusterOffset;
+		}
 
-			clusterOffset += clusteredMesh.clusterCount;
+		const meshStorageBufferMap2 = new Uint32Array(mappedRange);
+
+		// Set mesh geometry index
+		for (let i = 0; i < meshes.length; i++) {
+			const mesh = meshes[i];
+
+			meshStorageBufferMap2[i * 20 + 16] = mesh.getGeometryIndex();
 		}
 
 		meshStorageBuffer.unmap();
@@ -351,14 +347,14 @@ export class VisibilityRenderer extends WebGPURenderer {
 		});
 
 		const geometryStorageBufferMap = new Uint32Array(geometryStorageBuffer.getMappedRange());
-		let triangleOffset = 0;
+		let vertexOffset = 0;
 
 		for (let i = 0; i < geometries.length; i++) {
 			const geometry = geometries[i];
 
-			geometryStorageBufferMap[i] = triangleOffset;
+			geometryStorageBufferMap[i] = vertexOffset;
 
-			triangleOffset += geometry.getTriangleCount();
+			vertexOffset += geometry.getVertices().length / 3;
 		}
 
 		geometryStorageBuffer.unmap();

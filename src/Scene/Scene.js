@@ -1,4 +1,4 @@
-import {CustomSceneClusterizer} from "../CustomSceneClusterizer.js";
+import {Clusterizer} from "../Clusterizer.js";
 import {Geometry} from "../Geometry/Geometry.js";
 import {Mesh} from "../Mesh/Mesh.js";
 
@@ -20,7 +20,7 @@ export class Scene {
 	#meshes;
 
 	/**
-	 * @type {import("../CustomSceneClusterizer.js").ClusteredMeshes}
+	 * @type {import("../Clusterizer.js").ClusteredMeshes}
 	 */
 	#clusteredMeshes;
 
@@ -98,6 +98,6 @@ export class Scene {
 	}
 
 	clusterize() {
-		this.#clusteredMeshes = CustomSceneClusterizer.clusterize(this);
+		this.#clusteredMeshes = Clusterizer.parse(this);
 	}
 }

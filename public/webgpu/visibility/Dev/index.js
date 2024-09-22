@@ -193,18 +193,14 @@ async function createLookAtTestScene() {
 	mesh2.setRotation(new Vector3(0, PI, 0));
 	mesh2.updateProjection();
 
-	// Suzanne
 	mesh.setPosition(new Vector3(-1.5, 0, 3.5));
 	mesh.setRotation(new Vector3(0, PI, 0));
 	mesh.updateProjection();
 
 	const scene = new Scene();
 
-	/**
-	 * @todo Display multiple meshes
-	 */
-	// scene.addMeshes(geometry, [mesh]);
-	// scene.addMeshes(geometry2, [mesh2]);
+	scene.addMeshes(geometry, [mesh]); // Suzanne
+	scene.addMeshes(geometry2, [mesh2]); // Bunny
 
 	return scene;
 }
