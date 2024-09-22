@@ -14,7 +14,7 @@ const VISUALIZATION_MODE_BARYCENTRIC_COORDINATES: u32 = 12;
 const VISUALIZATION_MODE_FLAT_SHADING: u32 = 20;
 const VISUALIZATION_MODE_PHONG_SHADING: u32 = 21;
 
-const VISUALIZATION_MODE: u32 = VISUALIZATION_MODE_TRIANGLE;
+const VISUALIZATION_MODE: u32 = VISUALIZATION_MODE_VERTEX_NORMAL;
 
 @fragment
 fn main(in: In) -> @location(0) vec4f {
@@ -40,7 +40,7 @@ fn main(in: In) -> @location(0) vec4f {
 		let clusterIndex: u32 = visibility >> VISIBILITY_CLUSTER_MASK;
 
 		if (clusterIndex > 0) {
-			let cluster: Cluster = clusters[clusterIndex - 1];
+			let cluster: Cluster = clusterBuffer[clusterIndex - 1];
 
 			color = intToColor(cluster.meshIndex + 1);
 		}
@@ -53,8 +53,8 @@ fn main(in: In) -> @location(0) vec4f {
 
 		if (clusterIndex > 0) {
 			let zeroBasedClusterIndex: u32 = clusterIndex - 1;
-			let cluster: Cluster = clusters[zeroBasedClusterIndex];
-			let mesh: Mesh = meshes[cluster.meshIndex];
+			let cluster: Cluster = clusterBuffer[zeroBasedClusterIndex];
+			let mesh: Mesh = meshBuffer[cluster.meshIndex];
 
 			color = intToColor(mesh.geometryIndex + 1);
 		}
@@ -73,11 +73,12 @@ fn main(in: In) -> @location(0) vec4f {
 
 		if (clusterIndex > 0) {
 			let zeroBasedClusterIndex: u32 = clusterIndex - 1;
-			let cluster: Cluster = clusters[zeroBasedClusterIndex];
-			let mesh: Mesh = meshes[cluster.meshIndex];
+			let cluster: Cluster = clusterBuffer[zeroBasedClusterIndex];
+			let mesh: Mesh = meshBuffer[cluster.meshIndex];
+			let geometry: Geometry = geometryBuffer[mesh.geometryIndex];
 
 			let zeroBasedTriangleIndex: u32 = visibility & VISIBILITY_TRIANGLE_MASK;
-			let triangle: array<vec4f, 3> = fetchTriangle(zeroBasedClusterIndex, zeroBasedTriangleIndex);
+			let triangle: array<vec4f, 3> = fetchTriangle(zeroBasedClusterIndex, zeroBasedTriangleIndex, geometry);
 
 			color = visualizeFaceNormal(triangle, mesh.world);
 		}
@@ -88,12 +89,13 @@ fn main(in: In) -> @location(0) vec4f {
 
 		if (clusterIndex > 0) {
 			let zeroBasedClusterIndex: u32 = clusterIndex - 1;
-			let cluster: Cluster = clusters[zeroBasedClusterIndex];
-			let mesh: Mesh = meshes[cluster.meshIndex];
+			let cluster: Cluster = clusterBuffer[zeroBasedClusterIndex];
+			let mesh: Mesh = meshBuffer[cluster.meshIndex];
+			let geometry: Geometry = geometryBuffer[mesh.geometryIndex];
 
 			let zeroBasedTriangleIndex: u32 = visibility & VISIBILITY_TRIANGLE_MASK;
-			let triangle: array<vec4f, 3> = fetchTriangle(zeroBasedClusterIndex, zeroBasedTriangleIndex);
-			let normals: array<vec3f, 3> = fetchNormals(zeroBasedClusterIndex, zeroBasedTriangleIndex);
+			let triangle: array<vec4f, 3> = fetchTriangle(zeroBasedClusterIndex, zeroBasedTriangleIndex, geometry);
+			let normals: array<vec3f, 3> = fetchNormals(zeroBasedClusterIndex, zeroBasedTriangleIndex, geometry);
 
 			color = visualizeVertexNormal(triangle, normals, uvf, mesh.world);
 		}
@@ -104,11 +106,12 @@ fn main(in: In) -> @location(0) vec4f {
 
 		if (clusterIndex > 0) {
 			let zeroBasedClusterIndex: u32 = clusterIndex - 1;
-			let cluster: Cluster = clusters[zeroBasedClusterIndex];
-			let mesh: Mesh = meshes[cluster.meshIndex];
+			let cluster: Cluster = clusterBuffer[zeroBasedClusterIndex];
+			let mesh: Mesh = meshBuffer[cluster.meshIndex];
+			let geometry: Geometry = geometryBuffer[mesh.geometryIndex];
 
 			let zeroBasedTriangleIndex: u32 = visibility & VISIBILITY_TRIANGLE_MASK;
-			let triangle: array<vec4f, 3> = fetchTriangle(zeroBasedClusterIndex, zeroBasedTriangleIndex);
+			let triangle: array<vec4f, 3> = fetchTriangle(zeroBasedClusterIndex, zeroBasedTriangleIndex, geometry);
  
 			color = visualizeBarycentricCoordinates(triangle, uvf, mesh.world);
 		}
@@ -119,11 +122,12 @@ fn main(in: In) -> @location(0) vec4f {
 
 		if (clusterIndex > 0) {
 			let zeroBasedClusterIndex: u32 = clusterIndex - 1;
-			let cluster: Cluster = clusters[zeroBasedClusterIndex];
-			let mesh: Mesh = meshes[cluster.meshIndex];
+			let cluster: Cluster = clusterBuffer[zeroBasedClusterIndex];
+			let mesh: Mesh = meshBuffer[cluster.meshIndex];
+			let geometry: Geometry = geometryBuffer[mesh.geometryIndex];
 
 			let zeroBasedTriangleIndex: u32 = visibility & VISIBILITY_TRIANGLE_MASK;
-			let triangle: array<vec4f, 3> = fetchTriangle(zeroBasedClusterIndex, zeroBasedTriangleIndex);
+			let triangle: array<vec4f, 3> = fetchTriangle(zeroBasedClusterIndex, zeroBasedTriangleIndex, geometry);
 
 			color = visualizeFlatShading(triangle, uvf, mesh.world);
 		}
@@ -134,12 +138,13 @@ fn main(in: In) -> @location(0) vec4f {
 
 		if (clusterIndex > 0) {
 			let zeroBasedClusterIndex: u32 = clusterIndex - 1;
-			let cluster: Cluster = clusters[zeroBasedClusterIndex];
-			let mesh: Mesh = meshes[cluster.meshIndex];
+			let cluster: Cluster = clusterBuffer[zeroBasedClusterIndex];
+			let mesh: Mesh = meshBuffer[cluster.meshIndex];
+			let geometry: Geometry = geometryBuffer[mesh.geometryIndex];
 
 			let zeroBasedTriangleIndex: u32 = visibility & VISIBILITY_TRIANGLE_MASK;
-			let triangle: array<vec4f, 3> = fetchTriangle(zeroBasedClusterIndex, zeroBasedTriangleIndex);
-			let normals: array<vec3f, 3> = fetchNormals(zeroBasedClusterIndex, zeroBasedTriangleIndex);
+			let triangle: array<vec4f, 3> = fetchTriangle(zeroBasedClusterIndex, zeroBasedTriangleIndex, geometry);
+			let normals: array<vec3f, 3> = fetchNormals(zeroBasedClusterIndex, zeroBasedTriangleIndex, geometry);
 
 			color = visualizePhongShading(triangle, normals, uvf, mesh.world);
 		}

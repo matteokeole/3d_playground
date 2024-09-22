@@ -3,10 +3,10 @@
 @group(1) @binding(1) var visibilityTexture: texture_storage_2d<rg32uint, read>;
 @group(2) @binding(0) var<storage> vertexBuffer: array<f32>;
 @group(2) @binding(1) var<storage> indexBuffer: array<u32>;
-@group(2) @binding(2) var<storage> clusters: array<Cluster>;
+@group(2) @binding(2) var<storage> clusterBuffer: array<Cluster>;
 @group(2) @binding(3) var<storage> normalBuffer: array<f32>;
-@group(3) @binding(0) var<storage> meshes: array<Mesh>;
-@group(3) @binding(1) var<storage> geometries: array<Geometry>;
+@group(3) @binding(0) var<storage> meshBuffer: array<Mesh>;
+@group(3) @binding(1) var<storage> geometryBuffer: array<Geometry>;
 
 struct View {
 	viewport: vec4u,
@@ -24,7 +24,7 @@ struct Mesh {
 }
 
 struct Geometry {
-	triangleOffset: u32,
+	vertexBufferOffset: u32, // Offset in indices where the geometry starts in the vertex buffer
 }
 
 struct BarycentricDerivatives {
@@ -119,16 +119,16 @@ fn interpolate3x3(derivatives: BarycentricDerivatives, a: vec3f, b: vec3f, c: ve
 	return derivatives.lambda.x * a + derivatives.lambda.y * b + derivatives.lambda.z * c;
 }
 
-fn fetchTriangle(clusterIndex: u32, clusterTriangleIndex: u32) -> array<vec4f, 3> {
+fn fetchTriangle(clusterIndex: u32, clusterTriangleIndex: u32, geometry: Geometry) -> array<vec4f, 3> {
 	let offset: u32 = clusterIndex * INDICES_PER_CLUSTER + clusterTriangleIndex * 3;
 
 	let index0: u32 = indexBuffer[offset + 0];
 	let index1: u32 = indexBuffer[offset + 1];
 	let index2: u32 = indexBuffer[offset + 2];
 
-	let vertex0: vec4f = fetchVertex(index0 * 3);
-	let vertex1: vec4f = fetchVertex(index1 * 3);
-	let vertex2: vec4f = fetchVertex(index2 * 3);
+	let vertex0: vec4f = fetchVertex((geometry.vertexBufferOffset + index0) * 3);
+	let vertex1: vec4f = fetchVertex((geometry.vertexBufferOffset + index1) * 3);
+	let vertex2: vec4f = fetchVertex((geometry.vertexBufferOffset + index2) * 3);
 
 	return array(vertex0, vertex1, vertex2);
 }
@@ -143,7 +143,9 @@ fn fetchVertex(vertexBufferOffset: u32) -> vec4f {
 	return vertex;
 }
 
-fn fetchNormals(clusterIndex: u32, clusterTriangleIndex: u32) -> array<vec3f, 3> {
+// Suzanne: last normal component is at index 8711
+// Bunny: first normal component is at index 8712
+fn fetchNormals(clusterIndex: u32, clusterTriangleIndex: u32, geometry: Geometry) -> array<vec3f, 3> {
 	let offset: u32 = clusterIndex * TRIANGLES_PER_CLUSTER * 9 + clusterTriangleIndex * 9;
 
 	let normal0: vec3f = fetchNormal(offset + 0 * 3);
@@ -158,10 +160,9 @@ fn fetchNormal(normalBufferOffset: u32) -> vec3f {
 	let y: f32 = normalBuffer[normalBufferOffset + 1];
 	let z: f32 = normalBuffer[normalBufferOffset + 2];
 
-	// Must be already normalized
 	let normal: vec3f = vec3f(x, y, z);
 
-	return normalize(normal);
+	return normal;
 }
 
 // Returns a UV vector in normalized device coordinates (NDC).
