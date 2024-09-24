@@ -22,6 +22,7 @@ struct Mesh {
 
 struct Geometry {
 	vertexBufferOffset: u32, // Offset in indices where the geometry starts in the vertex buffer
+	normalBufferOffset: u32,
 }
 
 struct VertexInput {

@@ -25,6 +25,7 @@ struct Mesh {
 
 struct Geometry {
 	vertexBufferOffset: u32, // Offset in indices where the geometry starts in the vertex buffer
+	normalBufferOffset: u32,
 }
 
 struct BarycentricDerivatives {
@@ -143,14 +144,15 @@ fn fetchVertex(vertexBufferOffset: u32) -> vec4f {
 	return vertex;
 }
 
+// TODO: Fix normal fetching
 // Suzanne: last normal component is at index 8711
 // Bunny: first normal component is at index 8712
 fn fetchNormals(clusterIndex: u32, clusterTriangleIndex: u32, geometry: Geometry) -> array<vec3f, 3> {
 	let offset: u32 = clusterIndex * TRIANGLES_PER_CLUSTER * 9 + clusterTriangleIndex * 9;
 
-	let normal0: vec3f = fetchNormal(offset + 0 * 3);
-	let normal1: vec3f = fetchNormal(offset + 1 * 3);
-	let normal2: vec3f = fetchNormal(offset + 2 * 3);
+	let normal0: vec3f = fetchNormal(geometry.normalBufferOffset + offset + 0 * 3);
+	let normal1: vec3f = fetchNormal(geometry.normalBufferOffset + offset + 1 * 3);
+	let normal2: vec3f = fetchNormal(geometry.normalBufferOffset + offset + 2 * 3);
 
 	return array(normal0, normal1, normal2);
 }

@@ -341,20 +341,23 @@ export class VisibilityRenderer extends WebGPURenderer {
 
 		const geometryStorageBuffer = this._device.createBuffer({
 			label: "Geometry",
-			size: geometries.length * 1 * Uint32Array.BYTES_PER_ELEMENT,
+			size: geometries.length * 2 * Uint32Array.BYTES_PER_ELEMENT,
 			usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
 			mappedAtCreation: true,
 		});
 
 		const geometryStorageBufferMap = new Uint32Array(geometryStorageBuffer.getMappedRange());
 		let vertexOffset = 0;
+		let normalOffset = 0;
 
 		for (let i = 0; i < geometries.length; i++) {
 			const geometry = geometries[i];
 
-			geometryStorageBufferMap[i] = vertexOffset;
+			geometryStorageBufferMap[i * 2 + 0] = vertexOffset;
+			geometryStorageBufferMap[i * 2 + 1] = normalOffset;
 
 			vertexOffset += geometry.getVertices().length / 3;
+			normalOffset += geometry.getNormals().length;
 		}
 
 		geometryStorageBuffer.unmap();
