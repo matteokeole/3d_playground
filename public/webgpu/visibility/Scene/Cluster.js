@@ -32,15 +32,15 @@ const triangleGeometry = new PolytopeGeometry({
 export async function createScene() {
 	const square1 = new Mesh(squareGeometry, null);
 	square1.setPosition(new Vector3(-2, 0, 0));
-	square1.updateProjection();
+	square1.updateWorld();
 
 	const square2 = new Mesh(squareGeometry, null);
 	square2.setPosition(new Vector3(2, 0, 0));
-	square2.updateProjection();
+	square2.updateWorld();
 
 	const triangle = new Mesh(triangleGeometry, null);
 	triangle.setPosition(new Vector3(0, 0, 0));
-	triangle.updateProjection();
+	triangle.updateWorld();
 
 	const scene = new Scene();
 	scene.addMeshes(squareGeometry, [square1, square2]);

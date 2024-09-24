@@ -1,4 +1,4 @@
-import {Mesh} from "../../public/hl2/Mesh.js";
+import {Mesh} from "../Mesh/index.js";
 import {Loader} from "./Loader.js";
 import {FileLoader} from "./index.js";
 
@@ -49,7 +49,7 @@ export class SSDLoader extends Loader {
 					continue;
 				}
 
-				extractedMeshes.push(Mesh.fromJson(meshes[j], this.#images, imagePaths));
+				extractedMeshes.push(Mesh.fromSsd(meshes[j], this.#images, imagePaths));
 			}
 		}
 

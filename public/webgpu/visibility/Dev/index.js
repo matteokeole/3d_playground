@@ -1,10 +1,10 @@
 import {PerspectiveCamera} from "../../../../src/Camera/index.js";
 import {BoxGeometry, Geometry, PolytopeGeometry} from "../../../../src/Geometry/index.js";
-import {FileLoader} from "../../../../src/Loader/FileLoader.js";
+import {FileLoader} from "../../../../src/Loader/index.js";
 import {PI, Vector2, Vector3, Vector4} from "../../../../src/math/index.js";
-import {OBJParser} from "../../../../src/Parser/Text/OBJParser.js";
+import {OBJParser} from "../../../../src/Parser/Text/index.js";
 import {Scene} from "../../../../src/Scene/index.js";
-import {Mesh} from "../../../hl2/Mesh.js";
+import {Mesh} from "../../../../src/Mesh/index.js";
 import {FIELD_OF_VIEW, FRAMES_PER_SECOND, PLAYER_COLLISION_HULL} from "../../../index.js";
 import {VisibilityRenderer} from "../VisibilityRenderer.js";
 import {DevInstance} from "./DevInstance.js";
@@ -36,13 +36,13 @@ export default async function() {
 	renderer.setViewport(new Vector4(0, 0, viewport[0], viewport[1]));
 	renderer.resize();
 
-	const scene = await createLookAtTestScene();
+	const scene = await createScene();
 
 	scene.clusterize();
 
 	renderer.setScene(scene);
 
-	const camera = createLookAtTestCamera();
+	const camera = createCamera();
 
 	camera.setAspectRatio(viewport[0] / viewport[1]);
 
@@ -102,48 +102,48 @@ async function createScene() {
 
 	const plane = new Mesh(planeGeometry, null);
 	plane.setPosition(new Vector3(0, 0, 0));
-	plane.updateProjection();
+	plane.updateWorld();
 
 	const squareWall1 = new Mesh(squareWallGeometry, null);
 	squareWall1.setPosition(new Vector3(128, 0, 0));
-	squareWall1.updateProjection();
+	squareWall1.updateWorld();
 
 	const squareWall2 = new Mesh(squareWallGeometry, null);
 	squareWall2.setPosition(new Vector3(256, 0, 0));
-	squareWall2.updateProjection();
+	squareWall2.updateWorld();
 
 	const squareWall3 = new Mesh(squareWallGeometry, null);
 	squareWall3.setPosition(new Vector3(384, 0, 0));
-	squareWall3.updateProjection();
+	squareWall3.updateWorld();
 
 	const squareWall4 = new Mesh(squareWallGeometry, null);
 	squareWall4.setPosition(new Vector3(512, 0, 0));
-	squareWall4.updateProjection();
+	squareWall4.updateWorld();
 
 	const leftBox = new Mesh(boxGeometry, null);
 	leftBox.setPosition(new Vector3(-112, 24, 32));
 	leftBox.setScale(new Vector3(32, 48, 192));
-	leftBox.updateProjection();
+	leftBox.updateWorld();
 
 	const bridge = new Mesh(boxGeometry, null);
 	bridge.setPosition(new Vector3(-64, 42, 96));
 	bridge.setScale(new Vector3(64, 12, 64));
-	bridge.updateProjection();
+	bridge.updateWorld();
 
 	const centerBox = new Mesh(boxGeometry, null);
 	centerBox.setPosition(new Vector3(16, 24, 96));
 	centerBox.setScale(new Vector3(96, 48, 64));
-	centerBox.updateProjection();
+	centerBox.updateWorld();
 
 	const rightBox = new Mesh(boxGeometry, null);
 	rightBox.setPosition(new Vector3(96, 24, 64));
 	rightBox.setScale(new Vector3(64, 48, 128));
-	rightBox.updateProjection();
+	rightBox.updateWorld();
 
 	const slope = new Mesh(slopeGeometry, null);
 	slope.setPosition(new Vector3(96, 24, -24));
 	slope.setScale(new Vector3(64, 48, 48));
-	slope.updateProjection();
+	slope.updateWorld();
 
 	///
 	/// Scene
@@ -153,8 +153,8 @@ async function createScene() {
 
 	scene.addMeshes(planeGeometry, [plane]);
 	scene.addMeshes(slopeGeometry, [slope]);
-	// scene.addMeshes(boxGeometry, [leftBox, bridge, centerBox, rightBox]);
-	// scene.addMeshes(squareWallGeometry, [squareWall1, squareWall2, squareWall3, squareWall4]);
+	scene.addMeshes(boxGeometry, [leftBox, bridge, centerBox, rightBox]);
+	scene.addMeshes(squareWallGeometry, [squareWall1, squareWall2, squareWall3, squareWall4]);
 
 	return scene;
 }
@@ -191,11 +191,11 @@ async function createLookAtTestScene() {
 
 	mesh2.setPosition(new Vector3(1.5, 0, 3.5));
 	mesh2.setRotation(new Vector3(0, PI, 0));
-	mesh2.updateProjection();
+	mesh2.updateWorld();
 
 	mesh.setPosition(new Vector3(-1.5, 0, 3.5));
 	mesh.setRotation(new Vector3(0, PI, 0));
-	mesh.updateProjection();
+	mesh.updateWorld();
 
 	const scene = new Scene();
 
@@ -208,7 +208,7 @@ async function createLookAtTestScene() {
 function createCamera() {
 	const hull = new Mesh(new BoxGeometry(PLAYER_COLLISION_HULL), null);
 	hull.setPosition(new Vector3(0, 40, 0));
-	hull.updateProjection();
+	hull.updateWorld();
 
 	const camera = new PerspectiveCamera({
 		position: new Vector3(0, 64, -64),

@@ -1,6 +1,7 @@
 import {Clusterizer} from "../Clusterizer.js";
-import {Geometry} from "../Geometry/Geometry.js";
-import {Mesh} from "../Mesh/Mesh.js";
+import {Geometry} from "../Geometry/index.js";
+import {Hull} from "../Hull/index.js";
+import {Mesh} from "../Mesh/index.js";
 
 /**
  * @typedef {Object} AddMeshesDescriptor
@@ -29,11 +30,17 @@ export class Scene {
 	 */
 	#instancesByGeometry;
 
+	/**
+	 * @type {Hull[]}
+	 */
+	#hulls;
+
 	constructor() {
 		this.#geometries = [];
 		this.#meshes = [];
 		this.#clusteredMeshes = null;
 		this.#instancesByGeometry = new Map();
+		this.#hulls = [];
 	}
 
 	getGeometries() {
@@ -74,6 +81,10 @@ export class Scene {
 		return this.#instancesByGeometry.get(geometry).length;
 	}
 
+	getHulls() {
+		return this.#hulls;
+	}
+
 	/**
 	 * @param {Geometry} geometry
 	 * @param {Mesh[]} meshes
@@ -94,6 +105,12 @@ export class Scene {
 
 			this.#instancesByGeometry.get(geometry).push(mesh);
 			this.#meshes.push(mesh);
+
+			if (!mesh.getHull()) {
+				continue;
+			}
+
+			this.#hulls.push(mesh.getHull());
 		}
 	}
 

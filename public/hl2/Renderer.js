@@ -3,7 +3,7 @@ import {TextLoader} from "../../src/Loader/index.js";
 import {Material} from "../../src/Material/index.js";
 import {Mesh} from "../../src/Mesh/index.js";
 import {WebGLRenderer} from "../../src/Renderer/index.js";
-import {SSDPlaneGeometry} from "./SSDPlaneGeometry.js";
+import {SSDPlaneGeometry} from "../../src/Geometry/SSDPlaneGeometry.js";
 
 export class Renderer extends WebGLRenderer {
 	/**

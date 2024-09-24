@@ -93,7 +93,7 @@ export class Instance extends _Instance {
 	 */
 	#updateCameraHull(camera, hull, staticMeshes) {
 		hull.setPosition(camera.getPosition());
-		hull.updateProjection();
+		hull.updateWorld();
 
 		for (let i = 0; i < staticMeshes.length; i++) {
 			const staticMesh = staticMeshes[i];
@@ -109,7 +109,7 @@ export class Instance extends _Instance {
 			 * @todo Fix blocking edges between geometries
 			 */
 			hull.getPosition().subtract(force);
-			hull.updateProjection();
+			hull.updateWorld();
 		}
 	}
 

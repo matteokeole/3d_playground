@@ -38,7 +38,7 @@ export async function createScene() {
 	mesh.setPosition(new Vector3(0, 0, 2));
 	// mesh.setRotation(new Vector3(PI / 2, PI, PI));
 	mesh.setScale(new Vector3().addScalar(1));
-	mesh.updateProjection();
+	mesh.updateWorld();
 
 	const scene = new Scene();
 

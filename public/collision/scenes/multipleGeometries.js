@@ -4,8 +4,8 @@ import {PointLight} from "../../../src/Light/index.js";
 import {SSDLoader} from "../../../src/Loader/index.js";
 import {TextureMaterial} from "../../../src/Material/index.js";
 import {Matrix3, Vector3} from "../../../src/math/index.js";
+import {Mesh} from "../../../src/Mesh/index.js";
 import {ENTITY_HEIGHT_STAND} from "../../index.js";
-import {Mesh} from "../../hl2/Mesh.js";
 import {Scene} from "../../hl2/Scene.js";
 
 /**
@@ -16,36 +16,19 @@ export async function createScene(imageBitmaps) {
 	ssdLoader.setImages(imageBitmaps);
 
 	const meshes = await ssdLoader.load("public/collision/scenes/swept_aabb.json");
-
-	const player = new Mesh(
-		new BoxGeometry(new Vector3(16, 128, 16)),
-		new TextureMaterial({
+	const box = new Mesh({
+		geometry: new BoxGeometry(new Vector3(512, 128, 16)),
+		material: new TextureMaterial({
 			textureMatrix: Matrix3.identity(),
 			textureIndex: imageBitmaps.findIndex(texture => texture.path === "plaster/plasterwall044c.jpg"),
 			normalMapIndex: imageBitmaps.findIndex(texture => texture.path === "plaster/plasterwall044c_normal.jpg"),
 		}),
-		"player",
-	);
-	player.setPosition(new Vector3(0, 0, 0));
-	player.updateProjection();
-	player.setIsTiedToCamera(true);
-	meshes.push(player);
+		debugName: "wall",
+	});
 
-	const box = new Mesh(
-		new BoxGeometry(new Vector3(512, 128, 16)),
-		new TextureMaterial({
-			textureMatrix: Matrix3.identity(),
-			textureIndex: imageBitmaps.findIndex(texture => texture.path === "plaster/plasterwall044c.jpg"),
-			normalMapIndex: imageBitmaps.findIndex(texture => texture.path === "plaster/plasterwall044c_normal.jpg"),
-		}),
-		"wall",
-	);
-	box.setPosition(new Vector3(0, 0, 0));
-	box.updateProjection();
 	meshes.push(box);
 
 	const scene = new Scene(meshes);
-
 	scene.setPointLight(
 		new PointLight({
 			color: new Vector3(1, 1, 1),
@@ -58,10 +41,23 @@ export async function createScene(imageBitmaps) {
 	return scene;
 }
 
-export function createCamera() {
+/**
+ * @param {import("../../../src/Loader/ImageBitmapLoader.js").Image[]} imageBitmaps
+ */
+export function createCamera(imageBitmaps) {
+	const hull = new Mesh({
+		geometry: new BoxGeometry(new Vector3(16, 128, 16)),
+		material: new TextureMaterial({
+			textureMatrix: Matrix3.identity(),
+			textureIndex: imageBitmaps.findIndex(texture => texture.path === "plaster/plasterwall044c.jpg"),
+			normalMapIndex: imageBitmaps.findIndex(texture => texture.path === "plaster/plasterwall044c_normal.jpg"),
+		}),
+		debugName: "player",
+	});
+
 	const camera = new PerspectiveCamera({
 		position: new Vector3(0, ENTITY_HEIGHT_STAND, -128),
-		hull: null,
+		hull,
 		fieldOfView: 90,
 		nearClipPlane: 0.5,
 		farClipPlane: 1000,

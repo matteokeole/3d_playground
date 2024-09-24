@@ -319,7 +319,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 		for (let i = 0; i < meshes.length; i++) {
 			const mesh = meshes[i];
 
-			meshStorageBufferMap.set(mesh.getProjection(), i * 20);
+			meshStorageBufferMap.set(mesh.getWorld(), i * 20);
 		}
 
 		const meshStorageBufferMap2 = new Uint32Array(mappedRange);
