@@ -1,5 +1,5 @@
+import {Hull} from "../Hull/index.js";
 import {Vector3, Vector4} from "../math/index.js";
-import {Mesh} from "../Mesh/index.js";
 import {GJK} from "./GJK.js";
 import {PolygonWinding} from "./PolygonWinding.js";
 
@@ -126,11 +126,11 @@ export class EPA {
 	}
 
 	/**
-	 * @param {Mesh} mesh1
-	 * @param {Mesh} mesh2
+	 * @param {Hull} hull1
+	 * @param {Hull} hull2
 	 * @param {import("../math/index.js").Simplex} simplex
 	 */
-	static test3d(mesh1, mesh2, simplex) {
+	static test3d(hull1, hull2, simplex) {
 		/**
 		 * @type {import("../math/index.js").Polytope}
 		 */
@@ -151,7 +151,7 @@ export class EPA {
 			minNormal.set(normalAndDistance.subarray(0, 3));
 			minDistance = normalAndDistance[3];
 
-			const s = GJK.support(mesh1, mesh2, minNormal);
+			const s = GJK.support(hull1, hull2, minNormal);
 			const sDistance = minNormal.dot(s);
 
 			if (Math.abs(sDistance - minDistance) > EPA.#THRESHOLD) {

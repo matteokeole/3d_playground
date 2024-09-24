@@ -1,11 +1,11 @@
 import {NotImplementedError} from "../Error/index.js";
+import {Hull} from "../Hull/index.js";
 import {Matrix4, Vector3} from "../math/index.js";
-import {Mesh} from "../Mesh/index.js";
 
 /**
  * @typedef {Object} CameraDescriptor
  * @property {Vector3} position
- * @property {?Mesh} hull
+ * @property {Hull} [hull]
  */
 
 /**
@@ -26,7 +26,7 @@ export class Camera {
 		this.#view = Matrix4.identity();
 		this.#projection = Matrix4.identity();
 		this.#viewProjection = Matrix4.identity();
-		this.#hull = descriptor.hull;
+		this.#hull = descriptor.hull ?? null;
 	}
 
 	getPosition() {
@@ -75,13 +75,6 @@ export class Camera {
 
 	getHull() {
 		return this.#hull;
-	}
-
-	/**
-	 * @param {?Mesh} hull
-	 */
-	setHull(hull) {
-		this.#hull = hull;
 	}
 
 	/**

@@ -120,11 +120,9 @@ export class Mesh {
 			.multiply(Matrix4.rotation(this.#rotation))
 			.multiply(Matrix4.scale(this.#scale));
 
-		if (!this.#hull) {
-			return;
+		if (this.#hull) {
+			this.#hull.setWorld(this.#world);
 		}
-
-		this.#hull.setWorld(this.#world);
 	}
 
 	getPosition() {

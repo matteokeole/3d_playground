@@ -1,8 +1,9 @@
 import {Instance as _Instance} from "../../../src/index.js";
-import {Camera} from "../../../src/Camera/index.js";
 import {EPA, GJK} from "../../../src/Algorithm/index.js";
+import {Camera} from "../../../src/Camera/index.js";
+import {Hull} from "../../../src/Hull/index.js";
 import {max, Vector3} from "../../../src/math/index.js";
-import {Mesh} from "../../../src/Mesh/Mesh.js";
+import {Mesh} from "../../../src/Mesh/index.js";
 
 export class Instance extends _Instance {
 	static GRAVITY = 0.4;
@@ -53,12 +54,12 @@ export class Instance extends _Instance {
 		const cameraHull = camera.getHull();
 
 		if (cameraHull) {
-			const previousHullY = cameraHull.getPosition()[1];
-			const staticMeshes = scene.getMeshes();
+			// const previousHullY = cameraHull.getPosition()[1];
+			const meshHulls = scene.getHulls();
 
-			this.#updateCameraHull(camera, cameraHull, staticMeshes);
+			this.#updateCameraHull(camera, cameraHull, meshHulls);
 
-			const currentHullY = cameraHull.getPosition()[1];
+			// const currentHullY = cameraHull.getPosition()[1];
 
 			/**
 			 * @todo
@@ -88,16 +89,16 @@ export class Instance extends _Instance {
 
 	/**
 	 * @param {Camera} camera
-	 * @param {Mesh} hull
-	 * @param {Mesh[]} staticMeshes
+	 * @param {Hull} hull
+	 * @param {Hull[]} meshHulls
 	 */
-	#updateCameraHull(camera, hull, staticMeshes) {
-		hull.setPosition(camera.getPosition());
-		hull.updateWorld();
+	#updateCameraHull(camera, hull, meshHulls) {
+		// hull.setPosition(camera.getPosition());
+		// hull.updateWorld();
 
-		for (let i = 0; i < staticMeshes.length; i++) {
-			const staticMesh = staticMeshes[i];
-			const hitResponse = this.#hitTest(hull, staticMesh);
+		for (let i = 0; i < meshHulls.length; i++) {
+			const staticHull = meshHulls[i];
+			const hitResponse = this.#hitTest(hull, staticHull);
 
 			if (!hitResponse) {
 				continue;
@@ -108,14 +109,14 @@ export class Instance extends _Instance {
 			/**
 			 * @todo Fix blocking edges between geometries
 			 */
-			hull.getPosition().subtract(force);
-			hull.updateWorld();
+			camera.getPosition().subtract(force);
+			// hull.updateWorld();
 		}
 	}
 
 	/**
-	 * @param {Mesh} dynamicMesh
-	 * @param {Mesh} staticMesh
+	 * @param {Hull} dynamicMesh
+	 * @param {Hull} staticMesh
 	 */
 	#hitTest(dynamicMesh, staticMesh) {
 		const simplex = GJK.test3d(dynamicMesh, staticMesh);

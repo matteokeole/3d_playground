@@ -1,6 +1,9 @@
-import {PerspectiveCamera} from "../../../../src/Camera/index.js";
 import {Instance} from "../../../../src/index.js";
+import {Camera, PerspectiveCamera} from "../../../../src/Camera/index.js";
 import {Vector3} from "../../../../src/math/index.js";
+import {Scene} from "../../../../src/Scene/index.js";
+import {EPA, GJK} from "../../../../src/Algorithm/index.js";
+import {Hull} from "../../../../src/Hull/Hull.js";
 
 export class DevInstance extends Instance {
 	static #FRICTION = 0.9;
@@ -49,12 +52,18 @@ export class DevInstance extends Instance {
 	 * @param {Number} deltaTime
 	 */
 	_update(deltaTime) {
-		/**
-		 * @type {PerspectiveCamera}
-		 */
+		const scene = this._renderer.getScene();
 		const camera = this._renderer.getCamera();
 
+		if (!(camera instanceof PerspectiveCamera)) {
+			throw new Error("Only PerspectiveCamera instances supported.");
+		}
+
 		this.#accelerate(deltaTime, this.#cameraVelocity);
+
+		if (camera.getHull()) {
+			this.#testCollide(scene, camera, this.#cameraVelocity);
+		}
 
 		camera.applyVelocity(this.#cameraVelocity);
 
@@ -122,6 +131,50 @@ export class DevInstance extends Instance {
 	}
 
 	/**
+	 * @param {Scene} scene
+	 * @param {Camera} camera
+	 * @param {Vector3} velocity
+	 */
+	#testCollide(scene, camera, velocity) {
+		const cameraHull = camera.getHull();
+		const hulls = scene.getHulls();
+
+		for (let i = 0; i < hulls.length; i++) {
+			const meshHull = hulls[i];
+			const hitResponse = this.#hitTest(cameraHull, meshHull);
+
+			if (!hitResponse) {
+				continue;
+			}
+
+			const force = hitResponse.normal.multiplyScalar(hitResponse.depth);
+
+			/**
+			 * @todo Fix blocking edges between geometries
+			 */
+			camera.getPosition().subtract(force);
+			// camera.update();
+		}
+	}
+
+	/**
+	 * @param {Hull} dynamicMeshHull
+	 * @param {Hull} staticMeshHull
+	 */
+	#hitTest(dynamicMeshHull, staticMeshHull) {
+		const simplex = GJK.test3d(dynamicMeshHull, staticMeshHull);
+		const intersecting = simplex !== null;
+
+		if (!intersecting) {
+			return null;
+		}
+
+		const collision = EPA.test3d(dynamicMeshHull, staticMeshHull, simplex);
+
+		return collision;
+	}
+
+	/**
 	 * @param {String} keyCode
 	 */
 	#onKeyDown(keyCode) {}
@@ -139,10 +192,11 @@ export class DevInstance extends Instance {
 			return;
 		}
 
-		/**
-		 * @type {PerspectiveCamera}
-		 */
 		const camera = this._renderer.getCamera();
+
+		if (!(camera instanceof PerspectiveCamera)) {
+			return;
+		}
 
 		const xOffset = -event.movementX * DevInstance.#SENSITIVITY;
 		const yOffset = -event.movementY * DevInstance.#SENSITIVITY;

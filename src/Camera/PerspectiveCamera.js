@@ -154,6 +154,12 @@ export class PerspectiveCamera extends Camera {
 		this.#updateView();
 		this.#updateProjection();
 		this.#updateViewProjection();
+
+		if (this.getHull()) {
+			const world = new Matrix4(this.getView().invert());
+
+			this.getHull().setWorld(world);
+		}
 	}
 
 	#updateView() {
