@@ -114,6 +114,9 @@ async function createScene() {
 	const squareWall1 = new Mesh({
 		geometry: squareWallGeometry,
 		material: null,
+		hull: new Hull({
+			geometry: squareWallGeometry,
+		}),
 	});
 	squareWall1.setPosition(new Vector3(128, 0, 0));
 	squareWall1.updateWorld();
@@ -121,6 +124,9 @@ async function createScene() {
 	const squareWall2 = new Mesh({
 		geometry: squareWallGeometry,
 		material: null,
+		hull: new Hull({
+			geometry: squareWallGeometry,
+		}),
 	});
 	squareWall2.setPosition(new Vector3(256, 0, 0));
 	squareWall2.updateWorld();
@@ -128,6 +134,9 @@ async function createScene() {
 	const squareWall3 = new Mesh({
 		geometry: squareWallGeometry,
 		material: null,
+		hull: new Hull({
+			geometry: squareWallGeometry,
+		}),
 	});
 	squareWall3.setPosition(new Vector3(384, 0, 0));
 	squareWall3.updateWorld();
@@ -135,6 +144,9 @@ async function createScene() {
 	const squareWall4 = new Mesh({
 		geometry: squareWallGeometry,
 		material: null,
+		hull: new Hull({
+			geometry: squareWallGeometry,
+		}),
 	});
 	squareWall4.setPosition(new Vector3(512, 0, 0));
 	squareWall4.updateWorld();
@@ -142,6 +154,9 @@ async function createScene() {
 	const leftBox = new Mesh({
 		geometry: boxGeometry,
 		material: null,
+		hull: new Hull({
+			geometry: boxGeometry,
+		}),
 	});
 	leftBox.setPosition(new Vector3(-112, 24, 32));
 	leftBox.setScale(new Vector3(32, 48, 192));
@@ -150,6 +165,9 @@ async function createScene() {
 	const bridge = new Mesh({
 		geometry: boxGeometry,
 		material: null,
+		hull: new Hull({
+			geometry: boxGeometry,
+		}),
 	});
 	bridge.setPosition(new Vector3(-64, 42, 96));
 	bridge.setScale(new Vector3(64, 12, 64));
@@ -158,6 +176,9 @@ async function createScene() {
 	const centerBox = new Mesh({
 		geometry: boxGeometry,
 		material: null,
+		hull: new Hull({
+			geometry: boxGeometry,
+		}),
 	});
 	centerBox.setPosition(new Vector3(16, 24, 96));
 	centerBox.setScale(new Vector3(96, 48, 64));
@@ -166,6 +187,9 @@ async function createScene() {
 	const rightBox = new Mesh({
 		geometry: boxGeometry,
 		material: null,
+		hull: new Hull({
+			geometry: boxGeometry,
+		}),
 	});
 	rightBox.setPosition(new Vector3(96, 24, 64));
 	rightBox.setScale(new Vector3(64, 48, 128));
