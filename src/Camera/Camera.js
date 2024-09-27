@@ -13,7 +13,6 @@ import {Matrix4, Vector3} from "../math/index.js";
  */
 export class Camera {
 	#position;
-	#proxyGeometry;
 	#world;
 	#view;
 	#projection;
@@ -24,7 +23,6 @@ export class Camera {
 	 */
 	constructor(descriptor) {
 		this.#position = descriptor.position;
-		this.#proxyGeometry = descriptor.proxyGeometry ?? null;
 		this.#world = Matrix4.identity();
 		this.#view = Matrix4.identity();
 		this.#projection = Matrix4.identity();
@@ -40,10 +38,6 @@ export class Camera {
 	 */
 	setPosition(position) {
 		this.#position.set(position);
-	}
-
-	getProxyGeometry() {
-		return this.#proxyGeometry;
 	}
 
 	getWorld() {

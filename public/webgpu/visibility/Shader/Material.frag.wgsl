@@ -14,7 +14,9 @@ const VISUALIZATION_MODE_BARYCENTRIC_COORDINATES: u32 = 12;
 const VISUALIZATION_MODE_FLAT_SHADING: u32 = 20;
 const VISUALIZATION_MODE_PHONG_SHADING: u32 = 21;
 
-const VISUALIZATION_MODE: u32 = VISUALIZATION_MODE_MESH;
+const VISUALIZATION_MODE: u32 = VISUALIZATION_MODE_FLAT_SHADING;
+
+const FLAT_SHADING_LIGHT_POSITION: vec3f = vec3f(-64, 256, -128);
 
 @fragment
 fn main(in: In) -> @location(0) vec4f {
@@ -187,8 +189,7 @@ fn visualizeBarycentricCoordinates(triangle: array<vec4f, 3>, uv: vec2f, world: 
 	return derivatives.lambda;
 }
 
-// TODO: Fix inverted surfaceToLight
-// The light is at the camera position
+// TODO: Fix inverted surfaceToLight?
 fn visualizeFlatShading(triangle: array<vec4f, 3>, uv: vec2f, world: mat4x4f) -> vec3f {
 	let a: vec3f = triangle[0].xyz;
 	let b: vec3f = triangle[1].xyz;
@@ -196,14 +197,15 @@ fn visualizeFlatShading(triangle: array<vec4f, 3>, uv: vec2f, world: mat4x4f) ->
 	let surface: vec3f = vec3f(ndc(uv), (a.z + b.z + c.z) / 3);
 
 	let normal: vec3f = normalize(cross(b - a, c - a));
-	let surfaceToLight: vec3f = normalize(surface - view.position);
+	let surfaceToLight: vec3f = normalize(FLAT_SHADING_LIGHT_POSITION);
 
 	let shade: f32 = max(dot(normal, surfaceToLight), 0);
+	let color: vec3f = vec3f(0.2, 0.3, 0.7);
 
-	return vec3f(shade);
+	return color * shade;
 }
 
-// TODO: Fix inverted surfaceToLight
+// TODO: Fix inverted surfaceToLight?
 // The light is at the camera position
 fn visualizePhongShading(triangle: array<vec4f, 3>, normals: array<vec3f, 3>, uv: vec2f, world: mat4x4f) -> vec3f {
 	let a: vec4f = view.viewProjection * world * triangle[0];

@@ -1,13 +1,14 @@
 import {Instance} from "../../../../src/index.js";
 import {EPA, GJK} from "../../../../src/Algorithm/index.js";
-import {Camera, PerspectiveCamera} from "../../../../src/Camera/index.js";
+import {PerspectiveCamera} from "../../../../src/Camera/index.js";
 import {Vector3} from "../../../../src/math/index.js";
 import {Mesh} from "../../../../src/Mesh/index.js";
-import {Scene} from "../../../../src/Scene/index.js";
+import {VisibilityRenderer} from "../VisibilityRenderer.js";
 
 export class DevInstance extends Instance {
+	static #GRAVITY = new Vector3(0, -0.4, 0);
 	static #FRICTION = 0.9;
-	static #CAMERA_SPEED = 2;
+	static #CAMERA_SPEED = 0.5;
 	static #SENSITIVITY = 0.075;
 
 	#activeKeyCodes;
@@ -52,7 +53,20 @@ export class DevInstance extends Instance {
 	 * @param {Number} deltaTime
 	 */
 	_update(deltaTime) {
-		const scene = this._renderer.getScene();
+		/**
+		 * @type {VisibilityRenderer}
+		 */
+		const renderer = this._renderer;
+		const scene = renderer.getScene();
+		const meshes = scene.getMeshes();
+		const playerMesh = meshes.find(mesh => mesh.getDebugName() === "player");
+		const playerMeshIndex = meshes.findIndex(mesh => mesh.getDebugName() === "player");
+		const otherPhysicMeshes = scene.getPhysicMeshes().filter(mesh => mesh.getDebugName() !== "player");
+
+		if (!playerMesh) {
+			return;
+		}
+
 		const camera = this._renderer.getCamera();
 
 		if (!(camera instanceof PerspectiveCamera)) {
@@ -60,18 +74,32 @@ export class DevInstance extends Instance {
 		}
 
 		this.#accelerate(deltaTime, this.#cameraVelocity);
+		this.#cameraVelocity.add(DevInstance.#GRAVITY);
 
-		if (camera.getProxyGeometry()) {
-			this.#testCollide(scene, camera, this.#cameraVelocity);
+		playerMesh.getPosition().add(this.#cameraVelocity);
+
+		const right = new Vector3(0, 1, 0).cross(camera.getForward()).normalize();
+		const fpsForward = new Vector3(right).cross(new Vector3(0, 1, 0)).normalize();
+
+		const xAmount = right.multiplyScalar(this.#cameraVelocity[0]);
+		const zAmount = fpsForward.multiplyScalar(this.#cameraVelocity[2]);
+
+		playerMesh.getPosition().add(xAmount).add(zAmount);
+		playerMesh.updateWorld();
+
+		if (playerMesh.getProxyGeometry()) {
+			this.#testCollide(otherPhysicMeshes, playerMesh, this.#cameraVelocity);
 		}
 
-		camera.applyVelocity(this.#cameraVelocity);
+		renderer.writeMeshWorld(playerMeshIndex, playerMesh.getWorld());
 
+		camera.getPosition().set(playerMesh.getPosition());
 		camera.update();
 
 		this.getDebugger().update({
 			"Delta time": deltaTime.toPrecision(1),
 			"Position": camera.getPosition(),
+			"Velocity": this.#cameraVelocity,
 		});
 	}
 
@@ -84,29 +112,24 @@ export class DevInstance extends Instance {
 	 * @param {Vector3} velocity
 	 */
 	#accelerate(deltaTime, velocity) {
+		velocity.set(new Vector3(0, 0, 0));
+
 		if (this.#activeKeyCodes["KeyW"]) {
-			velocity[2] = DevInstance.#CAMERA_SPEED;
+			velocity[2] = 1;
 		}
 		if (this.#activeKeyCodes["KeyS"]) {
-			velocity[2] = -DevInstance.#CAMERA_SPEED;
+			velocity[2] = -1;
 		}
 		if (this.#activeKeyCodes["KeyA"]) {
-			velocity[0] = -DevInstance.#CAMERA_SPEED;
+			velocity[0] = -1;
 		}
 		if (this.#activeKeyCodes["KeyD"]) {
-			velocity[0] = DevInstance.#CAMERA_SPEED;
+			velocity[0] = 1;
 		}
 
-		/**
-		 * @todo
-		 */
-		// velocity.normalize();
-
+		velocity.normalize();
+		velocity.multiplyScalar(DevInstance.#CAMERA_SPEED);
 		velocity.multiplyScalar(DevInstance.#FRICTION);
-
-		this.getDebugger().update({
-			"Velocity": velocity,
-		});
 
 		/* const speed = velocity.magnitude();
 
@@ -131,16 +154,14 @@ export class DevInstance extends Instance {
 	}
 
 	/**
-	 * @param {Scene} scene
-	 * @param {Camera} camera
+	 * @param {Mesh[]} physicMeshes
+	 * @param {Mesh} playerMesh
 	 * @param {Vector3} velocity
 	 */
-	#testCollide(scene, camera, velocity) {
-		const physicMeshes = scene.getPhysicMeshes();
-
+	#testCollide(physicMeshes, playerMesh, velocity) {
 		for (let i = 0; i < physicMeshes.length; i++) {
 			const physicMesh = physicMeshes[i];
-			const hitResponse = this.#hitTest(camera, physicMesh);
+			const hitResponse = this.#hitTest(playerMesh, physicMesh);
 
 			if (!hitResponse) {
 				continue;
@@ -151,8 +172,8 @@ export class DevInstance extends Instance {
 			/**
 			 * @todo Fix blocking edges between geometries
 			 */
-			camera.getPosition().subtract(force);
-			// camera.update();
+			playerMesh.getPosition().subtract(force);
+			playerMesh.updateWorld();
 		}
 	}
 

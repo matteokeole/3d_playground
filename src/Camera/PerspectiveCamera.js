@@ -151,26 +151,22 @@ export class PerspectiveCamera extends Camera {
 	}
 
 	update() {
-		this.#updateWorld();
-		this.#updateView();
-		this.#updateProjection();
-		this.#updateViewProjection();
+		this.setWorld(this.updateWorld());
+		this.setView(this.updateView());
+		this.setProjection(this.updateProjection());
+		this.setViewProjection(this.updateViewProjection());
 	}
 
-	#updateWorld() {
-		const world = Matrix4.translation(this.getPosition());
-
-		this.setWorld(world);
+	updateWorld() {
+		return Matrix4.translation(this.getPosition());
 	}
 
-	#updateView() {
-		const view = Matrix4.lookAtRelative(this.getPosition(), this.#forward, PerspectiveCamera.#UP);
-
-		this.setView(view);
+	updateView() {
+		return Matrix4.lookAtRelative(this.getPosition(), this.#forward, PerspectiveCamera.#UP);
 	}
 
-	#updateProjection() {
-		const projection = Matrix4.perspective(
+	updateProjection() {
+		return Matrix4.perspective(
 			this.#fieldOfViewRad,
 			this.#aspectRatio,
 			this.#nearClipPlane,
@@ -178,13 +174,9 @@ export class PerspectiveCamera extends Camera {
 			PerspectiveCamera.#COORDINATE_SYSTEM,
 			PerspectiveCamera.#BIAS,
 		);
-
-		this.setProjection(projection);
 	}
 
-	#updateViewProjection() {
-		const viewProjection = new Matrix4(this.getProjection()).multiply(this.getView());
-
-		this.setViewProjection(viewProjection);
+	updateViewProjection() {
+		return new Matrix4(this.getProjection()).multiply(this.getView());
 	}
 }

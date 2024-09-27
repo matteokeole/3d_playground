@@ -6,7 +6,7 @@ import {Matrix3, Matrix4, max, PI, Vector2, Vector3} from "../math/index.js";
  * @typedef {Object} MeshDescriptor
  * @property {Geometry} geometry
  * @property {Geometry} [proxyGeometry]
- * @property {Material} material
+ * @property {?Material} material
  * @property {String} [debugName]
  */
 
@@ -79,7 +79,7 @@ export class Mesh {
 		this.#geometryIndex = 0;
 		this.#geometry = descriptor.geometry;
 		this.#proxyGeometry = descriptor.proxyGeometry ?? null;
-		this.#material = descriptor.material;
+		this.#material = descriptor.material ?? null;
 		this.#world = Matrix4.identity();
 		this.#position = new Vector3(0, 0, 0);
 		this.#rotation = new Vector3(0, 0, 0);

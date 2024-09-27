@@ -1,3 +1,4 @@
+import {Matrix4} from "../../../src/math/index.js";
 import {WebGPURenderer} from "../../../src/Renderer/index.js";
 import {Scene} from "../../../src/Scene/index.js";
 
@@ -845,6 +846,14 @@ export class VisibilityRenderer extends WebGPURenderer {
 
 		this._device.queue.writeBuffer(this._buffers.viewUniform, 4 * Uint32Array.BYTES_PER_ELEMENT, viewProjection);
 		this._device.queue.writeBuffer(this._buffers.viewUniform, 4 * Uint32Array.BYTES_PER_ELEMENT + 16 * Float32Array.BYTES_PER_ELEMENT, position);
+	}
+
+	/**
+	 * @param {Number} index
+	 * @param {Matrix4} world
+	 */
+	writeMeshWorld(index, world) {
+		this._device.queue.writeBuffer(this._buffers.meshStorage, index * 20 * Float32Array.BYTES_PER_ELEMENT, world);
 	}
 
 	/**

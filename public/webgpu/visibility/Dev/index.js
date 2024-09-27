@@ -1,13 +1,11 @@
-import {PerspectiveCamera} from "../../../../src/Camera/index.js";
-import {BoxGeometry, Geometry, PolytopeGeometry} from "../../../../src/Geometry/index.js";
-import {FileLoader} from "../../../../src/Loader/index.js";
-import {PI, Vector2, Vector3, Vector4} from "../../../../src/math/index.js";
+import {BoxGeometry, PolytopeGeometry} from "../../../../src/Geometry/index.js";
+import {Vector2, Vector3, Vector4} from "../../../../src/math/index.js";
 import {Mesh} from "../../../../src/Mesh/index.js";
-import {OBJParser} from "../../../../src/Parser/Text/index.js";
 import {Scene} from "../../../../src/Scene/index.js";
-import {FIELD_OF_VIEW, FRAMES_PER_SECOND, PLAYER_COLLISION_HULL} from "../../../index.js";
+import {FIELD_OF_VIEW, FRAMES_PER_SECOND} from "../../../index.js";
 import {VisibilityRenderer} from "../VisibilityRenderer.js";
 import {DevInstance} from "./DevInstance.js";
+import {ThirdPersonCamera} from "./ThirdPersonCamera.js";
 
 export default async function() {
 	const canvas = document.createElement("canvas");
@@ -102,7 +100,7 @@ async function createScene() {
 
 	const plane = new Mesh({
 		geometry: planeGeometry,
-		proxyGeometry: new BoxGeometry(new Vector3(2560, 1, 2560)),
+		proxyGeometry: planeGeometry,
 		material: null,
 	});
 	plane.setPosition(new Vector3(0, 0, 0));
@@ -185,6 +183,16 @@ async function createScene() {
 	slope.setScale(new Vector3(64, 48, 48));
 	slope.updateWorld();
 
+	const player = new Mesh({
+		geometry: boxGeometry,
+		proxyGeometry: boxGeometry,
+		material: null,
+		debugName: "player",
+	});
+	player.setPosition(new Vector3(0, 12, 0));
+	player.setScale(new Vector3(24, 24, 24));
+	player.updateWorld();
+
 	///
 	/// Scene
 	///
@@ -193,90 +201,21 @@ async function createScene() {
 
 	scene.addMeshes(planeGeometry, [plane]);
 	scene.addMeshes(slopeGeometry, [slope]);
-	scene.addMeshes(boxGeometry, [leftBox, bridge, centerBox, rightBox]);
+	scene.addMeshes(boxGeometry, [player, leftBox, bridge, centerBox, rightBox]);
 	scene.addMeshes(squareWallGeometry, [squareWall1, squareWall2, squareWall3, squareWall4]);
 
 	return scene;
 }
 
-async function createLookAtTestScene() {
-	const fileLoader = new FileLoader();
-	const response = await fileLoader.load("assets/models/Suzanne/Suzanne2.obj");
-	const text = await response.text();
-
-	const objParser = new OBJParser();
-	const obj = objParser.parse(text);
-
-	const geometry = new Geometry({
-		vertices: obj.vertices,
-		indices: obj.indices,
-		normals: obj.normals,
-		tangents: Float32Array.of(),
-		uvs: Float32Array.of(),
-	});
-
-	const response2 = await fileLoader.load("assets/models/Bunny/bunny_high.obj");
-	const text2 = await response2.text();
-	const obj2 = objParser.parse(text2);
-	const geometry2 = new Geometry({
-		vertices: obj2.vertices,
-		indices: obj2.indices,
-		normals: obj2.normals,
-		tangents: Float32Array.of(),
-		uvs: Float32Array.of(),
-	});
-
-	const mesh = new Mesh({
-		geometry,
-		material: null,
-	});
-	const mesh2 = new Mesh({
-		geometry: geometry2,
-		material: null,
-	});
-
-	mesh2.setPosition(new Vector3(1.5, 0, 3.5));
-	mesh2.setRotation(new Vector3(0, PI, 0));
-	mesh2.updateWorld();
-
-	mesh.setPosition(new Vector3(-1.5, 0, 3.5));
-	mesh.setRotation(new Vector3(0, PI, 0));
-	mesh.updateWorld();
-
-	const scene = new Scene();
-
-	scene.addMeshes(geometry, [mesh]); // Suzanne
-	scene.addMeshes(geometry2, [mesh2]); // Bunny
-
-	return scene;
-}
-
 function createCamera() {
-	const camera = new PerspectiveCamera({
-		position: new Vector3(0, 64, -64),
-		proxyGeometry: new BoxGeometry(PLAYER_COLLISION_HULL),
+	const camera = new ThirdPersonCamera({
+		position: new Vector3(0, 24, 0),
 		fieldOfView: FIELD_OF_VIEW,
 		nearClipPlane: 1,
-		farClipPlane: 10000,
+		farClipPlane: 2000,
 	});
 
 	camera.update();
-
-	/**
-	 * @todo
-	 */
-	// camera.setViewpoint(PLAYER_VIEWPOINT);
-
-	return camera;
-}
-
-function createLookAtTestCamera() {
-	const camera = new PerspectiveCamera({
-		position: new Vector3(0, 0, 0),
-		fieldOfView: 60,
-		nearClipPlane: 0.1,
-		farClipPlane: 1000,
-	});
 
 	return camera;
 }
