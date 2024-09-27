@@ -13,6 +13,7 @@ import {Matrix4, Vector3} from "../math/index.js";
  */
 export class Camera {
 	#position;
+	#world;
 	#view;
 	#projection;
 	#viewProjection;
@@ -23,6 +24,7 @@ export class Camera {
 	 */
 	constructor(descriptor) {
 		this.#position = descriptor.position;
+		this.#world = Matrix4.identity();
 		this.#view = Matrix4.identity();
 		this.#projection = Matrix4.identity();
 		this.#viewProjection = Matrix4.identity();
@@ -49,6 +51,17 @@ export class Camera {
 	 */
 	setView(view) {
 		this.#view = view;
+	}
+
+	getWorld() {
+		return this.#world;
+	}
+
+	/**
+	 * @param {Matrix4} world
+	 */
+	setWorld(world) {
+		this.#world = world;
 	}
 
 	getProjection() {
