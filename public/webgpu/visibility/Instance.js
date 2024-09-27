@@ -1,7 +1,6 @@
 import {Instance as _Instance} from "../../../src/index.js";
 import {EPA, GJK} from "../../../src/Algorithm/index.js";
 import {Camera} from "../../../src/Camera/index.js";
-import {Hull} from "../../../src/Hull/index.js";
 import {max, Vector3} from "../../../src/math/index.js";
 import {Mesh} from "../../../src/Mesh/index.js";
 
@@ -51,13 +50,13 @@ export class Instance extends _Instance {
 
 		// let velocity = this.#moveGround(accelDir, prevVelocity, deltaTime);
 
-		const cameraHull = camera.getHull();
+		const cameraProxyGeometry = camera.getProxyGeometry();
 
-		if (cameraHull) {
+		if (cameraProxyGeometry) {
 			// const previousHullY = cameraHull.getPosition()[1];
-			const meshHulls = scene.getHulls();
+			const physicMeshes = scene.getPhysicMeshes();
 
-			this.#updateCameraHull(camera, cameraHull, meshHulls);
+			this.#updateCamera(camera, physicMeshes);
 
 			// const currentHullY = cameraHull.getPosition()[1];
 
@@ -89,16 +88,15 @@ export class Instance extends _Instance {
 
 	/**
 	 * @param {Camera} camera
-	 * @param {Hull} hull
-	 * @param {Hull[]} meshHulls
+	 * @param {Mesh[]} physicMeshes
 	 */
-	#updateCameraHull(camera, hull, meshHulls) {
+	#updateCamera(camera, physicMeshes) {
 		// hull.setPosition(camera.getPosition());
 		// hull.updateWorld();
 
-		for (let i = 0; i < meshHulls.length; i++) {
-			const staticHull = meshHulls[i];
-			const hitResponse = this.#hitTest(hull, staticHull);
+		for (let i = 0; i < physicMeshes.length; i++) {
+			const physicMesh = physicMeshes[i];
+			const hitResponse = this.#hitTest(camera, physicMesh);
 
 			if (!hitResponse) {
 				continue;
@@ -115,8 +113,8 @@ export class Instance extends _Instance {
 	}
 
 	/**
-	 * @param {Hull} dynamicMesh
-	 * @param {Hull} staticMesh
+	 * @param {Mesh} dynamicMesh
+	 * @param {Mesh} staticMesh
 	 */
 	#hitTest(dynamicMesh, staticMesh) {
 		const simplex = GJK.test3d(dynamicMesh, staticMesh);

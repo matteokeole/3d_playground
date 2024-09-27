@@ -1,13 +1,12 @@
 import {Geometry, SSDPlaneGeometry} from "../Geometry/index.js";
-import {Hull} from "../Hull/index.js";
 import {Material, TextureMaterial} from "../Material/index.js";
 import {Matrix3, Matrix4, max, PI, Vector2, Vector3} from "../math/index.js";
 
 /**
  * @typedef {Object} MeshDescriptor
  * @property {Geometry} geometry
+ * @property {Geometry} [proxyGeometry]
  * @property {Material} material
- * @property {Hull} [hull]
  * @property {String} [debugName]
  */
 
@@ -65,12 +64,12 @@ export class Mesh {
 
 	#geometryIndex;
 	#geometry;
+	#proxyGeometry;
 	#material;
 	#world;
 	#position;
 	#rotation;
 	#scale;
-	#hull;
 	#debugName;
 
 	/**
@@ -79,12 +78,12 @@ export class Mesh {
 	constructor(descriptor) {
 		this.#geometryIndex = 0;
 		this.#geometry = descriptor.geometry;
+		this.#proxyGeometry = descriptor.proxyGeometry ?? null;
 		this.#material = descriptor.material;
 		this.#world = Matrix4.identity();
 		this.#position = new Vector3(0, 0, 0);
 		this.#rotation = new Vector3(0, 0, 0);
 		this.#scale = new Vector3(1, 1, 1);
-		this.#hull = descriptor.hull;
 		this.#debugName = descriptor.debugName ?? null;
 	}
 
@@ -107,8 +106,8 @@ export class Mesh {
 		return this.#material;
 	}
 
-	getHull() {
-		return this.#hull;
+	getProxyGeometry() {
+		return this.#proxyGeometry;
 	}
 
 	getWorld() {
@@ -119,10 +118,6 @@ export class Mesh {
 		this.#world = Matrix4.translation(this.#position)
 			.multiply(Matrix4.rotation(this.#rotation))
 			.multiply(Matrix4.scale(this.#scale));
-
-		if (this.#hull) {
-			this.#hull.setWorld(this.#world);
-		}
 	}
 
 	getPosition() {

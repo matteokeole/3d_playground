@@ -41,23 +41,12 @@ export async function createScene(imageBitmaps) {
 	return scene;
 }
 
-/**
- * @param {import("../../../src/Loader/ImageBitmapLoader.js").Image[]} imageBitmaps
- */
-export function createCamera(imageBitmaps) {
-	const hull = new Mesh({
-		geometry: new BoxGeometry(new Vector3(16, 128, 16)),
-		material: new TextureMaterial({
-			textureMatrix: Matrix3.identity(),
-			textureIndex: imageBitmaps.findIndex(texture => texture.path === "plaster/plasterwall044c.jpg"),
-			normalMapIndex: imageBitmaps.findIndex(texture => texture.path === "plaster/plasterwall044c_normal.jpg"),
-		}),
-		debugName: "player",
-	});
+export function createCamera() {
+	const proxyGeometry = new BoxGeometry(new Vector3(16, 128, 16));
 
 	const camera = new PerspectiveCamera({
 		position: new Vector3(0, ENTITY_HEIGHT_STAND, -128),
-		hull,
+		proxyGeometry,
 		fieldOfView: 90,
 		nearClipPlane: 0.5,
 		farClipPlane: 1000,

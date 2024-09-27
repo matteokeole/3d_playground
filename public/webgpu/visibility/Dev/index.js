@@ -2,13 +2,12 @@ import {PerspectiveCamera} from "../../../../src/Camera/index.js";
 import {BoxGeometry, Geometry, PolytopeGeometry} from "../../../../src/Geometry/index.js";
 import {FileLoader} from "../../../../src/Loader/index.js";
 import {PI, Vector2, Vector3, Vector4} from "../../../../src/math/index.js";
+import {Mesh} from "../../../../src/Mesh/index.js";
 import {OBJParser} from "../../../../src/Parser/Text/index.js";
 import {Scene} from "../../../../src/Scene/index.js";
-import {Mesh} from "../../../../src/Mesh/index.js";
 import {FIELD_OF_VIEW, FRAMES_PER_SECOND, PLAYER_COLLISION_HULL} from "../../../index.js";
 import {VisibilityRenderer} from "../VisibilityRenderer.js";
 import {DevInstance} from "./DevInstance.js";
-import {Hull} from "../../../../src/Hull/Hull.js";
 
 export default async function() {
 	const canvas = document.createElement("canvas");
@@ -103,60 +102,48 @@ async function createScene() {
 
 	const plane = new Mesh({
 		geometry: planeGeometry,
+		proxyGeometry: new BoxGeometry(new Vector3(2560, 1, 2560)),
 		material: null,
-		hull: new Hull({
-			geometry: new BoxGeometry(new Vector3(2560, 1, 2560)),
-		}),
 	});
 	plane.setPosition(new Vector3(0, 0, 0));
 	plane.updateWorld();
 
 	const squareWall1 = new Mesh({
 		geometry: squareWallGeometry,
+		proxyGeometry: squareWallGeometry,
 		material: null,
-		hull: new Hull({
-			geometry: squareWallGeometry,
-		}),
 	});
 	squareWall1.setPosition(new Vector3(128, 0, 0));
 	squareWall1.updateWorld();
 
 	const squareWall2 = new Mesh({
 		geometry: squareWallGeometry,
+		proxyGeometry: squareWallGeometry,
 		material: null,
-		hull: new Hull({
-			geometry: squareWallGeometry,
-		}),
 	});
 	squareWall2.setPosition(new Vector3(256, 0, 0));
 	squareWall2.updateWorld();
 
 	const squareWall3 = new Mesh({
 		geometry: squareWallGeometry,
+		proxyGeometry: squareWallGeometry,
 		material: null,
-		hull: new Hull({
-			geometry: squareWallGeometry,
-		}),
 	});
 	squareWall3.setPosition(new Vector3(384, 0, 0));
 	squareWall3.updateWorld();
 
 	const squareWall4 = new Mesh({
 		geometry: squareWallGeometry,
+		proxyGeometry: squareWallGeometry,
 		material: null,
-		hull: new Hull({
-			geometry: squareWallGeometry,
-		}),
 	});
 	squareWall4.setPosition(new Vector3(512, 0, 0));
 	squareWall4.updateWorld();
 
 	const leftBox = new Mesh({
 		geometry: boxGeometry,
+		proxyGeometry: boxGeometry,
 		material: null,
-		hull: new Hull({
-			geometry: boxGeometry,
-		}),
 	});
 	leftBox.setPosition(new Vector3(-112, 24, 32));
 	leftBox.setScale(new Vector3(32, 48, 192));
@@ -164,10 +151,8 @@ async function createScene() {
 
 	const bridge = new Mesh({
 		geometry: boxGeometry,
+		proxyGeometry: boxGeometry,
 		material: null,
-		hull: new Hull({
-			geometry: boxGeometry,
-		}),
 	});
 	bridge.setPosition(new Vector3(-64, 42, 96));
 	bridge.setScale(new Vector3(64, 12, 64));
@@ -175,10 +160,8 @@ async function createScene() {
 
 	const centerBox = new Mesh({
 		geometry: boxGeometry,
+		proxyGeometry: boxGeometry,
 		material: null,
-		hull: new Hull({
-			geometry: boxGeometry,
-		}),
 	});
 	centerBox.setPosition(new Vector3(16, 24, 96));
 	centerBox.setScale(new Vector3(96, 48, 64));
@@ -186,10 +169,8 @@ async function createScene() {
 
 	const rightBox = new Mesh({
 		geometry: boxGeometry,
+		proxyGeometry: boxGeometry,
 		material: null,
-		hull: new Hull({
-			geometry: boxGeometry,
-		}),
 	});
 	rightBox.setPosition(new Vector3(96, 24, 64));
 	rightBox.setScale(new Vector3(64, 48, 128));
@@ -197,10 +178,8 @@ async function createScene() {
 
 	const slope = new Mesh({
 		geometry: slopeGeometry,
+		proxyGeometry: slopeGeometry,
 		material: null,
-		hull: new Hull({
-			geometry: slopeGeometry,
-		}),
 	});
 	slope.setPosition(new Vector3(96, 24, -24));
 	slope.setScale(new Vector3(64, 48, 48));
@@ -273,13 +252,9 @@ async function createLookAtTestScene() {
 }
 
 function createCamera() {
-	const hull = new Hull({
-		geometry: new BoxGeometry(PLAYER_COLLISION_HULL),
-	});
-
 	const camera = new PerspectiveCamera({
 		position: new Vector3(0, 64, -64),
-		hull,
+		proxyGeometry: new BoxGeometry(PLAYER_COLLISION_HULL),
 		fieldOfView: FIELD_OF_VIEW,
 		nearClipPlane: 1,
 		farClipPlane: 10000,
@@ -298,7 +273,6 @@ function createCamera() {
 function createLookAtTestCamera() {
 	const camera = new PerspectiveCamera({
 		position: new Vector3(0, 0, 0),
-		hull: null,
 		fieldOfView: 60,
 		nearClipPlane: 0.1,
 		farClipPlane: 1000,

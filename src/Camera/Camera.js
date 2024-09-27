@@ -1,11 +1,11 @@
 import {NotImplementedError} from "../Error/index.js";
-import {Hull} from "../Hull/index.js";
+import {Geometry} from "../Geometry/index.js";
 import {Matrix4, Vector3} from "../math/index.js";
 
 /**
  * @typedef {Object} CameraDescriptor
  * @property {Vector3} position
- * @property {Hull} [hull]
+ * @property {Geometry} [proxyGeometry]
  */
 
 /**
@@ -13,22 +13,22 @@ import {Matrix4, Vector3} from "../math/index.js";
  */
 export class Camera {
 	#position;
+	#proxyGeometry;
 	#world;
 	#view;
 	#projection;
 	#viewProjection;
-	#hull;
 
 	/**
 	 * @param {CameraDescriptor} descriptor
 	 */
 	constructor(descriptor) {
 		this.#position = descriptor.position;
+		this.#proxyGeometry = descriptor.proxyGeometry ?? null;
 		this.#world = Matrix4.identity();
 		this.#view = Matrix4.identity();
 		this.#projection = Matrix4.identity();
 		this.#viewProjection = Matrix4.identity();
-		this.#hull = descriptor.hull ?? null;
 	}
 
 	getPosition() {
@@ -42,15 +42,8 @@ export class Camera {
 		this.#position.set(position);
 	}
 
-	getView() {
-		return this.#view;
-	}
-
-	/**
-	 * @param {Matrix4} view
-	 */
-	setView(view) {
-		this.#view = view;
+	getProxyGeometry() {
+		return this.#proxyGeometry;
 	}
 
 	getWorld() {
@@ -62,6 +55,17 @@ export class Camera {
 	 */
 	setWorld(world) {
 		this.#world = world;
+	}
+
+	getView() {
+		return this.#view;
+	}
+
+	/**
+	 * @param {Matrix4} view
+	 */
+	setView(view) {
+		this.#view = view;
 	}
 
 	getProjection() {
@@ -84,10 +88,6 @@ export class Camera {
 	 */
 	setViewProjection(viewProjection) {
 		this.#viewProjection = viewProjection;
-	}
-
-	getHull() {
-		return this.#hull;
 	}
 
 	/**

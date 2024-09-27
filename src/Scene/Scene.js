@@ -1,6 +1,5 @@
 import {Clusterizer} from "../Clusterizer.js";
 import {Geometry} from "../Geometry/index.js";
-import {Hull} from "../Hull/index.js";
 import {Mesh} from "../Mesh/index.js";
 
 /**
@@ -21,6 +20,11 @@ export class Scene {
 	#meshes;
 
 	/**
+	 * @type {Mesh[]}
+	 */
+	#physicMeshes;
+
+	/**
 	 * @type {import("../Clusterizer.js").ClusteredMeshes}
 	 */
 	#clusteredMeshes;
@@ -30,17 +34,12 @@ export class Scene {
 	 */
 	#instancesByGeometry;
 
-	/**
-	 * @type {Hull[]}
-	 */
-	#hulls;
-
 	constructor() {
 		this.#geometries = [];
 		this.#meshes = [];
+		this.#physicMeshes = [];
 		this.#clusteredMeshes = null;
 		this.#instancesByGeometry = new Map();
-		this.#hulls = [];
 	}
 
 	getGeometries() {
@@ -49,6 +48,10 @@ export class Scene {
 
 	getMeshes() {
 		return this.#meshes;
+	}
+
+	getPhysicMeshes() {
+		return this.#physicMeshes;
 	}
 
 	getClusteredMeshes() {
@@ -81,10 +84,6 @@ export class Scene {
 		return this.#instancesByGeometry.get(geometry).length;
 	}
 
-	getHulls() {
-		return this.#hulls;
-	}
-
 	/**
 	 * @param {Geometry} geometry
 	 * @param {Mesh[]} meshes
@@ -106,11 +105,9 @@ export class Scene {
 			this.#instancesByGeometry.get(geometry).push(mesh);
 			this.#meshes.push(mesh);
 
-			if (!mesh.getHull()) {
-				continue;
+			if (mesh.getProxyGeometry()) {
+				this.#physicMeshes.push(mesh);
 			}
-
-			this.#hulls.push(mesh.getHull());
 		}
 	}
 

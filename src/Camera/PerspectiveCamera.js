@@ -1,4 +1,4 @@
-import {PI, Matrix4, Vector3, rad, clamp} from "../math/index.js";
+import {PI, Matrix4, Vector3, rad} from "../math/index.js";
 import {Camera} from "./Camera.js";
 
 /**
@@ -155,10 +155,6 @@ export class PerspectiveCamera extends Camera {
 		this.#updateView();
 		this.#updateProjection();
 		this.#updateViewProjection();
-
-		if (this.getHull()) {
-			this.getHull().setWorld(this.getWorld());
-		}
 	}
 
 	#updateWorld() {

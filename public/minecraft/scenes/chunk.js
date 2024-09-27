@@ -45,7 +45,6 @@ export function createScene() {
 	// Bias: PI / 2
 	const pointLight = new PerspectiveCamera({
 		position: new Vector3(-4.82, 6.09, 3.54),
-		hull: null,
 		fieldOfView: FIELD_OF_VIEW,
 		nearClipPlane: 1,
 		farClipPlane: 200,

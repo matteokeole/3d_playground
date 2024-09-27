@@ -2,9 +2,7 @@ import {PerspectiveCamera} from "../../../src/Camera/index.js";
 import {BoxGeometry} from "../../../src/Geometry/index.js";
 import {PointLight} from "../../../src/Light/index.js";
 import {SSDLoader} from "../../../src/Loader/index.js";
-import {TextureMaterial} from "../../../src/Material/index.js";
-import {Matrix3, Vector3} from "../../../src/math/index.js";
-import {Mesh} from "../../../src/Mesh/index.js";
+import {Vector3} from "../../../src/math/index.js";
 import {Scene} from "../../hl2/Scene.js";
 import {ENTITY_HEIGHT_STAND, PLAYER_COLLISION_HULL} from "../../index.js";
 import {FIELD_OF_VIEW} from "../main.js";
@@ -32,25 +30,12 @@ export async function createScene(imageBitmaps) {
 	return scene;
 }
 
-/**
- * @param {import("../../../src/Loader/ImageBitmapLoader.js").Image[]} imageBitmaps
- */
-export function createCamera(imageBitmaps) {
-	const hull = new Mesh({
-		geometry: new BoxGeometry(PLAYER_COLLISION_HULL),
-		material: new TextureMaterial({
-			textureMatrix: Matrix3.identity(),
-			textureIndex: imageBitmaps.findIndex(texture => texture.path === "debug.jpg"),
-			normalMapIndex: imageBitmaps.findIndex(texture => texture.path === "normal.jpg"),
-		}),
-		debugName: "playerHitbox",
-	});
-	hull.setPosition(new Vector3(0, ENTITY_HEIGHT_STAND, -128));
-	hull.updateWorld();
+export function createCamera() {
+	const proxyGeometry = new BoxGeometry(PLAYER_COLLISION_HULL);
 
 	const camera = new PerspectiveCamera({
 		position: new Vector3(0, ENTITY_HEIGHT_STAND, -128),
-		hull,
+		proxyGeometry,
 		fieldOfView: FIELD_OF_VIEW,
 		nearClipPlane: 0.5,
 		farClipPlane: 1000,

@@ -1,9 +1,9 @@
 import {Instance} from "../../../../src/index.js";
+import {EPA, GJK} from "../../../../src/Algorithm/index.js";
 import {Camera, PerspectiveCamera} from "../../../../src/Camera/index.js";
 import {Vector3} from "../../../../src/math/index.js";
+import {Mesh} from "../../../../src/Mesh/index.js";
 import {Scene} from "../../../../src/Scene/index.js";
-import {EPA, GJK} from "../../../../src/Algorithm/index.js";
-import {Hull} from "../../../../src/Hull/Hull.js";
 
 export class DevInstance extends Instance {
 	static #FRICTION = 0.9;
@@ -61,7 +61,7 @@ export class DevInstance extends Instance {
 
 		this.#accelerate(deltaTime, this.#cameraVelocity);
 
-		if (camera.getHull()) {
+		if (camera.getProxyGeometry()) {
 			this.#testCollide(scene, camera, this.#cameraVelocity);
 		}
 
@@ -136,12 +136,11 @@ export class DevInstance extends Instance {
 	 * @param {Vector3} velocity
 	 */
 	#testCollide(scene, camera, velocity) {
-		const cameraHull = camera.getHull();
-		const hulls = scene.getHulls();
+		const physicMeshes = scene.getPhysicMeshes();
 
-		for (let i = 0; i < hulls.length; i++) {
-			const meshHull = hulls[i];
-			const hitResponse = this.#hitTest(cameraHull, meshHull);
+		for (let i = 0; i < physicMeshes.length; i++) {
+			const physicMesh = physicMeshes[i];
+			const hitResponse = this.#hitTest(camera, physicMesh);
 
 			if (!hitResponse) {
 				continue;
@@ -158,18 +157,18 @@ export class DevInstance extends Instance {
 	}
 
 	/**
-	 * @param {Hull} dynamicMeshHull
-	 * @param {Hull} staticMeshHull
+	 * @param {Mesh} dynamicMesh
+	 * @param {Mesh} staticMesh
 	 */
-	#hitTest(dynamicMeshHull, staticMeshHull) {
-		const simplex = GJK.test3d(dynamicMeshHull, staticMeshHull);
+	#hitTest(dynamicMesh, staticMesh) {
+		const simplex = GJK.test3d(dynamicMesh, staticMesh);
 		const intersecting = simplex !== null;
 
 		if (!intersecting) {
 			return null;
 		}
 
-		const collision = EPA.test3d(dynamicMeshHull, staticMeshHull, simplex);
+		const collision = EPA.test3d(dynamicMesh, staticMesh, simplex);
 
 		return collision;
 	}
