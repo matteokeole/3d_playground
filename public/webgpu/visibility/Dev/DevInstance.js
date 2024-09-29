@@ -86,6 +86,13 @@ export class DevInstance extends Instance {
 			".....Up": camera.getUp(),
 			"Forward": camera.getForward(),
 			"Medium": this.#travellingMedium,
+			"Controls": "---------------",
+			// AZERTY layout
+			"KeyZ": this.getActiveKeyCodes()["KeyW"] ?? false,
+			"KeyQ": this.getActiveKeyCodes()["KeyA"] ?? false,
+			"KeyS": this.getActiveKeyCodes()["KeyS"] ?? false,
+			"KeyD": this.getActiveKeyCodes()["KeyD"] ?? false,
+			"Space": this.getActiveKeyCodes()["Space"] ?? false,
 		});
 	}
 
@@ -124,7 +131,10 @@ export class DevInstance extends Instance {
 		}
 
 		if (this.getActiveKeyCodes()["Space"] === true) {
-			this.getActiveKeyCodes()["Space"] = false;
+			/**
+			 * @todo Disable space?
+			 */
+			// this.getActiveKeyCodes()["Space"] = false;
 
 			velocity[1] = 1;
 		}
