@@ -212,7 +212,7 @@ function createCamera() {
 	const camera = new ThirdPersonCamera({
 		position: new Vector3(0, 77, 0),
 		distance: 0,
-		fieldOfView: FIELD_OF_VIEW,
+		fieldOfView: 90,
 		nearClipPlane: 1,
 		farClipPlane: 2000,
 	});
