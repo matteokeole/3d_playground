@@ -31,7 +31,6 @@ export async function createScene(imageBitmaps) {
 export function createCamera() {
 	const camera = new PerspectiveCamera({
 		position: new Vector3(0, PLAYER_COLLISION_HULL[1], -128),
-		hull: null,
 		fieldOfView: FIELD_OF_VIEW,
 		nearClipPlane: 0.5,
 		farClipPlane: 1000,

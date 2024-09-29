@@ -1,9 +1,8 @@
 import {Instance as _Instance} from "../../src/index.js";
-import {Vector3} from "../../src/math/index.js";
-import {Mesh} from "../hl2/Mesh.js";
-import {GJK} from "../../src/Algorithm/GJK.js";
-import {EPA} from "../../src/Algorithm/EPA.js";
+import {EPA, GJK} from "../../src/Algorithm/index.js";
 import {PerspectiveCamera} from "../../src/Camera/index.js";
+import {Vector3} from "../../src/math/index.js";
+import {Mesh} from "../../src/Mesh/index.js";
 
 export class Instance extends _Instance {
 	static #FRICTION = 0.9;
@@ -144,7 +143,7 @@ export class Instance extends _Instance {
 		const force = collision.normal.multiplyScalar(collision.depth);
 
 		dynamicMesh.getPosition().subtract(force);
-		dynamicMesh.updateProjection();
+		dynamicMesh.updateWorld();
 
 		return force;
 	}
@@ -156,14 +155,14 @@ export class Instance extends _Instance {
 		 * @type {Mesh[]}
 		 */
 		const meshes = scene.getMeshes();
-		const cameraMeshes = meshes.filter(mesh => mesh.isTiedToCamera());
-		const staticBoxMeshes = meshes.filter(mesh => !mesh.isTiedToCamera());
+		const cameraMeshes = [];
+		const staticBoxMeshes = [];
 
 		for (const cameraMesh of cameraMeshes) {
 			// Update the position of meshes tied to the camera
 			cameraMesh.setPosition(camera.getPosition());
 			// cameraMesh.getHitbox().getAabb().setPosition(camera.getPosition());
-			cameraMesh.updateProjection();
+			cameraMesh.updateWorld();
 
 			for (const staticBoxMesh of staticBoxMeshes) {
 				const force = this.#testCollideGjkEpa(cameraMesh, staticBoxMesh);

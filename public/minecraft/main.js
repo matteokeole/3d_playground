@@ -40,7 +40,6 @@ export default async function() {
 	// Bias: PI / 2
 	const camera = new PerspectiveCamera({
 		position: new Vector3(0, CAMERA_HEIGHT, 0),
-		hull: null,
 		fieldOfView: FIELD_OF_VIEW,
 		nearClipPlane: 0.1,
 		farClipPlane: 200,

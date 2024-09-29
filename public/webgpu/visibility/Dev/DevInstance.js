@@ -1,46 +1,26 @@
-import {PerspectiveCamera} from "../../../../src/Camera/index.js";
 import {Instance} from "../../../../src/index.js";
-import {Vector3} from "../../../../src/math/index.js";
+import {EPA, GJK} from "../../../../src/Algorithm/index.js";
+import {PerspectiveCamera} from "../../../../src/Camera/index.js";
+import {PI, rad, Vector3} from "../../../../src/math/index.js";
+import {Mesh} from "../../../../src/Mesh/index.js";
+import {VisibilityRenderer} from "../VisibilityRenderer.js";
 
 export class DevInstance extends Instance {
-	static #FRICTION = 0.9;
-	static #CAMERA_SPEED = 0.08;
 	static #SENSITIVITY = 0.075;
 
-	#activeKeyCodes;
-	#cameraVelocity;
+	#gravity = -0.02;
+	#airVelocity = 320;
+
+	#travellingMedium = "air";
+	#cameraVelocity = new Vector3(0, 0, 0);
+	#cameraSpeed = 1;
+	#friction = 0.05;
 
 	/**
 	 * @param {import("../../../../src/Instance.js").InstanceDescriptor} descriptor
 	 */
 	constructor(descriptor) {
 		super(descriptor);
-
-		/**
-		 * @type {Record.<String, Boolean>}
-		 */
-		this.#activeKeyCodes = {};
-		this.#cameraVelocity = new Vector3(0, 0, 0);
-
-		document.addEventListener("keydown", event => {
-			const keyCode = event.code;
-
-			if (!this.#activeKeyCodes[keyCode]) {
-				this.#onKeyDown(keyCode);
-			}
-
-			this.#activeKeyCodes[keyCode] = true;
-		});
-
-		document.addEventListener("keyup", event => {
-			const keyCode = event.code;
-
-			if (this.#activeKeyCodes[keyCode]) {
-				this.#onKeyUp(keyCode);
-			}
-
-			this.#activeKeyCodes[keyCode] = false;
-		});
 
 		this._renderer.getCanvas().addEventListener("mousemove", this.#onMouseMove.bind(this));
 	}
@@ -50,19 +30,62 @@ export class DevInstance extends Instance {
 	 */
 	_update(deltaTime) {
 		/**
-		 * @type {PerspectiveCamera}
+		 * @type {VisibilityRenderer}
 		 */
+		const renderer = this._renderer;
+		const scene = renderer.getScene();
+		const meshes = scene.getMeshes();
+		const playerMesh = meshes.find(mesh => mesh.getDebugName() === "player");
+		const playerMeshIndex = meshes.findIndex(mesh => mesh.getDebugName() === "player");
+		const otherPhysicMeshes = scene.getPhysicMeshes().filter(mesh => mesh.getDebugName() !== "player");
+
+		if (!playerMesh) {
+			return;
+		}
+
 		const camera = this._renderer.getCamera();
 
-		this.#accelerate(deltaTime, this.#cameraVelocity);
+		if (!(camera instanceof PerspectiveCamera)) {
+			throw new Error("Only PerspectiveCamera instances supported.");
+		}
 
-		camera.applyVelocity(this.#cameraVelocity);
+		if (this.#travellingMedium === "air") {
+			this.#airAccelerate(camera);
+		} else {
+			this.#groundAccelerate(camera, deltaTime);
+		}
 
+		this.#cameraVelocity[1] += this.#gravity;
+
+		camera.move(this.#cameraVelocity);
+
+		// Camera position must be set before extracting it for the player mesh
 		camera.update();
+
+		// Move mesh to a potentially invalid location
+		playerMesh.getPosition().set(camera.getPosition());
+		playerMesh.updateWorld();
+
+		// Detect and resolve collision
+		if (playerMesh.getProxyGeometry()) {
+			this.#testCollide(otherPhysicMeshes, playerMesh);
+		}
+
+		camera.getPosition().set(playerMesh.getPosition());
+		camera.update();
+
+		// The mesh world is already updated, upload it into the mesh buffer
+		renderer.writeMeshWorld(playerMeshIndex, playerMesh.getWorld());
 
 		this.getDebugger().update({
 			"Delta time": deltaTime.toPrecision(1),
 			"Position": camera.getPosition(),
+			"Velocity": this.#cameraVelocity,
+			"Velocity length": this.#cameraVelocity.magnitude().toPrecision(2),
+			"..Right": camera.getRight(),
+			".....Up": camera.getUp(),
+			"Forward": camera.getForward(),
+			"Medium": this.#travellingMedium,
 		});
 	}
 
@@ -71,44 +94,50 @@ export class DevInstance extends Instance {
 	}
 
 	/**
-	 * @param {Number} deltaTime
-	 * @param {Vector3} velocity
+	 * No friction
+	 * 
+	 * @param {PerspectiveCamera} camera
 	 */
-	#accelerate(deltaTime, velocity) {
-		if (this.#activeKeyCodes["KeyW"]) {
-			velocity[2] = DevInstance.#CAMERA_SPEED;
-		}
-		if (this.#activeKeyCodes["KeyS"]) {
-			velocity[2] = -DevInstance.#CAMERA_SPEED;
-		}
-		if (this.#activeKeyCodes["KeyA"]) {
-			velocity[0] = -DevInstance.#CAMERA_SPEED;
-		}
-		if (this.#activeKeyCodes["KeyD"]) {
-			velocity[0] = DevInstance.#CAMERA_SPEED;
+	#airAccelerate(camera) {
+		const velocity = this.#cameraVelocity;
+
+		if (this.getHorizontalRawAxis()) {
+			velocity[0] = this.getHorizontalRawAxis() * this.#cameraSpeed;
 		}
 
-		/**
-		 * @todo
-		 */
+		if (this.getVerticalRawAxis()) {
+			velocity[2] = this.getVerticalRawAxis() * this.#cameraSpeed;
+		}
+	}
+
+	/**
+	 * @param {PerspectiveCamera} camera
+	 * @param {Number} deltaTime
+	 */
+	#groundAccelerate(camera, deltaTime) {
+		const velocity = this.#cameraVelocity;
+
+		velocity.multiplyScalar(1 - this.#friction);
+
+		if (this.getHorizontalRawAxis()) {
+			velocity[0] = this.getHorizontalRawAxis() * this.#cameraSpeed;
+		}
+
+		if (this.getActiveKeyCodes()["Space"] === true) {
+			this.getActiveKeyCodes()["Space"] = false;
+
+			velocity[1] = 1;
+		}
+
+		if (this.getVerticalRawAxis()) {
+			velocity[2] = this.getVerticalRawAxis() * this.#cameraSpeed;
+		}
+
 		// velocity.normalize();
 
-		velocity.multiplyScalar(DevInstance.#FRICTION);
-
-		this.getDebugger().update({
-			"Velocity": velocity,
-		});
-
-		/* const speed = velocity.magnitude();
-
-		if (speed === 0) {
-			return;
-		} */
-
-		// const drop = speed * DevInstance.#FRICTION;
-
-		// velocity.multiplyScalar(speed - drop);
-		// velocity.multiplyScalar(DevInstance.#FRICTION);
+		///
+		/// Friction
+		///
 
 		/* const speed = velocity.magnitude();
 
@@ -122,14 +151,51 @@ export class DevInstance extends Instance {
 	}
 
 	/**
-	 * @param {String} keyCode
+	 * @param {Mesh[]} physicMeshes
+	 * @param {Mesh} playerMesh
 	 */
-	#onKeyDown(keyCode) {}
+	#testCollide(physicMeshes, playerMesh) {
+		this.#travellingMedium = "air";
+
+		for (let i = 0; i < physicMeshes.length; i++) {
+			const physicMesh = physicMeshes[i];
+			const hitResponse = this.#hitTest(playerMesh, physicMesh);
+
+			if (!hitResponse) {
+				continue;
+			}
+
+			const force = hitResponse.normal.multiplyScalar(hitResponse.depth);
+
+			/**
+			 * @todo Fix blocking edges between geometries
+			 */
+			playerMesh.getPosition().subtract(force);
+			// this.#cameraVelocity.subtract(force);
+			playerMesh.updateWorld();
+
+			// Colliding with something is equivalent to travelling through a ground medium
+			// This method is unbalanced (can spam jump if next to a wall) and will be reworked
+			this.#travellingMedium = "ground";
+		}
+	}
 
 	/**
-	 * @param {String} keyCode
+	 * @param {Mesh} dynamicMesh
+	 * @param {Mesh} staticMesh
 	 */
-	#onKeyUp(keyCode) {}
+	#hitTest(dynamicMesh, staticMesh) {
+		const simplex = GJK.test3d(dynamicMesh, staticMesh);
+		const intersecting = simplex !== null;
+
+		if (!intersecting) {
+			return null;
+		}
+
+		const collision = EPA.test3d(dynamicMesh, staticMesh, simplex);
+
+		return collision;
+	}
 
 	/**
 	 * @param {MouseEvent} event
@@ -139,14 +205,15 @@ export class DevInstance extends Instance {
 			return;
 		}
 
-		/**
-		 * @type {PerspectiveCamera}
-		 */
 		const camera = this._renderer.getCamera();
 
-		const xOffset = -event.movementX * DevInstance.#SENSITIVITY;
-		const yOffset = -event.movementY * DevInstance.#SENSITIVITY;
+		if (!(camera instanceof PerspectiveCamera)) {
+			throw new Error("Only PerspectiveCamera instances supported.");
+		}
 
-		camera.applyYawAndPitch(xOffset, yOffset);
+		const pitch = this.getMouseYAxis(event) * DevInstance.#SENSITIVITY;
+		const yaw = this.getMouseXAxis(event) * DevInstance.#SENSITIVITY;
+
+		camera.rotate(new Vector3(rad(pitch), rad(yaw), 0));
 	}
 }

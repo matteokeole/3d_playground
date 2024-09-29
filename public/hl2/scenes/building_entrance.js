@@ -31,7 +31,6 @@ export async function createScene(images) {
 export function createCamera() {
 	const camera = new PerspectiveCamera({
 		position: new Vector3(54, ENTITY_HEIGHT_STAND, 104),
-		hull: null,
 		fieldOfView: FIELD_OF_VIEW,
 		nearClipPlane: 0.5,
 		farClipPlane: 1000,

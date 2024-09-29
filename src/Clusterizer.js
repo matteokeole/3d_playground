@@ -1,117 +1,149 @@
-import {Geometry} from "./Geometry/index.js";
+import {Scene} from "./Scene/index.js";
 
 /**
- * @typedef {Object} ClusteredGeometry
+ * @typedef {Object} ClusteredMeshes
+ * @property {Float32Array} vertexBuffer
+ * @property {Uint32Array} indexBuffer
+ * @property {ClusteredMesh[]} meshes
  * @property {Cluster[]} clusters
  */
 
 /**
- * @typedef {Object} Cluster
- * @property {Uint32Array} vertices Fixed size of 64
- * @property {Uint32Array} indices Fixed size of 126
- * @property {Number} vertexCount
+ * @typedef {Object} ClusteredMesh
+ * @property {Number} clusterCount
+ */
+
+/**
+ * @typedef {Object} ClusteredGeometry
+ * @property {Number} geometryIndex
  * @property {Number} indexCount
+ * @property {Number} degenerateIndexCount
+ * @property {Number} totalIndexCount Total index count for one mesh
+ * @property {Number} clusterCount
+ * @property {Number} meshCount
+ */
+
+/**
+ * @typedef {Object} Cluster
+ * @property {Number} meshIndex
  */
 
 export class Clusterizer {
+	static #TRIANGLES_PER_CLUSTER = 128;
+	static #INDICES_PER_CLUSTER = Clusterizer.#TRIANGLES_PER_CLUSTER * 3;
+
 	/**
-	 * @param {Geometry} geometry
+	 * @todo Insert degenerate triangles?
+	 * 
+	 * Creates clustered geometry out of a mesh array.
+	 * Clusters are extracted naively using index buffer blocks.
+	 * The drawback of this method is that the last cluster usually doesn't reference as much triangles as it can.
+	 * 
+	 * The vertices of a geometry are shared by all the meshes using this geometry,
+	 * but the indices are duplicated per mesh.
+	 * 
+	 * @param {Scene} scene
 	 */
-	static clusterize(geometry) {
-		const vertices = geometry.getVertices();
-		const indices = geometry.getIndices();
-		const triangleCount = indices.length / 3;
-
-		if (!Number.isInteger(triangleCount)) {
-			throw new Error("Clusterize failed: index count is not a multiple of 3");
-		}
-
-		const clusterVertices = new Uint8Array(geometry.getVertices().length).fill(0xff);
+	static parse(scene) {
+		const geometries = scene.getGeometries();
 
 		/**
-		 * @type {Cluster}
+		 * @type {ClusteredMeshes}
 		 */
-		let cluster = {};
+		const clusteredMeshes = {};
 
-		cluster.vertices = new Uint32Array(64);
-		cluster.indices = new Uint32Array(126);
-		cluster.vertexCount = 0;
-		cluster.indexCount = 0;
+		clusteredMeshes.meshes = [];
+		clusteredMeshes.clusters = [];
 
-		/**
-		 * @type {ClusteredGeometry}
-		 */
-		const clusteredGeometry = {};
+		const clusteredGeometries = [];
+		let totalVertexCount = 0;
+		let totalIndexCount = 0;
 
-		clusteredGeometry.clusters = [];
+		// Determine index count per unique geometry
+		for (let geometryIndex = 0; geometryIndex < geometries.length; geometryIndex++) {
+			const geometry = geometries[geometryIndex];
+			const vertices = geometry.getVertices();
+			const indices = geometry.getIndices();
+			const indexCount = indices.length;
+			const standaloneIndexCount = indexCount % Clusterizer.#INDICES_PER_CLUSTER;
+			const clusterCount = Math.floor(indexCount / Clusterizer.#INDICES_PER_CLUSTER) + Number(standaloneIndexCount > 0);
 
-		for (let triangleIndex = 0; triangleIndex < indices.length; triangleIndex += 3) {
-			const i0 = indices[triangleIndex + 0];
-			const i1 = indices[triangleIndex + 1];
-			const i2 = indices[triangleIndex + 2];
+			/**
+			 * @type {ClusteredGeometry}
+			 */
+			const clusteredGeometry = {};
 
-			let v0 = clusterVertices[i0];
-			let v1 = clusterVertices[i1];
-			let v2 = clusterVertices[i2];
+			clusteredGeometry.geometryIndex = geometryIndex;
+			clusteredGeometry.indexCount = clusterCount * Clusterizer.#INDICES_PER_CLUSTER;
+			clusteredGeometry.degenerateIndexCount = 0;
 
-			const trueTriangleVertexCount = Number(v0 !== 0xff) + Number(v1 !== 0xff) + Number(v2 !== 0xff);
-
-			if (cluster.vertexCount + trueTriangleVertexCount > 64) {
-				clusteredGeometry.clusters.push(cluster);
-
-				// Reset current cluster
-				cluster.vertices = new Uint32Array(64);
-				cluster.indices = new Uint32Array(126);
-				cluster.vertexCount = 0;
-				cluster.indexCount = 0;
+			if (standaloneIndexCount !== 0) {
+				// Indices will remain after the clusterization of this geometry
+				// To prevent this, add a final cluster for degenerate triangles
+				clusteredGeometry.degenerateIndexCount = Clusterizer.#INDICES_PER_CLUSTER - standaloneIndexCount;
 			}
 
-			if (cluster.indexCount + 3 > 126) {
-				clusteredGeometry.clusters.push(cluster);
+			clusteredGeometry.totalIndexCount = clusterCount * Clusterizer.#INDICES_PER_CLUSTER;
 
-				// Reset current cluster
-				cluster.vertices = new Uint32Array(64);
-				cluster.indices = new Uint32Array(126);
-				cluster.vertexCount = 0;
-				cluster.indexCount = 0;
-			}
+			const meshCount = scene.getInstanceCount(geometry);
 
-			// If the vertex is not in the meshlet we need to add it
-			if (v0 === 0xff) {
-				v0 = cluster.vertexCount;
+			clusteredGeometry.clusterCount = clusterCount;
+			clusteredGeometry.meshCount = meshCount;
 
-				cluster.vertices[cluster.vertexCount] = i0;
+			clusteredGeometries.push(clusteredGeometry);
 
-				cluster.vertexCount++;
-			}
-
-			// If the vertex is not in the meshlet we need to add it
-			if (v1 === 0xff) {
-				v1 = cluster.vertexCount;
-
-				cluster.vertices[cluster.vertexCount] = i1;
-
-				cluster.vertexCount++;
-			}
-
-			// If the vertex is not in the meshlet we need to add it
-			if (v2 === 0xff) {
-				v2 = cluster.vertexCount;
-
-				cluster.vertices[cluster.vertexCount] = i2;
-
-				cluster.vertexCount++;
-			}
-
-			cluster.indices[cluster.indexCount++] = v0;
-			cluster.indices[cluster.indexCount++] = v1;
-			cluster.indices[cluster.indexCount++] = v2;
+			totalVertexCount += vertices.length / 3;
+			totalIndexCount += clusteredGeometry.indexCount * meshCount;
 		}
 
-		if (cluster.indexCount !== 0) {
-			clusteredGeometry.clusters.push(cluster);
+		// Write vertex buffer
+		clusteredMeshes.vertexBuffer = new Float32Array(3 * totalVertexCount);
+
+		// Write index buffer
+		clusteredMeshes.indexBuffer = new Uint32Array(totalIndexCount);
+		let vertexOffset = 0;
+		let indexOffset = 0; // Cluster-wise index offset
+		let meshIndexOffset = 0;
+
+		for (let clusteredGeometryIndex = 0; clusteredGeometryIndex < clusteredGeometries.length; clusteredGeometryIndex++) {
+			const clusteredGeometry = clusteredGeometries[clusteredGeometryIndex];
+			const geometry = scene.getGeometries()[clusteredGeometry.geometryIndex];
+
+			// Write geometry vertices to vertex buffer
+			clusteredMeshes.vertexBuffer.set(geometry.getVertices(), vertexOffset);
+
+			for (let meshIndex = 0; meshIndex < clusteredGeometry.meshCount; meshIndex++, meshIndexOffset++) {
+				// Set geometry indices
+				clusteredMeshes.indexBuffer.set(geometry.getIndices(), indexOffset);
+				// const offsettedIndices = Array.from(geometry.getIndices(), index => vertexOffset / 3 + index);
+				// clusteredMeshes.indexBuffer.set(offsettedIndices, indexOffset);
+
+				indexOffset += clusteredGeometry.totalIndexCount;
+
+				for (let clusterIndex = 0; clusterIndex < clusteredGeometry.clusterCount; clusterIndex++) {
+					/**
+					 * @type {Cluster}
+					 */
+					const cluster = {};
+
+					cluster.meshIndex = meshIndexOffset;
+
+					clusteredMeshes.clusters.push(cluster);
+				}
+
+				/**
+				 * @type {ClusteredMesh}
+				 */
+				const clusteredMesh = {};
+
+				clusteredMesh.clusterCount = clusteredGeometry.clusterCount;
+
+				clusteredMeshes.meshes.push(clusteredMesh);
+			}
+
+			vertexOffset += geometry.getVertices().length;
 		}
 
-		return clusteredGeometry;
+		return clusteredMeshes;
 	}
 }

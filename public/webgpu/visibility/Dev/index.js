@@ -1,13 +1,11 @@
-import {PerspectiveCamera} from "../../../../src/Camera/index.js";
-import {BoxGeometry, Geometry, PolytopeGeometry} from "../../../../src/Geometry/index.js";
-import {FileLoader} from "../../../../src/Loader/FileLoader.js";
-import {PI, Vector2, Vector3, Vector4} from "../../../../src/math/index.js";
-import {OBJParser} from "../../../../src/Parser/Text/OBJParser.js";
+import {BoxGeometry, PolytopeGeometry} from "../../../../src/Geometry/index.js";
+import {Vector2, Vector3, Vector4} from "../../../../src/math/index.js";
+import {Mesh} from "../../../../src/Mesh/index.js";
 import {Scene} from "../../../../src/Scene/index.js";
-import {Mesh} from "../../../hl2/Mesh.js";
 import {FIELD_OF_VIEW, FRAMES_PER_SECOND, PLAYER_COLLISION_HULL} from "../../../index.js";
 import {VisibilityRenderer} from "../VisibilityRenderer.js";
 import {DevInstance} from "./DevInstance.js";
+import {ThirdPersonCamera} from "./ThirdPersonCamera.js";
 
 export default async function() {
 	const canvas = document.createElement("canvas");
@@ -36,13 +34,13 @@ export default async function() {
 	renderer.setViewport(new Vector4(0, 0, viewport[0], viewport[1]));
 	renderer.resize();
 
-	const scene = await createLookAtTestScene();
+	const scene = await createScene();
 
 	scene.clusterize();
 
 	renderer.setScene(scene);
 
-	const camera = createLookAtTestCamera();
+	const camera = createCamera();
 
 	camera.setAspectRatio(viewport[0] / viewport[1]);
 
@@ -95,55 +93,105 @@ async function createScene() {
 			3, 5, 4,
 		),
 	});
+	const playerGeometry = new BoxGeometry(PLAYER_COLLISION_HULL);
 
 	///
 	/// Meshes
 	///
 
-	const plane = new Mesh(planeGeometry, null);
+	const plane = new Mesh({
+		geometry: planeGeometry,
+		proxyGeometry: planeGeometry,
+		material: null,
+	});
 	plane.setPosition(new Vector3(0, 0, 0));
-	plane.updateProjection();
+	plane.updateWorld();
 
-	const squareWall1 = new Mesh(squareWallGeometry, null);
+	const squareWall1 = new Mesh({
+		geometry: squareWallGeometry,
+		proxyGeometry: squareWallGeometry,
+		material: null,
+	});
 	squareWall1.setPosition(new Vector3(128, 0, 0));
-	squareWall1.updateProjection();
+	squareWall1.updateWorld();
 
-	const squareWall2 = new Mesh(squareWallGeometry, null);
+	const squareWall2 = new Mesh({
+		geometry: squareWallGeometry,
+		proxyGeometry: squareWallGeometry,
+		material: null,
+	});
 	squareWall2.setPosition(new Vector3(256, 0, 0));
-	squareWall2.updateProjection();
+	squareWall2.updateWorld();
 
-	const squareWall3 = new Mesh(squareWallGeometry, null);
+	const squareWall3 = new Mesh({
+		geometry: squareWallGeometry,
+		proxyGeometry: squareWallGeometry,
+		material: null,
+	});
 	squareWall3.setPosition(new Vector3(384, 0, 0));
-	squareWall3.updateProjection();
+	squareWall3.updateWorld();
 
-	const squareWall4 = new Mesh(squareWallGeometry, null);
+	const squareWall4 = new Mesh({
+		geometry: squareWallGeometry,
+		proxyGeometry: squareWallGeometry,
+		material: null,
+	});
 	squareWall4.setPosition(new Vector3(512, 0, 0));
-	squareWall4.updateProjection();
+	squareWall4.updateWorld();
 
-	const leftBox = new Mesh(boxGeometry, null);
+	const leftBox = new Mesh({
+		geometry: boxGeometry,
+		proxyGeometry: boxGeometry,
+		material: null,
+	});
 	leftBox.setPosition(new Vector3(-112, 24, 32));
 	leftBox.setScale(new Vector3(32, 48, 192));
-	leftBox.updateProjection();
+	leftBox.updateWorld();
 
-	const bridge = new Mesh(boxGeometry, null);
+	const bridge = new Mesh({
+		geometry: boxGeometry,
+		proxyGeometry: boxGeometry,
+		material: null,
+	});
 	bridge.setPosition(new Vector3(-64, 42, 96));
 	bridge.setScale(new Vector3(64, 12, 64));
-	bridge.updateProjection();
+	bridge.updateWorld();
 
-	const centerBox = new Mesh(boxGeometry, null);
+	const centerBox = new Mesh({
+		geometry: boxGeometry,
+		proxyGeometry: boxGeometry,
+		material: null,
+	});
 	centerBox.setPosition(new Vector3(16, 24, 96));
 	centerBox.setScale(new Vector3(96, 48, 64));
-	centerBox.updateProjection();
+	centerBox.updateWorld();
 
-	const rightBox = new Mesh(boxGeometry, null);
+	const rightBox = new Mesh({
+		geometry: boxGeometry,
+		proxyGeometry: boxGeometry,
+		material: null,
+	});
 	rightBox.setPosition(new Vector3(96, 24, 64));
 	rightBox.setScale(new Vector3(64, 48, 128));
-	rightBox.updateProjection();
+	rightBox.updateWorld();
 
-	const slope = new Mesh(slopeGeometry, null);
+	const slope = new Mesh({
+		geometry: slopeGeometry,
+		proxyGeometry: slopeGeometry,
+		material: null,
+	});
 	slope.setPosition(new Vector3(96, 24, -24));
 	slope.setScale(new Vector3(64, 48, 48));
-	slope.updateProjection();
+	slope.updateWorld();
+
+	const player = new Mesh({
+		geometry: playerGeometry,
+		proxyGeometry: playerGeometry,
+		material: null,
+		debugName: "player",
+	});
+	player.setPosition(new Vector3(0, 36.5, 0));
+	player.updateWorld();
 
 	///
 	/// Scene
@@ -154,71 +202,22 @@ async function createScene() {
 	scene.addMeshes(planeGeometry, [plane]);
 	scene.addMeshes(slopeGeometry, [slope]);
 	scene.addMeshes(boxGeometry, [leftBox, bridge, centerBox, rightBox]);
-	// scene.addMeshes(squareWallGeometry, [squareWall1, squareWall2, squareWall3, squareWall4]);
-
-	return scene;
-}
-
-async function createLookAtTestScene() {
-	const fileLoader = new FileLoader();
-	const response = await fileLoader.load("assets/models/Suzanne/Suzanne2.obj");
-	const text = await response.text();
-
-	const objParser = new OBJParser();
-	const obj = objParser.parse(text);
-
-	const geometry = new Geometry({
-		vertices: obj.vertices,
-		indices: obj.indices,
-		normals: obj.normals,
-		tangents: Float32Array.of(),
-		uvs: Float32Array.of(),
-	});
-
-	const mesh = new Mesh(geometry, null);
-
-	// Suzanne
-	mesh.setPosition(new Vector3(0, 0, 3.5));
-	mesh.setRotation(new Vector3(0, PI, 0));
-
-	mesh.updateProjection();
-
-	const scene = new Scene();
-
-	scene.addMeshes(geometry, [mesh]);
+	scene.addMeshes(squareWallGeometry, [squareWall1, squareWall2, squareWall3, squareWall4]);
+	scene.addMeshes(playerGeometry, [player]);
 
 	return scene;
 }
 
 function createCamera() {
-	const hull = new Mesh(new BoxGeometry(PLAYER_COLLISION_HULL), null);
-	hull.setPosition(new Vector3(0, 40, 0));
-	hull.updateProjection();
-
-	const camera = new PerspectiveCamera({
-		position: new Vector3(0, 64, -64),
-		hull,
-		fieldOfView: FIELD_OF_VIEW,
+	const camera = new ThirdPersonCamera({
+		position: new Vector3(0, 77, 0),
+		distance: 0,
+		fieldOfView: 90,
 		nearClipPlane: 1,
-		farClipPlane: 10000,
+		farClipPlane: 2000,
 	});
 
-	/**
-	 * @todo
-	 */
-	// camera.setViewpoint(PLAYER_VIEWPOINT);
-
-	return camera;
-}
-
-function createLookAtTestCamera() {
-	const camera = new PerspectiveCamera({
-		position: new Vector3(0, 0, 0),
-		hull: null,
-		fieldOfView: 60,
-		nearClipPlane: 0.1,
-		farClipPlane: 1000,
-	});
+	camera.update();
 
 	return camera;
 }

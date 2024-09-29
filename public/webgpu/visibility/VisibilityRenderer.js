@@ -1,3 +1,4 @@
+import {Matrix4} from "../../../src/math/index.js";
 import {WebGPURenderer} from "../../../src/Renderer/index.js";
 import {Scene} from "../../../src/Scene/index.js";
 
@@ -15,6 +16,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 		this._buffers.clusterStorage = this.#createClusterStorageBuffer();
 		this._buffers.normalStorage = this.#createNormalStorageBuffer();
 		this._buffers.meshStorage = this.#createMeshStorageBuffer();
+		this._buffers.geometryStorage = this.#createGeometryStorageBuffer();
 
 		this._buffers.indirect = this.#createGeometryIndirectBuffer();
 
@@ -167,29 +169,18 @@ export class VisibilityRenderer extends WebGPURenderer {
 	}
 
 	#createVertexStorageBuffer() {
-		const meshes = this._scene.getMeshes();
-		let vertexCount = 0;
-
-		for (let i = 0; i < meshes.length; i++) {
-			vertexCount += meshes[i].getGeometry().getVertices().length;
-		}
+		const vertexBuffer = this._scene.getClusteredMeshes().vertexBuffer;
 
 		const vertexStorageBuffer = this._device.createBuffer({
 			label: "Vertex buffer",
-			size: vertexCount * Float32Array.BYTES_PER_ELEMENT,
+			size: vertexBuffer.byteLength,
 			usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
 			mappedAtCreation: true,
 		});
 
 		const vertexStorageBufferMap = new Float32Array(vertexStorageBuffer.getMappedRange());
 
-		for (let i = 0, offset = 0; i < meshes.length; i++) {
-			const vertices = meshes[i].getGeometry().getVertices();
-
-			vertexStorageBufferMap.set(vertices, offset);
-
-			offset += vertices.length;
-		}
+		vertexStorageBufferMap.set(vertexBuffer);
 
 		vertexStorageBuffer.unmap();
 
@@ -314,22 +305,65 @@ export class VisibilityRenderer extends WebGPURenderer {
 
 		const meshStorageBuffer = this._device.createBuffer({
 			label: "Mesh",
-			size: meshes.length * 16 * Float32Array.BYTES_PER_ELEMENT,
+			size: meshes.length * 20 * Float32Array.BYTES_PER_ELEMENT,
 			usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
 			mappedAtCreation: true,
 		});
 
-		const meshStorageBufferMap = new Float32Array(meshStorageBuffer.getMappedRange());
+		const mappedRange = meshStorageBuffer.getMappedRange();
+		const meshStorageBufferMap = new Float32Array(mappedRange);
 
+		/**
+		 * @todo Find a better way of writing ints and floats without creating two different views
+		 */
+		// Set mesh world
 		for (let i = 0; i < meshes.length; i++) {
 			const mesh = meshes[i];
 
-			meshStorageBufferMap.set(mesh.getProjection(), i * 16);
+			meshStorageBufferMap.set(mesh.getWorld(), i * 20);
+		}
+
+		const meshStorageBufferMap2 = new Uint32Array(mappedRange);
+
+		// Set mesh geometry index
+		for (let i = 0; i < meshes.length; i++) {
+			const mesh = meshes[i];
+
+			meshStorageBufferMap2[i * 20 + 16] = mesh.getGeometryIndex();
 		}
 
 		meshStorageBuffer.unmap();
 
 		return meshStorageBuffer;
+	}
+
+	#createGeometryStorageBuffer() {
+		const geometries = this._scene.getGeometries();
+
+		const geometryStorageBuffer = this._device.createBuffer({
+			label: "Geometry",
+			size: geometries.length * 2 * Uint32Array.BYTES_PER_ELEMENT,
+			usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+			mappedAtCreation: true,
+		});
+
+		const geometryStorageBufferMap = new Uint32Array(geometryStorageBuffer.getMappedRange());
+		let vertexOffset = 0;
+		let normalOffset = 0;
+
+		for (let i = 0; i < geometries.length; i++) {
+			const geometry = geometries[i];
+
+			geometryStorageBufferMap[i * 2 + 0] = vertexOffset;
+			geometryStorageBufferMap[i * 2 + 1] = normalOffset;
+
+			vertexOffset += geometry.getVertices().length / 3;
+			normalOffset += geometry.getNormals().length;
+		}
+
+		geometryStorageBuffer.unmap();
+
+		return geometryStorageBuffer;
 	}
 
 	#createViewBindGroupLayout() {
@@ -381,13 +415,6 @@ export class VisibilityRenderer extends WebGPURenderer {
 						type: "read-only-storage",
 					},
 				},
-				/* {
-					binding: 4,
-					visibility: GPUShaderStage.FRAGMENT,
-					buffer: {
-						type: "read-only-storage",
-					},
-				}, */
 			],
 		});
 
@@ -484,6 +511,13 @@ export class VisibilityRenderer extends WebGPURenderer {
 						type: "read-only-storage",
 					},
 				},
+				{
+					binding: 1,
+					visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+					buffer: {
+						type: "read-only-storage",
+					},
+				},
 			],
 		});
 
@@ -574,15 +608,8 @@ export class VisibilityRenderer extends WebGPURenderer {
 					binding: 3,
 					resource: {
 						buffer: this._buffers.normalStorage,
-						// buffer: this._buffers.normalIndexStorage,
 					},
 				},
-				/* {
-					binding: 4,
-					resource: {
-						buffer: this._buffers.normalStorage,
-					},
-				}, */
 			],
 		});
 
@@ -660,6 +687,12 @@ export class VisibilityRenderer extends WebGPURenderer {
 					binding: 0,
 					resource: {
 						buffer: this._buffers.meshStorage,
+					},
+				},
+				{
+					binding: 1,
+					resource: {
+						buffer: this._buffers.geometryStorage,
 					},
 				},
 			],
@@ -813,6 +846,14 @@ export class VisibilityRenderer extends WebGPURenderer {
 
 		this._device.queue.writeBuffer(this._buffers.viewUniform, 4 * Uint32Array.BYTES_PER_ELEMENT, viewProjection);
 		this._device.queue.writeBuffer(this._buffers.viewUniform, 4 * Uint32Array.BYTES_PER_ELEMENT + 16 * Float32Array.BYTES_PER_ELEMENT, position);
+	}
+
+	/**
+	 * @param {Number} index
+	 * @param {Matrix4} world
+	 */
+	writeMeshWorld(index, world) {
+		this._device.queue.writeBuffer(this._buffers.meshStorage, index * 20 * Float32Array.BYTES_PER_ELEMENT, world);
 	}
 
 	/**

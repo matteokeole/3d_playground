@@ -1,5 +1,5 @@
-import {Geometry} from "../../src/Geometry/index.js";
-import {Matrix4, Vector3} from "../../src/math/index.js";
+import {Geometry} from "./index.js";
+import {Vector3} from "../math/index.js";
 
 export class SSDPlaneGeometry extends Geometry {
 	/**
@@ -40,13 +40,7 @@ export class SSDPlaneGeometry extends Geometry {
 	}
 
 	/**
-	 * Returns the point on the geometry
-	 * that is the farthest in the direction of D.
-	 * 
-	 * @abstract
-	 * @param {Vector3} D Direction vector
-	 * @param {Matrix4} p Mesh projection matrix
-	 * @returns {Vector3}
+	 * @type {Geometry["support"]}
 	 */
 	support(D, p) {
 		const vertices = this.getVertices();

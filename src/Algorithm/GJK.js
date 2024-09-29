@@ -13,8 +13,8 @@ export class GJK {
 	 * @param {Vector3} D Direction
 	 */
 	static support(mesh1, mesh2, D) {
-		const s1 = new Vector3(mesh1.getGeometry().support(D, mesh1.getProjection()));
-		const s2 = mesh2.getGeometry().support(new Vector3(D).negate(), mesh2.getProjection());
+		const s1 = new Vector3(mesh1.getProxyGeometry().support(D, mesh1.getWorld()));
+		const s2 = mesh2.getProxyGeometry().support(new Vector3(D).negate(), mesh2.getWorld());
 
 		return s1.subtract(s2);
 	}

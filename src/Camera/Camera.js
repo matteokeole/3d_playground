@@ -1,11 +1,11 @@
 import {NotImplementedError} from "../Error/index.js";
+import {Geometry} from "../Geometry/index.js";
 import {Matrix4, Vector3} from "../math/index.js";
-import {Mesh} from "../Mesh/index.js";
 
 /**
  * @typedef {Object} CameraDescriptor
  * @property {Vector3} position
- * @property {?Mesh} hull
+ * @property {Geometry} [proxyGeometry]
  */
 
 /**
@@ -13,20 +13,20 @@ import {Mesh} from "../Mesh/index.js";
  */
 export class Camera {
 	#position;
+	#world;
 	#view;
 	#projection;
 	#viewProjection;
-	#hull;
 
 	/**
 	 * @param {CameraDescriptor} descriptor
 	 */
 	constructor(descriptor) {
 		this.#position = descriptor.position;
+		this.#world = Matrix4.identity();
 		this.#view = Matrix4.identity();
 		this.#projection = Matrix4.identity();
 		this.#viewProjection = Matrix4.identity();
-		this.#hull = descriptor.hull;
 	}
 
 	getPosition() {
@@ -38,6 +38,17 @@ export class Camera {
 	 */
 	setPosition(position) {
 		this.#position.set(position);
+	}
+
+	getWorld() {
+		return this.#world;
+	}
+
+	/**
+	 * @param {Matrix4} world
+	 */
+	setWorld(world) {
+		this.#world = world;
 	}
 
 	getView() {
@@ -71,17 +82,6 @@ export class Camera {
 	 */
 	setViewProjection(viewProjection) {
 		this.#viewProjection = viewProjection;
-	}
-
-	getHull() {
-		return this.#hull;
-	}
-
-	/**
-	 * @param {?Mesh} hull
-	 */
-	setHull(hull) {
-		this.#hull = hull;
 	}
 
 	/**

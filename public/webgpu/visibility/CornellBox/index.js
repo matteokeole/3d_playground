@@ -1,9 +1,8 @@
 import {PerspectiveCamera} from "../../../../src/Camera/index.js";
 import {PolytopeGeometry} from "../../../../src/Geometry/index.js";
-import {PI, Vector2, Vector3, Vector4} from "../../../../src/math/index.js";
+import {Vector2, Vector3, Vector4} from "../../../../src/math/index.js";
 import {Mesh} from "../../../../src/Mesh/index.js";
 import {Scene} from "../../../../src/Scene/index.js";
-import {SENSITIVITY} from "../../../hl2/main.js";
 import {FRAMES_PER_SECOND} from "../../../index.js";
 import {Instance} from "../Instance.js";
 import {VisibilityRenderer} from "../VisibilityRenderer.js";
@@ -232,7 +231,6 @@ function createCornellBoxScene() {
 function createCornellBoxCamera() {
 	const camera = new PerspectiveCamera({
 		position: new Vector3(278, 273, -800),
-		hull: null,
 		fieldOfView: 35, // Debug
 		nearClipPlane: 0.01,
 		farClipPlane: 2000,

@@ -1,8 +1,8 @@
 import {Instance as _Instance} from "../../../src/index.js";
-import {Camera} from "../../../src/Camera/index.js";
 import {EPA, GJK} from "../../../src/Algorithm/index.js";
+import {Camera} from "../../../src/Camera/index.js";
 import {max, Vector3} from "../../../src/math/index.js";
-import {Mesh} from "../../../src/Mesh/Mesh.js";
+import {Mesh} from "../../../src/Mesh/index.js";
 
 export class Instance extends _Instance {
 	static GRAVITY = 0.4;
@@ -50,15 +50,15 @@ export class Instance extends _Instance {
 
 		// let velocity = this.#moveGround(accelDir, prevVelocity, deltaTime);
 
-		const cameraHull = camera.getHull();
+		const cameraProxyGeometry = camera.getProxyGeometry();
 
-		if (cameraHull) {
-			const previousHullY = cameraHull.getPosition()[1];
-			const staticMeshes = scene.getMeshes();
+		if (cameraProxyGeometry) {
+			// const previousHullY = cameraHull.getPosition()[1];
+			const physicMeshes = scene.getPhysicMeshes();
 
-			this.#updateCameraHull(camera, cameraHull, staticMeshes);
+			this.#updateCamera(camera, physicMeshes);
 
-			const currentHullY = cameraHull.getPosition()[1];
+			// const currentHullY = cameraHull.getPosition()[1];
 
 			/**
 			 * @todo
@@ -88,16 +88,15 @@ export class Instance extends _Instance {
 
 	/**
 	 * @param {Camera} camera
-	 * @param {Mesh} hull
-	 * @param {Mesh[]} staticMeshes
+	 * @param {Mesh[]} physicMeshes
 	 */
-	#updateCameraHull(camera, hull, staticMeshes) {
-		hull.setPosition(camera.getPosition());
-		hull.updateProjection();
+	#updateCamera(camera, physicMeshes) {
+		// hull.setPosition(camera.getPosition());
+		// hull.updateWorld();
 
-		for (let i = 0; i < staticMeshes.length; i++) {
-			const staticMesh = staticMeshes[i];
-			const hitResponse = this.#hitTest(hull, staticMesh);
+		for (let i = 0; i < physicMeshes.length; i++) {
+			const physicMesh = physicMeshes[i];
+			const hitResponse = this.#hitTest(camera, physicMesh);
 
 			if (!hitResponse) {
 				continue;
@@ -108,8 +107,8 @@ export class Instance extends _Instance {
 			/**
 			 * @todo Fix blocking edges between geometries
 			 */
-			hull.getPosition().subtract(force);
-			hull.updateProjection();
+			camera.getPosition().subtract(force);
+			// hull.updateWorld();
 		}
 	}
 

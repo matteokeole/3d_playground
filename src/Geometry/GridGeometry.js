@@ -67,13 +67,7 @@ export class GridGeometry extends Geometry {
 	}
 
 	/**
-	 * Returns the point on the geometry
-	 * that is the farthest in the direction of D.
-	 * 
-	 * @abstract
-	 * @param {Vector3} D Direction vector
-	 * @param {Matrix4} p Mesh projection matrix
-	 * @returns {Vector3}
+	 * @type {Geometry["support"]}
 	 */
 	support(D, p) {
 		const vertices = this.getVertices();
