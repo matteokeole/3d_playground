@@ -2,7 +2,7 @@ import {BoxGeometry, PolytopeGeometry} from "../../../../src/Geometry/index.js";
 import {Vector2, Vector3, Vector4} from "../../../../src/math/index.js";
 import {Mesh} from "../../../../src/Mesh/index.js";
 import {Scene} from "../../../../src/Scene/index.js";
-import {FIELD_OF_VIEW, FRAMES_PER_SECOND} from "../../../index.js";
+import {FIELD_OF_VIEW, FRAMES_PER_SECOND, PLAYER_COLLISION_HULL} from "../../../index.js";
 import {VisibilityRenderer} from "../VisibilityRenderer.js";
 import {DevInstance} from "./DevInstance.js";
 import {ThirdPersonCamera} from "./ThirdPersonCamera.js";
@@ -93,6 +93,7 @@ async function createScene() {
 			3, 5, 4,
 		),
 	});
+	const playerGeometry = new BoxGeometry(PLAYER_COLLISION_HULL);
 
 	///
 	/// Meshes
@@ -184,13 +185,12 @@ async function createScene() {
 	slope.updateWorld();
 
 	const player = new Mesh({
-		geometry: boxGeometry,
-		proxyGeometry: boxGeometry,
+		geometry: playerGeometry,
+		proxyGeometry: playerGeometry,
 		material: null,
 		debugName: "player",
 	});
-	player.setPosition(new Vector3(0, 12, 0));
-	player.setScale(new Vector3(24, 24, 24));
+	player.setPosition(new Vector3(0, 36.5, 0));
 	player.updateWorld();
 
 	///
@@ -201,15 +201,17 @@ async function createScene() {
 
 	scene.addMeshes(planeGeometry, [plane]);
 	scene.addMeshes(slopeGeometry, [slope]);
-	scene.addMeshes(boxGeometry, [player, leftBox, bridge, centerBox, rightBox]);
+	scene.addMeshes(boxGeometry, [leftBox, bridge, centerBox, rightBox]);
 	scene.addMeshes(squareWallGeometry, [squareWall1, squareWall2, squareWall3, squareWall4]);
+	scene.addMeshes(playerGeometry, [player]);
 
 	return scene;
 }
 
 function createCamera() {
 	const camera = new ThirdPersonCamera({
-		position: new Vector3(0, 64, 0),
+		position: new Vector3(0, 77, 0),
+		distance: 128,
 		fieldOfView: FIELD_OF_VIEW,
 		nearClipPlane: 1,
 		farClipPlane: 2000,
