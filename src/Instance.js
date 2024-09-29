@@ -45,6 +45,11 @@ export class Instance {
 	#debugger;
 
 	/**
+	 * @type {Record.<String, Boolean>}
+	 */
+	#activeKeyCodes;
+
+	/**
 	 * @param {InstanceDescriptor} descriptor
 	 */
 	constructor(descriptor) {
@@ -55,14 +60,57 @@ export class Instance {
 		this.#lastFrameTime = -this.#frameInterval;
 		this.#animationFrameRequestId = null;
 		this.#debugger = new Debugger();
+
+		this.#activeKeyCodes = {};
 	}
 
 	getDebugger() {
 		return this.#debugger;
 	}
 
+	getHorizontalRawAxis() {
+		if (this.#activeKeyCodes["KeyD"] || this.#activeKeyCodes["ArrowRight"]) {
+			return 1;
+		}
+
+		if (this.#activeKeyCodes["KeyA"] || this.#activeKeyCodes["ArrowLeft"]) {
+			return -1;
+		}
+
+		return 0;
+	}
+
+	getVerticalRawAxis() {
+		if (this.#activeKeyCodes["KeyW"] || this.#activeKeyCodes["ArrowUp"]) {
+			return 1;
+		}
+
+		if (this.#activeKeyCodes["KeyS"] || this.#activeKeyCodes["ArrowDown"]) {
+			return -1;
+		}
+
+		return 0;
+	}
+
+	/**
+	 * @param {MouseEvent} event
+	 */
+	getMouseXAxis(event) {
+		return event.movementX;
+	}
+
+	/**
+	 * @param {MouseEvent} event
+	 */
+	getMouseYAxis(event) {
+		return event.movementY;
+	}
+
 	async build() {
 		await this._renderer.build();
+
+		document.addEventListener("keydown", this.#onKeyDown.bind(this));
+		document.addEventListener("keyup", this.#onKeyUp.bind(this));
 	}
 
 	loop() {
@@ -106,5 +154,23 @@ export class Instance {
 		cancelAnimationFrame(this.#animationFrameRequestId);
 
 		this.#animationFrameRequestId = null;
+	}
+
+	/**
+	 * @param {KeyboardEvent} event
+	 */
+	#onKeyDown(event) {
+		const keyCode = event.code;
+
+		this.#activeKeyCodes[keyCode] = true;
+	}
+
+	/**
+	 * @param {KeyboardEvent} event
+	 */
+	#onKeyUp(event) {
+		const keyCode = event.code;
+
+		this.#activeKeyCodes[keyCode] = false;
 	}
 }

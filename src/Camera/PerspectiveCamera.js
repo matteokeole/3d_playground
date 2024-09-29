@@ -1,4 +1,4 @@
-import {PI, Matrix4, Vector3, rad} from "../math/index.js";
+import {PI, Matrix4, Vector3, rad, quat, cos, sin, conjugate, multiply, normalize} from "../math/index.js";
 import {Camera} from "./Camera.js";
 
 /**
@@ -9,6 +9,10 @@ import {Camera} from "./Camera.js";
  */
 
 export class PerspectiveCamera extends Camera {
+	static #WORLD_RIGHT = new Vector3(1, 0, 0);
+	static #WORLD_UP = new Vector3(0, 1, 0);
+	static #WORLD_FORWARD = new Vector3(0, 0, 1);
+
 	static #COORDINATE_SYSTEM = 1; // Left-handed
 	static #UP = new Vector3(0, 1, 0);
 
@@ -23,8 +27,14 @@ export class PerspectiveCamera extends Camera {
 	#farClipPlane;
 
 	#forward;
+	#right;
 	#yaw;
 	#pitch;
+
+	#orientation;
+
+	#movementAccumulator;
+	#rotationAccumulator;
 
 	#fieldOfViewRad;
 	#yawRad;
@@ -42,8 +52,14 @@ export class PerspectiveCamera extends Camera {
 		this.#farClipPlane = descriptor.farClipPlane;
 
 		this.#forward = new Vector3(0, 0, 1);
+		this.#right = new Vector3(1, 0, 0);
 		this.#yaw = 90;
 		this.#pitch = 0;
+
+		this.#orientation = quat.fromAxisAngle(PerspectiveCamera.#WORLD_FORWARD, 0);
+
+		this.#movementAccumulator = new Vector3(0, 0, 0);
+		this.#rotationAccumulator = new Vector3(0, 0, 0);
 
 		this.#fieldOfViewRad = rad(this.#fieldOfView);
 		this.#yawRad = rad(this.#yaw);
@@ -95,22 +111,48 @@ export class PerspectiveCamera extends Camera {
 		this.#farClipPlane = farClipPlane;
 	}
 
+	getRight() {
+		return multiply(PerspectiveCamera.#WORLD_RIGHT, conjugate(this.#orientation));
+	}
+
+	getUp() {
+		return multiply(PerspectiveCamera.#WORLD_UP, conjugate(this.#orientation));
+	}
+
 	getForward() {
-		return this.#forward;
+		return multiply(PerspectiveCamera.#WORLD_FORWARD, conjugate(this.#orientation));
 	}
 
-	getYaw() {
-		return this.#yaw;
+	getOrientation() {
+		return this.#orientation;
 	}
 
-	getPitch() {
-		return this.#pitch;
+	/**
+	 * @param {quat} orientation
+	 */
+	setOrientation(orientation) {
+		this.#orientation = orientation;
+	}
+
+	/**
+	 * @param {Vector3} offset
+	 */
+	move(offset) {
+		this.#movementAccumulator.add(offset);
+	}
+
+	/**
+	 * @param {Vector3} angles
+	 */
+	rotate(angles) {
+		this.#rotationAccumulator.add(angles);
 	}
 
 	/**
 	 * @param {Vector3} velocity
 	 */
 	applyVelocity(velocity) {
+		debugger;
 		const xAmount = PerspectiveCamera.#UP.cross(this.#forward).normalize().multiplyScalar(velocity[0]);
 		const zAmount = new Vector3(this.#forward).multiplyScalar(velocity[2]);
 
@@ -122,6 +164,7 @@ export class PerspectiveCamera extends Camera {
 	 * @param {Number} pitchOffset
 	 */
 	applyYawAndPitch(yawOffset, pitchOffset) {
+		debugger;
 		this.#yaw += yawOffset;
 		this.#pitch += pitchOffset;
 
@@ -162,7 +205,51 @@ export class PerspectiveCamera extends Camera {
 	}
 
 	updateView() {
-		return Matrix4.lookAtRelative(this.getPosition(), this.#forward, PerspectiveCamera.#UP);
+		// Rotation
+
+		const pitch = quat.fromAxisAngle(PerspectiveCamera.#WORLD_RIGHT, this.#rotationAccumulator[0]);
+		const yaw = quat.fromAxisAngle(PerspectiveCamera.#WORLD_UP, this.#rotationAccumulator[1]);
+		// const roll = quat.fromAxisAngle(PerspectiveCamera.#WORLD_FORWARD, this.#rotationAccumulator[2]);
+
+		this.#orientation = multiply(this.#orientation, pitch);
+		this.#orientation = multiply(yaw, this.#orientation);
+		// this.#orientation = multiply(this.#orientation, roll);
+
+		this.#orientation = normalize(this.#orientation);
+
+		this.#rotationAccumulator[0] = 0;
+		this.#rotationAccumulator[1] = 0;
+		this.#rotationAccumulator[2] = 0;
+
+		const viewMatrix = Matrix4.fromQuaternion(this.#orientation);
+
+		// Movement
+
+		const forward = this.getForward();
+		forward.multiplyScalar(this.#movementAccumulator[0]);
+
+		const up = this.getUp();
+		up.multiplyScalar(this.#movementAccumulator[1]);
+
+		const right = this.getRight();
+		right.multiplyScalar(this.#movementAccumulator[2]);
+
+		this.getPosition().add(forward);
+		this.getPosition().add(up);
+		this.getPosition().add(right);
+
+		this.#movementAccumulator[0] = 0;
+		this.#movementAccumulator[1] = 0;
+		this.#movementAccumulator[2] = 0;
+
+		const translation = multiply(new Vector3(this.getPosition()).negate(), this.#orientation);
+
+		viewMatrix[12] = translation[0];
+		viewMatrix[13] = translation[1];
+		viewMatrix[14] = translation[2];
+
+		return viewMatrix;
+		// return Matrix4.lookAt(this.getPosition(), new Vector3(this.getPosition()).add(this.#forward), PerspectiveCamera.#UP);
 	}
 
 	updateProjection() {
