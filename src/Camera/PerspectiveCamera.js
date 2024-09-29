@@ -21,13 +21,12 @@ export class PerspectiveCamera extends Camera {
 	static #BIAS = PI * .545;
 
 	#distance;
-
-	#orientation;
-
 	#fieldOfView;
 	#aspectRatio;
 	#nearClipPlane;
 	#farClipPlane;
+
+	#orientation;
 
 	#movementAccumulator;
 	#rotationAccumulator;
@@ -39,13 +38,12 @@ export class PerspectiveCamera extends Camera {
 		super(descriptor);
 
 		this.#distance = descriptor.distance ?? 0;
-
-		this.#orientation = quat.fromAxisAngle(PerspectiveCamera.#DEFAULT_FORWARD, 0);
-
 		this.#fieldOfView = descriptor.fieldOfView;
 		this.#aspectRatio = 0;
 		this.#nearClipPlane = descriptor.nearClipPlane;
 		this.#farClipPlane = descriptor.farClipPlane;
+
+		this.#orientation = quat.fromAxisAngle(PerspectiveCamera.#DEFAULT_FORWARD, 0);
 
 		this.#movementAccumulator = new Vector3(0, 0, 0);
 		this.#rotationAccumulator = new Vector3(0, 0, 0);
@@ -53,10 +51,6 @@ export class PerspectiveCamera extends Camera {
 
 	getDistance() {
 		return this.#distance;
-	}
-
-	getOrientation() {
-		return this.#orientation;
 	}
 
 	getFieldOfView() {
@@ -80,6 +74,18 @@ export class PerspectiveCamera extends Camera {
 
 	getFarClipPlane() {
 		return this.#farClipPlane;
+	}
+
+	getOrientation() {
+		return this.#orientation;
+	}
+
+	getMovementAccumulator() {
+		return this.#movementAccumulator;
+	}
+
+	getRotationAccumulator() {
+		return this.#rotationAccumulator;
 	}
 
 	getRight() {
@@ -147,9 +153,46 @@ export class PerspectiveCamera extends Camera {
 		/// Movement
 		///
 
-		const forward = this.getForward().multiplyScalar(this.#movementAccumulator[2]);
-		const up = this.getUp().multiplyScalar(this.#movementAccumulator[1]);
-		const right = this.getRight().multiplyScalar(this.#movementAccumulator[0]);
+		let forward = this.getForward();
+		let up = this.getUp(); // Not used
+		let right = this.getRight();
+
+		/**
+		 * @todo TEST
+		 */
+		{
+			const epsilon = 0.0001; // Avoid floating point errors
+
+			if (forward[1] > 1.0 - epsilon) // Note: forward is normalized, so checking Y is sufficent
+			{ // Special case: Looking straight up
+				forward = new Vector3(up).negate();
+			}
+			else if (forward[1] < -1.0 + epsilon)
+			{ // Special case: Looking straight down
+				forward = new Vector3(up);
+			}
+			else if (right[1] > 1.0 - epsilon)
+			{
+				right = new Vector3(up);
+			}
+			else if (right[1] < -1.0 + epsilon)
+			{
+				right = new Vector3(up).negate();
+			}
+
+			// Project the forward and right into the world plane
+			forward[1] = 0;
+			forward.normalize();
+
+			right[1] = 0;
+			right.normalize();
+
+			up = new Vector3(PerspectiveCamera.#DEFAULT_UP);
+		}
+
+		forward.multiplyScalar(this.#movementAccumulator[2]);
+		up.multiplyScalar(this.#movementAccumulator[1]);
+		right.multiplyScalar(this.#movementAccumulator[0]);
 
 		this.getPosition().add(forward);
 		this.getPosition().add(up);

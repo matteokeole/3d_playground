@@ -211,7 +211,7 @@ async function createScene() {
 function createCamera() {
 	const camera = new ThirdPersonCamera({
 		position: new Vector3(0, 77, 0),
-		distance: 128,
+		distance: 0,
 		fieldOfView: FIELD_OF_VIEW,
 		nearClipPlane: 1,
 		farClipPlane: 2000,

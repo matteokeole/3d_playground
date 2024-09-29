@@ -1,13 +1,19 @@
 import {PerspectiveCamera} from "../../../../src/Camera/index.js";
-import {Matrix4, Vector3} from "../../../../src/math/index.js";
+import {clamp, rad, toEulerAngles} from "../../../../src/math/index.js";
 
 export class ThirdPersonCamera extends PerspectiveCamera {
-	static #DISTANCE = new Vector3(0, 0, 256);
+	#minPitch = -90;
+	#maxPitch = 90;
 
-	/* updateProjection() {
-		const projection = super.updateProjection();
-		const translation = Matrix4.translation(ThirdPersonCamera.#DISTANCE);
+	updateView() {
+		const eulerAngles = toEulerAngles(this.getOrientation());
 
-		return new Matrix4(projection).multiply(translation);
-	} */
+		this.getRotationAccumulator()[0] = clamp(
+			this.getRotationAccumulator()[0],
+			rad(this.#minPitch) - eulerAngles[0],
+			rad(this.#maxPitch) - eulerAngles[0],
+		);
+
+		return super.updateView();
+	}
 }
