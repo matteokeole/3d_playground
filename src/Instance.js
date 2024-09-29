@@ -68,6 +68,10 @@ export class Instance {
 		return this.#debugger;
 	}
 
+	getActiveKeyCodes() {
+		return this.#activeKeyCodes;
+	}
+
 	getHorizontalRawAxis() {
 		if (this.#activeKeyCodes["KeyD"] || this.#activeKeyCodes["ArrowRight"]) {
 			return 1;
