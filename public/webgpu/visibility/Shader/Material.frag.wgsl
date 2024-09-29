@@ -26,7 +26,9 @@ fn main(in: In) -> @location(0) vec4f {
 
 	if (VISUALIZATION_MODE == VISUALIZATION_MODE_TRIANGLE) {
 		let visibility: u32 = textureLoad(visibilityTexture, uv).r;
-		let triangleIndex: u32 = visibility & VISIBILITY_TRIANGLE_MASK;
+		let clusterIndex: u32 = (visibility >> VISIBILITY_CLUSTER_MASK);
+		let clusterTriangleIndex: u32 = visibility & VISIBILITY_TRIANGLE_MASK;
+		let triangleIndex: u32 = clusterIndex * TRIANGLES_PER_CLUSTER + clusterTriangleIndex;
 
 		// TODO: Triangle 0 is not visible (intToColor(0) returns 0)
 		color = intToColor(triangleIndex) * 0.8 + 0.2;
