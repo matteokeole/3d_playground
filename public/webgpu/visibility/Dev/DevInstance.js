@@ -22,6 +22,7 @@ export class DevInstance extends Instance {
 	#pitchSpeed = 225;
 	#yawSpeed = 210;
 	#friction = 4; // Not from HL2: https://developer.valvesoftware.com/wiki/Sv_friction
+	#frictionApplyThreshold = 0.1;
 
 	#travellingMedium = "ground";
 	#velocity = new Vector3(0, 0, 0);
@@ -284,21 +285,33 @@ export class DevInstance extends Instance {
 	#applyFriction(deltaTime) {
 		const speed = this.#velocity.magnitude();
 
-		// Avoid division by 0
-		if (speed === 0) {
+		// If too slow, return
+		// This avoids the division by 0
+		if (speed < this.#frictionApplyThreshold) {
 			return;
 		}
 
-		// Take the largest value between the current speed and StopSpeed
+		// Take the largest value between the current speed and StopSpeed.
 		// This makes that once at a slow speed (< 100) the friction will not get below 100 * f * Δt,
 		// thus slowing us down faster.
+		//
+		//   "Bleed off some speed, but if we have less than the
+		//    bleed threshold, bleed the threshold amount." - GoldSrc
+		//
 		const control = max(speed, this.#stopSpeed);
 
-		const drop = control * this.#friction * deltaTime;
-		const newSpeed = max(speed - drop, 0);
+		const friction = this.#friction;
 
-		// Scale the velocity based on friction
-		this.#velocity.multiplyScalar(newSpeed / speed);
+		const drop = control * friction * deltaTime;
+
+		// Scale the velocity
+		let newSpeed = max(speed - drop, 0);
+
+		// Determine proportion of old speed we are using.
+		newSpeed /= speed;
+
+		// Scale velocity according to proportion
+		this.#velocity.multiplyScalar(newSpeed);
 	}
 
 	/**
