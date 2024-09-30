@@ -110,7 +110,7 @@ export class Instance extends _Instance {
 		const dot = (player.getHitbox().getVelocity()[0] * normal[2] + player.getHitbox().getVelocity()[2] * normal[0]) * remainingTime;
 		const velocity = new Vector3(dot * normal[2], 0, dot * normal[0]);
 
-		if (velocity.isNull()) {
+		if (velocity.magnitude() === 0) {
 			return {
 				scaledVelocity,
 			};

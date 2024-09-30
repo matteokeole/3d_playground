@@ -4,6 +4,8 @@ import {Matrix3, Matrix4, max, PI, Vector2, Vector3} from "../math/index.js";
 
 /**
  * @typedef {Object} MeshDescriptor
+ * @property {Boolean} [solid]
+ * @property {Boolean} [ground]
  * @property {Geometry} geometry
  * @property {Geometry} [proxyGeometry]
  * @property {?Material} material
@@ -12,6 +14,7 @@ import {Matrix3, Matrix4, max, PI, Vector2, Vector3} from "../math/index.js";
 
 export class Mesh {
 	/**
+	 * @deprecated
 	 * @param {Object} json
 	 * @param {import("../../src/Loader/ImageBitmapLoader.js").Image[]} images
 	 * @param {String[]} imagePaths
@@ -62,6 +65,9 @@ export class Mesh {
 		});
 	}
 
+	#isSolid;
+	#isGround;
+
 	#geometryIndex;
 	#geometry;
 	#proxyGeometry;
@@ -76,6 +82,9 @@ export class Mesh {
 	 * @param {MeshDescriptor} descriptor
 	 */
 	constructor(descriptor) {
+		this.#isSolid = descriptor.solid ?? true;
+		this.#isGround = descriptor.ground ?? false;
+
 		this.#geometryIndex = 0;
 		this.#geometry = descriptor.geometry;
 		this.#proxyGeometry = descriptor.proxyGeometry ?? null;
@@ -85,6 +94,14 @@ export class Mesh {
 		this.#rotation = new Vector3(0, 0, 0);
 		this.#scale = new Vector3(1, 1, 1);
 		this.#debugName = descriptor.debugName ?? null;
+	}
+
+	isSolid() {
+		return this.#isSolid;
+	}
+
+	isGround() {
+		return this.#isGround;
 	}
 
 	getGeometryIndex() {

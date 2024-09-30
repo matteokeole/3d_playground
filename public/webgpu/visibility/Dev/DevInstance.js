@@ -1,20 +1,31 @@
 import {Instance} from "../../../../src/index.js";
 import {EPA, GJK} from "../../../../src/Algorithm/index.js";
 import {PerspectiveCamera} from "../../../../src/Camera/index.js";
-import {PI, rad, Vector3} from "../../../../src/math/index.js";
+import {max, PI, rad, Vector3} from "../../../../src/math/index.js";
 import {Mesh} from "../../../../src/Mesh/index.js";
 import {VisibilityRenderer} from "../VisibilityRenderer.js";
+import {PLAYER_COLLISION_HULL, PLAYER_EYE_LEVEL} from "../../../index.js";
 
 export class DevInstance extends Instance {
 	static #SENSITIVITY = 0.075;
 
-	#gravity = -0.02;
-	#airVelocity = 320;
+	#gravity = new Vector3(0, -600, 0);
+	#speed = 450; // Acceleration rate - same for forward/back/side
+	#groundAccelerateConstant = 10;
+	#airAccelerateConstant = 10;
+	#normSpeed = 190; // Normal speed
+	#walkSpeed = 150;
+	#sprintSpeed = 320;
+	#jumpSpeed = 320; // Up speed
+	#maxSpeed = 270;
+	#stopSpeed = 100;
+	#pitchSpeed = 225;
+	#yawSpeed = 210;
+	#friction = 4; // Not from HL2: https://developer.valvesoftware.com/wiki/Sv_friction
 
-	#travellingMedium = "air";
-	#cameraVelocity = new Vector3(0, 0, 0);
-	#cameraSpeed = 1;
-	#friction = 0.05;
+	#travellingMedium = "ground";
+	#velocity = new Vector3(0, 0, 0);
+	#frameIndex = 0;
 
 	/**
 	 * @param {import("../../../../src/Instance.js").InstanceDescriptor} descriptor
@@ -29,6 +40,19 @@ export class DevInstance extends Instance {
 	 * @param {Number} deltaTime
 	 */
 	_update(deltaTime) {
+		// Frame analysis
+		{
+			// deltaTime = 0.00606;
+
+			/* if (this.#frameIndex === 3) {
+				console.warn("Time's up!");
+
+				debugger;
+			}
+
+			console.log("Frame", this.#frameIndex); */
+		}
+
 		/**
 		 * @type {VisibilityRenderer}
 		 */
@@ -50,42 +74,39 @@ export class DevInstance extends Instance {
 		}
 
 		if (this.#travellingMedium === "air") {
-			this.#airAccelerate(camera);
+			this.#airMove(deltaTime);
 		} else {
-			this.#groundAccelerate(camera, deltaTime);
+			this.#applyFriction(deltaTime);
+			this.#walkMove(deltaTime);
 		}
 
-		this.#cameraVelocity[1] += this.#gravity;
+		// this.#applyGravity(deltaTime);
 
-		camera.move(this.#cameraVelocity);
+		if (playerMesh.getProxyGeometry()) {
+			this.#testCollide(camera, otherPhysicMeshes, playerMesh, deltaTime);
+		} else {
+			this.#applyVelocity(playerMesh, deltaTime);
+		}
+
+		this.#cameraLookAtPlayer(camera, playerMesh);
 
 		// Camera position must be set before extracting it for the player mesh
-		camera.update();
-
-		// Move mesh to a potentially invalid location
-		playerMesh.getPosition().set(camera.getPosition());
-		playerMesh.updateWorld();
-
-		// Detect and resolve collision
-		if (playerMesh.getProxyGeometry()) {
-			this.#testCollide(otherPhysicMeshes, playerMesh);
-		}
-
-		camera.getPosition().set(playerMesh.getPosition());
 		camera.update();
 
 		// The mesh world is already updated, upload it into the mesh buffer
 		renderer.writeMeshWorld(playerMeshIndex, playerMesh.getWorld());
 
 		this.getDebugger().update({
-			"Delta time": deltaTime.toPrecision(1),
-			"Position": camera.getPosition(),
-			"Velocity": this.#cameraVelocity,
-			"Velocity length": this.#cameraVelocity.magnitude().toPrecision(2),
+			"Delta time": deltaTime.toPrecision(3),
+			"Camera": "---------------",
 			"..Right": camera.getRight(),
 			".....Up": camera.getUp(),
 			"Forward": camera.getForward(),
+			"Player": "---------------",
 			"Medium": this.#travellingMedium,
+			"Position": playerMesh.getPosition(),
+			"Velocity": this.#velocity,
+			"Velocity length": this.#velocity.magnitude().toFixed(2),
 			"Controls": "---------------",
 			// AZERTY layout
 			"KeyZ": this.getActiveKeyCodes()["KeyW"] ?? false,
@@ -94,6 +115,8 @@ export class DevInstance extends Instance {
 			"KeyD": this.getActiveKeyCodes()["KeyD"] ?? false,
 			"Space": this.getActiveKeyCodes()["Space"] ?? false,
 		});
+
+		this.#frameIndex++;
 	}
 
 	_render() {
@@ -101,73 +124,198 @@ export class DevInstance extends Instance {
 	}
 
 	/**
-	 * No friction
-	 * 
+	 * @param {Mesh} playerMesh
 	 * @param {PerspectiveCamera} camera
+	 * @param {Number} deltaTime
 	 */
-	#airAccelerate(camera) {
-		const velocity = this.#cameraVelocity;
+	#applyVelocity(playerMesh, deltaTime) {
+		// P(n+1) = P(n) + V * Δt
+		playerMesh.getPosition().add(new Vector3(this.#velocity).multiplyScalar(deltaTime));
+		playerMesh.updateWorld();
+	}
 
-		if (this.getHorizontalRawAxis()) {
-			velocity[0] = this.getHorizontalRawAxis() * this.#cameraSpeed;
-		}
+	/**
+	 * @param {Number} deltaTime
+	 */
+	#airMove(deltaTime) {
+		/** @type {PerspectiveCamera} */
+		const camera = this._renderer.getCamera();
 
-		if (this.getVerticalRawAxis()) {
-			velocity[2] = this.getVerticalRawAxis() * this.#cameraSpeed;
+		const forward = camera.getForward();
+		const right = camera.getRight();
+
+		const forwardMove = this.getVerticalRawAxis();
+		const sideMove = this.getHorizontalRawAxis();
+
+		forward[1] = 0;
+		right[1] = 0;
+
+		forward.normalize();
+		right.normalize();
+
+		const wishVelocity = new Vector3(0, 0, 0);
+		wishVelocity[0] = forward[0] * forwardMove + right[0] * sideMove;
+		wishVelocity[1] = 0;
+		wishVelocity[2] = forward[2] * forwardMove + right[2] * sideMove;
+
+		const wishSpeed = wishVelocity.magnitude();
+		const wishDirection = new Vector3(wishVelocity).normalize();
+
+		wishDirection.multiplyScalar(this.#airAccelerateConstant);
+
+		this.#velocity.add(wishDirection);
+
+		const speed = this.#velocity.magnitude();
+
+		// Cap speed
+		if (speed > this.#maxSpeed) {
+			const newSpeed = speed - this.#maxSpeed;
+
+			this.#velocity.multiplyScalar((speed - newSpeed) / speed);
 		}
 	}
 
 	/**
-	 * @param {PerspectiveCamera} camera
+	 * @param {Vector3} wishDirection
+	 * @param {Number} wishSpeed
+	 * @param {Number} acceleration
 	 * @param {Number} deltaTime
 	 */
-	#groundAccelerate(camera, deltaTime) {
-		const velocity = this.#cameraVelocity;
+	#airAccelerate(wishDirection, wishSpeed, acceleration, deltaTime) {
+		let wishSpd = wishSpeed;
 
-		velocity.multiplyScalar(1 - this.#friction);
-
-		if (this.getHorizontalRawAxis()) {
-			velocity[0] = this.getHorizontalRawAxis() * this.#cameraSpeed;
+		if (wishSpd > 30) {
+			wishSpd = 30;
 		}
 
-		if (this.getActiveKeyCodes()["Space"] === true) {
-			/**
-			 * @todo Disable space?
-			 */
-			// this.getActiveKeyCodes()["Space"] = false;
+		// Determine veer amount
+		const currentSpeed = this.#velocity.dot(wishDirection);
 
-			velocity[1] = 1;
+		// See how much to add
+		const addSpeed = wishSpd - currentSpeed;
+
+		// If not adding any, done.
+		if (addSpeed <= 0) {
+			return;
 		}
 
-		if (this.getVerticalRawAxis()) {
-			velocity[2] = this.getVerticalRawAxis() * this.#cameraSpeed;
+		// Determine acceleration speed after acceleration
+		let accelspeed = acceleration * wishSpeed * this.#friction * deltaTime;
+
+		// Cap it
+		if (accelspeed > addSpeed) {
+			accelspeed = addSpeed;
 		}
 
-		// velocity.normalize();
+		this.#velocity.add(new Vector3(wishDirection).multiplyScalar(accelspeed));
+	}
 
-		///
-		/// Friction
-		///
+	/**
+	 * @param {Number} deltaTime
+	 */
+	#walkMove(deltaTime) {
+		/** @type {PerspectiveCamera} */
+		const camera = this._renderer.getCamera();
 
-		/* const speed = velocity.magnitude();
+		const forward = camera.getForward();
+		const right = camera.getRight();
 
+		const forwardMove = this.getVerticalRawAxis();
+		const sideMove = this.getHorizontalRawAxis();
+
+		forward[1] = 0;
+		right[1] = 0;
+
+		forward.normalize();
+		right.normalize();
+
+		const wishAccelerationDirection = new Vector3(0, 0, 0);
+		wishAccelerationDirection[0] = forward[0] * forwardMove + right[0] * sideMove;
+		wishAccelerationDirection[1] = 0;
+		wishAccelerationDirection[2] = forward[2] * forwardMove + right[2] * sideMove;
+
+		wishAccelerationDirection.normalize();
+		wishAccelerationDirection.multiplyScalar(this.#airAccelerateConstant);
+
+		this.#velocity.add(wishAccelerationDirection);
+
+		const speed = this.#velocity.magnitude();
+
+		// Cap speed
+		if (speed > this.#maxSpeed) {
+			const newSpeed = speed - this.#maxSpeed;
+
+			this.#velocity.multiplyScalar((speed - newSpeed) / speed);
+		}
+	}
+
+	/**
+	 * @param {Vector3} direction The normalized direction that the player has requested to move (taking into account the movement keys and look direction)
+	 * @param {Number} accelerationConstant The server-defined player acceleration value
+	 * @param {Number} maxVelocityConstant The server-defined maximum player velocity (this is not strictly adhered to due to strafejumping)
+	 * @param {Number} deltaTime
+	 */
+	#accelerate(direction, accelerationConstant, maxVelocityConstant, deltaTime) {
+		const projectedVelocity = this.#velocity.dot(direction); // Projection of velocity onto direction
+		let accelerationSpeed = accelerationConstant * deltaTime;
+
+		// Velocity projection must not exceed maxVelocityConstant
+		if (projectedVelocity + accelerationSpeed > maxVelocityConstant) {
+			accelerationSpeed = maxVelocityConstant - projectedVelocity;
+		}
+
+		// V(n=1) = V(n) + d * a
+		this.#velocity.add(new Vector3(direction).multiplyScalar(accelerationSpeed));
+	}
+
+	/**
+	 * @param {Number} deltaTime
+	 */
+	#applyGravity(deltaTime) {
+		const gravity = new Vector3(this.#gravity);
+
+		// V(n+1) = V(n) + G * Δt
+		this.#velocity.add(gravity.multiplyScalar(deltaTime));
+	}
+
+	/**
+	 * @param {Number} deltaTime
+	 */
+	#applyFriction(deltaTime) {
+		const speed = this.#velocity.magnitude();
+
+		// Avoid division by 0
 		if (speed === 0) {
 			return;
 		}
 
-		const drop = speed * DevInstance.#FRICTION * deltaTime;
+		// Take the largest value between the current speed and StopSpeed
+		// This makes that once at a slow speed (< 100) the friction will not get below 100 * f * Δt,
+		// thus slowing us down faster.
+		const control = max(speed, this.#stopSpeed);
 
-		velocity.multiplyScalar(max(speed - drop, 0)); */
+		const drop = control * this.#friction * deltaTime;
+		const newSpeed = max(speed - drop, 0);
+
+		// Scale the velocity based on friction
+		this.#velocity.multiplyScalar(newSpeed / speed);
 	}
 
 	/**
+	 * @param {PerspectiveCamera} camera
 	 * @param {Mesh[]} physicMeshes
 	 * @param {Mesh} playerMesh
+	 * @param {Number} deltaTime
 	 */
-	#testCollide(physicMeshes, playerMesh) {
+	#testCollide(camera, physicMeshes, playerMesh, deltaTime) {
 		this.#travellingMedium = "air";
 
+		const previousPosition = playerMesh.getPosition();
+
 		for (let i = 0; i < physicMeshes.length; i++) {
+			// Set a tentative position
+			this.#applyVelocity(playerMesh, camera, deltaTime);
+
 			const physicMesh = physicMeshes[i];
 			const hitResponse = this.#hitTest(playerMesh, physicMesh);
 
@@ -175,17 +323,19 @@ export class DevInstance extends Instance {
 				continue;
 			}
 
-			const force = hitResponse.normal.multiplyScalar(hitResponse.depth);
+			const force = new Vector3(hitResponse.normal).multiplyScalar(hitResponse.depth);
 
 			/**
 			 * @todo Fix blocking edges between geometries
 			 */
-			playerMesh.getPosition().subtract(force);
-			// this.#cameraVelocity.subtract(force);
+			this.#velocity.subtract(force);
+
+			// Reset player mesh position to the one before collision
+			playerMesh.setPosition(previousPosition);
 			playerMesh.updateWorld();
 
-			// Colliding with something is equivalent to travelling through a ground medium
-			// This method is unbalanced (can spam jump if next to a wall) and will be reworked
+			// Colliding with an object changes the travelling medium to "ground"
+			// Bug: player can jump on the side of the mesh to reach it
 			this.#travellingMedium = "ground";
 		}
 	}
@@ -225,5 +375,14 @@ export class DevInstance extends Instance {
 		const yaw = this.getMouseXAxis(event) * DevInstance.#SENSITIVITY;
 
 		camera.rotate(new Vector3(rad(pitch), rad(yaw), 0));
+	}
+
+	/**
+	 * @param {PerspectiveCamera} camera
+	 * @param {Mesh} playerMesh
+	 */
+	#cameraLookAtPlayer(camera, playerMesh) {
+		camera.setPosition(playerMesh.getPosition());
+		camera.getPosition()[1] += -PLAYER_COLLISION_HULL[1] / 2 + PLAYER_EYE_LEVEL; // Reset to foot level, then add to get to eye level
 	}
 }
