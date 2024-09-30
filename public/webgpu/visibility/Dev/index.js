@@ -53,6 +53,9 @@ export default async function() {
 
 /**
  * Creates a scene with Source Engine proportions (roughly)
+ * 
+ * Can also test HL1 elevator
+ * Dimensions: 223.9 x 223.9 square
  */
 async function createSourceScene() {
 	/*
@@ -204,11 +207,11 @@ async function createSourceScene() {
 
 	const player = new Mesh({
 		geometry: playerGeometry,
-		// proxyGeometry: playerGeometry,
+		proxyGeometry: playerGeometry,
 		material: null,
 		debugName: "player",
 	});
-	player.setPosition(new Vector3(0, 36.5, 0));
+	player.setPosition(new Vector3(0, 70, 0));
 	player.updateWorld();
 
 	///
