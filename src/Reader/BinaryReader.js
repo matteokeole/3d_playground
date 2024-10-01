@@ -228,7 +228,7 @@ export class BinaryReader {
 	readBoolArray(byteLength) {
 		const array = this.readUint8Array(byteLength);
 
-		return [...array].map(Boolean);
+		return Array.from(array, Boolean);
 	}
 
 	/**
