@@ -1,6 +1,6 @@
 import {BoxGeometry, PolytopeGeometry} from "../../../../src/Geometry/index.js";
 import {Vector2, Vector3, Vector4} from "../../../../src/math/index.js";
-import {Mesh} from "../../../../src/Mesh/index.js";
+import {DynamicMesh, StaticMesh} from "../../../../src/Mesh/index.js";
 import {Scene} from "../../../../src/Scene/index.js";
 import {FRAMES_PER_SECOND, PLAYER_COLLISION_HULL} from "../../../index.js";
 import {VisibilityRenderer} from "../VisibilityRenderer.js";
@@ -52,27 +52,20 @@ export default async function() {
 }
 
 /**
- * Creates a scene with Source Engine proportions (roughly)
+ * Creates a scene with GoldSrc proportions (roughly)
  * 
  * Can also test HL1 elevator
  * Dimensions: 223.9 x 223.9 square
  */
 async function createSourceScene() {
 	/*
-	#gravity = new Vector3(0, -600, 0);
-	#speed = 450; // Acceleration rate - same for forward/back/side
+	#gravity = new Vector3(0, -800, 0);
 	#groundAccelerateConstant = 10;
 	#airAccelerateConstant = 10;
-	#stopSpeed = 0.1;
-	#normSpeed = 190; // Normal speed
-	#walkSpeed = 150;
-	#sprintSpeed = 320;
-	#jumpSpeed = 320; // Up speed
+	#speed = 400; // HL1
 	#maxSpeed = 270;
 	#stopSpeed = 100;
-	#pitchSpeed = 225;
-	#yawSpeed = 210;
-	#friction = 4; // Not from HL2: https://developer.valvesoftware.com/wiki/Sv_friction
+	#friction = 4; // https://developer.valvesoftware.com/wiki/Sv_friction
 	*/
 
 	///
@@ -119,8 +112,7 @@ async function createSourceScene() {
 	/// Meshes
 	///
 
-	const plane = new Mesh({
-		ground: true,
+	const plane = new StaticMesh({
 		geometry: planeGeometry,
 		proxyGeometry: planeGeometry,
 		material: null,
@@ -128,7 +120,7 @@ async function createSourceScene() {
 	plane.setPosition(new Vector3(0, 0, 0));
 	plane.updateWorld();
 
-	const squareWall1 = new Mesh({
+	const squareWall1 = new StaticMesh({
 		geometry: squareWallGeometry,
 		proxyGeometry: squareWallGeometry,
 		material: null,
@@ -136,7 +128,7 @@ async function createSourceScene() {
 	squareWall1.setPosition(new Vector3(128, 0, 0));
 	squareWall1.updateWorld();
 
-	const squareWall2 = new Mesh({
+	const squareWall2 = new StaticMesh({
 		geometry: squareWallGeometry,
 		proxyGeometry: squareWallGeometry,
 		material: null,
@@ -144,7 +136,7 @@ async function createSourceScene() {
 	squareWall2.setPosition(new Vector3(256, 0, 0));
 	squareWall2.updateWorld();
 
-	const squareWall3 = new Mesh({
+	const squareWall3 = new StaticMesh({
 		geometry: squareWallGeometry,
 		proxyGeometry: squareWallGeometry,
 		material: null,
@@ -152,7 +144,7 @@ async function createSourceScene() {
 	squareWall3.setPosition(new Vector3(384, 0, 0));
 	squareWall3.updateWorld();
 
-	const squareWall4 = new Mesh({
+	const squareWall4 = new StaticMesh({
 		geometry: squareWallGeometry,
 		proxyGeometry: squareWallGeometry,
 		material: null,
@@ -160,7 +152,7 @@ async function createSourceScene() {
 	squareWall4.setPosition(new Vector3(512, 0, 0));
 	squareWall4.updateWorld();
 
-	const leftBox = new Mesh({
+	const leftBox = new StaticMesh({
 		geometry: boxGeometry,
 		proxyGeometry: boxGeometry,
 		material: null,
@@ -169,7 +161,7 @@ async function createSourceScene() {
 	leftBox.setScale(new Vector3(32, 48, 192));
 	leftBox.updateWorld();
 
-	const bridge = new Mesh({
+	const bridge = new StaticMesh({
 		geometry: boxGeometry,
 		proxyGeometry: boxGeometry,
 		material: null,
@@ -178,7 +170,7 @@ async function createSourceScene() {
 	bridge.setScale(new Vector3(64, 12, 64));
 	bridge.updateWorld();
 
-	const centerBox = new Mesh({
+	const centerBox = new StaticMesh({
 		geometry: boxGeometry,
 		proxyGeometry: boxGeometry,
 		material: null,
@@ -187,7 +179,7 @@ async function createSourceScene() {
 	centerBox.setScale(new Vector3(96, 48, 64));
 	centerBox.updateWorld();
 
-	const rightBox = new Mesh({
+	const rightBox = new StaticMesh({
 		geometry: boxGeometry,
 		proxyGeometry: boxGeometry,
 		material: null,
@@ -196,7 +188,7 @@ async function createSourceScene() {
 	rightBox.setScale(new Vector3(64, 48, 128));
 	rightBox.updateWorld();
 
-	const slope = new Mesh({
+	const slope = new StaticMesh({
 		geometry: slopeGeometry,
 		proxyGeometry: slopeGeometry,
 		material: null,
@@ -205,7 +197,7 @@ async function createSourceScene() {
 	slope.setScale(new Vector3(64, 48, 48));
 	slope.updateWorld();
 
-	const player = new Mesh({
+	const player = new DynamicMesh({
 		geometry: playerGeometry,
 		proxyGeometry: playerGeometry,
 		material: null,
@@ -273,8 +265,7 @@ async function createIrlScene() {
 	/// Meshes
 	///
 
-	const plane1 = new Mesh({
-		ground: true,
+	const plane1 = new StaticMesh({
 		geometry: planeGeometry,
 		proxyGeometry: planeGeometry,
 		material: null,
@@ -282,8 +273,7 @@ async function createIrlScene() {
 	plane1.setPosition(new Vector3(0, 0, 0));
 	plane1.updateWorld();
 
-	const plane2 = new Mesh({
-		ground: true,
+	const plane2 = new StaticMesh({
 		geometry: planeGeometry,
 		proxyGeometry: planeGeometry,
 		material: null,
@@ -292,7 +282,7 @@ async function createIrlScene() {
 	plane2.setScale(new Vector3(2, 0, 2));
 	plane2.updateWorld();
 
-	const leftBox = new Mesh({
+	const leftBox = new StaticMesh({
 		geometry: boxGeometry,
 		proxyGeometry: boxGeometry,
 		material: null,
@@ -301,7 +291,7 @@ async function createIrlScene() {
 	leftBox.setScale(new Vector3(32, 48, 192).divideScalar(64));
 	leftBox.updateWorld();
 
-	const bridge = new Mesh({
+	const bridge = new StaticMesh({
 		geometry: boxGeometry,
 		proxyGeometry: boxGeometry,
 		material: null,
@@ -310,7 +300,7 @@ async function createIrlScene() {
 	bridge.setScale(new Vector3(64, 12, 64).divideScalar(64));
 	bridge.updateWorld();
 
-	const centerBox = new Mesh({
+	const centerBox = new StaticMesh({
 		geometry: boxGeometry,
 		proxyGeometry: boxGeometry,
 		material: null,
@@ -319,7 +309,7 @@ async function createIrlScene() {
 	centerBox.setScale(new Vector3(96, 48, 64).divideScalar(64));
 	centerBox.updateWorld();
 
-	const rightBox = new Mesh({
+	const rightBox = new StaticMesh({
 		geometry: boxGeometry,
 		proxyGeometry: boxGeometry,
 		material: null,
@@ -328,7 +318,7 @@ async function createIrlScene() {
 	rightBox.setScale(new Vector3(1, 0.88, 2));
 	rightBox.updateWorld();
 
-	const slope = new Mesh({
+	const slope = new StaticMesh({
 		geometry: slopeGeometry,
 		proxyGeometry: slopeGeometry,
 		material: null,
@@ -337,7 +327,7 @@ async function createIrlScene() {
 	slope.setScale(new Vector3(64, 48, 48).divideScalar(64));
 	slope.updateWorld();
 
-	const player = new Mesh({
+	const player = new DynamicMesh({
 		geometry: playerGeometry,
 		proxyGeometry: playerGeometry,
 		material: null,

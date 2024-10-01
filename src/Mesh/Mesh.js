@@ -5,13 +5,15 @@ import {Matrix3, Matrix4, max, PI, Vector2, Vector3} from "../math/index.js";
 /**
  * @typedef {Object} MeshDescriptor
  * @property {Boolean} [solid]
- * @property {Boolean} [ground]
  * @property {Geometry} geometry
  * @property {Geometry} [proxyGeometry]
  * @property {?Material} material
  * @property {String} [debugName]
  */
 
+/**
+ * @abstract
+ */
 export class Mesh {
 	/**
 	 * @deprecated
@@ -66,7 +68,6 @@ export class Mesh {
 	}
 
 	#isSolid;
-	#isGround;
 
 	#geometryIndex;
 	#geometry;
@@ -83,7 +84,6 @@ export class Mesh {
 	 */
 	constructor(descriptor) {
 		this.#isSolid = descriptor.solid ?? true;
-		this.#isGround = descriptor.ground ?? false;
 
 		this.#geometryIndex = 0;
 		this.#geometry = descriptor.geometry;
@@ -98,10 +98,6 @@ export class Mesh {
 
 	isSolid() {
 		return this.#isSolid;
-	}
-
-	isGround() {
-		return this.#isGround;
 	}
 
 	getGeometryIndex() {

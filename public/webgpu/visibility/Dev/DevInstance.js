@@ -1,7 +1,7 @@
 import {Instance} from "../../../../src/index.js";
 import {EPA, GJK} from "../../../../src/Algorithm/index.js";
 import {PerspectiveCamera} from "../../../../src/Camera/index.js";
-import {max, PI, rad, Vector3} from "../../../../src/math/index.js";
+import {max, rad, Vector3} from "../../../../src/math/index.js";
 import {Mesh} from "../../../../src/Mesh/index.js";
 import {VisibilityRenderer} from "../VisibilityRenderer.js";
 import {PLAYER_COLLISION_HULL, PLAYER_EYE_LEVEL} from "../../../index.js";
@@ -9,26 +9,19 @@ import {PLAYER_COLLISION_HULL, PLAYER_EYE_LEVEL} from "../../../index.js";
 export class DevInstance extends Instance {
 	static #SENSITIVITY = 0.075;
 
+	// Test constants
 	#gravity = new Vector3(0, -800, 0);
-	#speed = 450; // Acceleration rate - same for forward/back/side
 	#groundAccelerateConstant = 10;
 	#airAccelerateConstant = 10;
-	#normSpeed = 190; // Normal speed
-	#walkSpeed = 400; // HL1
-	#sprintSpeed = 320;
-	#jumpSpeed = 320; // Up speed
+	#speed = 400; // HL1
 	#maxSpeed = 270;
 	#stopSpeed = 100;
-	#pitchSpeed = 225;
-	#yawSpeed = 210;
-	#friction = 4; // Not from HL2: https://developer.valvesoftware.com/wiki/Sv_friction
-	#frictionApplyThreshold = 0.1;
+	#friction = 4; // https://developer.valvesoftware.com/wiki/Sv_friction
 
 	#travellingMedium = "air";
+	#velocity = new Vector3(0, 0, 0);
 	#forwardmove = 0;
 	#sidemove = 0;
-	#velocity = new Vector3(0, 0, 0);
-	#frameIndex = 0;
 
 	/**
 	 * @param {import("../../../../src/Instance.js").InstanceDescriptor} descriptor
@@ -43,19 +36,6 @@ export class DevInstance extends Instance {
 	 * @param {Number} deltaTime
 	 */
 	_update(deltaTime) {
-		// Frame analysis
-		{
-			// deltaTime = 0.00606;
-
-			/* if (this.#frameIndex === 3) {
-				console.warn("Time's up!");
-
-				debugger;
-			}
-
-			console.log("Frame", this.#frameIndex); */
-		}
-
 		/**
 		 * @type {VisibilityRenderer}
 		 */
@@ -78,48 +58,47 @@ export class DevInstance extends Instance {
 
 		this.#handleInputs();
 
-		// Begin
+		// Velocity computation
+		{
+			this.#addCorrectGravity(deltaTime);
 
-		this.#addCorrectGravity(deltaTime);
+			if (this.getActiveKeyCodes()["Space"] === true) {
+				if (this.#travellingMedium === "ground") {
+					this.#handleJump();
+				}
+			}
 
-		if (this.getActiveKeyCodes()["Space"] === true) {
 			if (this.#travellingMedium === "ground") {
-				this.#handleJump();
+				// Reset Y before applying friction
+				this.#velocity[1] = 0;
+
+				this.#applyFriction(deltaTime);
+			}
+
+			if (this.#travellingMedium === "ground") {
+				this.#walkMove(deltaTime);
+
+				// Apply velocity
+				playerMesh.getPosition()[0] += this.#velocity[0] * deltaTime;
+				// playerMesh.getPosition[1] = 0;
+				playerMesh.getPosition()[2] += this.#velocity[2] * deltaTime;
+				playerMesh.updateWorld();
+			} else {
+				this.#airMove(deltaTime);
+			}
+
+			this.#fixupGravityVelocity(deltaTime);
+
+			if (this.#travellingMedium === "air") {
+				// Apply velocity
+				this.#applyVelocity(playerMesh, deltaTime);
+			}
+
+			// If we are on ground, no downward velocity.
+			if (this.#travellingMedium === "ground") {
+				this.#velocity[1] = 0;
 			}
 		}
-
-		if (this.#travellingMedium === "ground") {
-			// Reset Y before applying friction
-			this.#velocity[1] = 0;
-
-			this.#applyFriction(deltaTime);
-		}
-
-		if (this.#travellingMedium === "ground") {
-			this.#walkMove(deltaTime);
-
-			// Apply velocity
-			playerMesh.getPosition()[0] += this.#velocity[0] * deltaTime;
-			// playerMesh.getPosition[1] = 0;
-			playerMesh.getPosition()[2] += this.#velocity[2] * deltaTime;
-			playerMesh.updateWorld();
-		} else {
-			this.#airMove(deltaTime);
-		}
-
-		this.#fixupGravityVelocity(deltaTime);
-
-		if (this.#travellingMedium === "air") {
-			// Apply velocity
-			this.#applyVelocity(playerMesh, deltaTime);
-		}
-
-		// If we are on ground, no downward velocity.
-		if (this.#travellingMedium === "ground") {
-			this.#velocity[1] = 0;
-		}
-
-		// End
 
 		if (playerMesh.getProxyGeometry()) {
 			this.#testCollide(camera, otherPhysicMeshes, playerMesh);
@@ -152,8 +131,6 @@ export class DevInstance extends Instance {
 			"KeyD": this.getActiveKeyCodes()["KeyD"] ?? false,
 			"Space": this.getActiveKeyCodes()["Space"] ?? false,
 		});
-
-		this.#frameIndex++;
 	}
 
 	_render() {
@@ -287,20 +264,6 @@ export class DevInstance extends Instance {
 
 			return;
 		}
-
-		/* wishAccelerationDirection.normalize();
-		wishAccelerationDirection.multiplyScalar(this.#airAccelerateConstant);
-
-		this.#velocity.add(wishAccelerationDirection);
-
-		const speed = this.#velocity.magnitude();
-
-		// Clamp to server defined max speed
-		if (speed > this.#maxSpeed) {
-			const newSpeed = speed - this.#maxSpeed;
-
-			this.#velocity.multiplyScalar((speed - newSpeed) / speed);
-		} */
 	}
 
 	/**
@@ -356,7 +319,7 @@ export class DevInstance extends Instance {
 
 		// If too slow, return
 		// This avoids a division by 0
-		if (speed < this.#frictionApplyThreshold) {
+		if (speed < 0.1) {
 			return;
 		}
 
@@ -390,7 +353,9 @@ export class DevInstance extends Instance {
 	 */
 	#testCollide(camera, physicMeshes, playerMesh) {
 		/**
-		 * @todo
+		 * @todo Bug: This makes the gravity affect the velocity,
+		 * causing the speed calculations to differ
+		 * (notably the speed decreases slower)
 		 */
 		// this.#travellingMedium = "air";
 
@@ -462,16 +427,6 @@ export class DevInstance extends Instance {
 		camera.getPosition()[1] += -PLAYER_COLLISION_HULL[1] / 2 + PLAYER_EYE_LEVEL; // Reset to foot level, then add to get to eye level
 	}
 
-	#handleJump() {
-		// Reset jump key state
-		// Bug: holding the key does re-enable it after some time
-		// Need a way to tell the difference between key press/key repeat
-		this.getActiveKeyCodes()["Space"] = false;
-
-		this.#velocity[1] = Math.sqrt(2 * 800 * 45.0);
-		this.#travellingMedium = "air";
-	}
-
 	#handleInputs() {
 		// Reset movements
 		this.#forwardmove = 0;
@@ -480,13 +435,23 @@ export class DevInstance extends Instance {
 		const forwardKeyState = this.getActiveKeyCodes()["KeyW"] ? 1 : 0;
 		const backKeyState = this.getActiveKeyCodes()["KeyS"] ? 1 : 0;
 
-		this.#forwardmove += this.#walkSpeed * forwardKeyState;
-		this.#forwardmove -= this.#walkSpeed * backKeyState;
+		this.#forwardmove += this.#speed * forwardKeyState;
+		this.#forwardmove -= this.#speed * backKeyState;
 
 		const rightKeyState = this.getActiveKeyCodes()["KeyD"] ? 1 : 0;
 		const leftKeyState = this.getActiveKeyCodes()["KeyA"] ? 1 : 0;
 
-		this.#sidemove += this.#walkSpeed * rightKeyState;
-		this.#sidemove -= this.#walkSpeed * leftKeyState;
+		this.#sidemove += this.#speed * rightKeyState;
+		this.#sidemove -= this.#speed * leftKeyState;
+	}
+
+	#handleJump() {
+		// Reset jump key state
+		// Bug: holding the key does re-enable it after some time
+		// Need a way to tell the difference between key press/key repeat
+		this.getActiveKeyCodes()["Space"] = false;
+
+		this.#velocity[1] = Math.sqrt(2 * 800 * 45.0);
+		this.#travellingMedium = "air";
 	}
 }
