@@ -58,7 +58,7 @@ export class Instance extends _Instance {
 
 		this.#accelerate(deltaTime, this.#cameraVelocity);
 
-		camera.applyVelocity(this.#cameraVelocity);
+		// camera.applyVelocity(this.#cameraVelocity);
 
 		this.#updateCameraMeshes();
 
@@ -200,7 +200,7 @@ export class Instance extends _Instance {
 		const xOffset = -event.movementX * Instance.#SENSITIVITY;
 		const yOffset = -event.movementY * Instance.#SENSITIVITY;
 
-		camera.applyYawAndPitch(xOffset, yOffset);
+		// camera.applyYawAndPitch(xOffset, yOffset);
 	}
 
 	/* #useCaptureSession() {
