@@ -157,45 +157,12 @@ export class PerspectiveCamera extends Camera {
 		let up = this.getUp(); // Not used
 		let right = this.getRight();
 
-		/**
-		 * @todo TEST
-		 */
-		{
-			const epsilon = 0.0001; // Avoid floating point errors
-
-			if (forward[1] > 1.0 - epsilon) // Note: forward is normalized, so checking Y is sufficent
-			{ // Special case: Looking straight up
-				forward = new Vector3(up).negate();
-			}
-			else if (forward[1] < -1.0 + epsilon)
-			{ // Special case: Looking straight down
-				forward = new Vector3(up);
-			}
-			else if (right[1] > 1.0 - epsilon)
-			{
-				right = new Vector3(up);
-			}
-			else if (right[1] < -1.0 + epsilon)
-			{
-				right = new Vector3(up).negate();
-			}
-
-			// Project the forward and right into the world plane
-			forward[1] = 0;
-			forward.normalize();
-
-			right[1] = 0;
-			right.normalize();
-
-			up = new Vector3(PerspectiveCamera.#DEFAULT_UP);
-		}
-
 		forward.multiplyScalar(this.#movementAccumulator[2]);
-		up.multiplyScalar(this.#movementAccumulator[1]);
+		up.multiplyScalar(this.#movementAccumulator[1]); // Not used
 		right.multiplyScalar(this.#movementAccumulator[0]);
 
 		this.getPosition().add(forward);
-		this.getPosition().add(up);
+		this.getPosition().add(up); // Not used
 		this.getPosition().add(right);
 
 		// Reset accumulator

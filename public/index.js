@@ -2,9 +2,10 @@ import {Vector2, Vector3} from "../src/math/index.js";
 
 export const FRAMES_PER_SECOND = 60;
 export const ENTITY_HEIGHT_STAND = 64;
-export const PLAYER_VIEWPOINT = 64;
 export const FIELD_OF_VIEW = 75;
+
 export const PLAYER_COLLISION_HULL = new Vector3(33, 73, 33);
+export const PLAYER_EYE_LEVEL = 64;
 
 /**
  * @see {@link https://developer.valvesoftware.com/wiki/Viewcone}

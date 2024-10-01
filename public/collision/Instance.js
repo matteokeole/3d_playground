@@ -58,7 +58,7 @@ export class Instance extends _Instance {
 
 		this.#accelerate(deltaTime, this.#cameraVelocity);
 
-		camera.applyVelocity(this.#cameraVelocity);
+		// camera.applyVelocity(this.#cameraVelocity);
 
 		this.#updateCameraMeshes();
 
@@ -110,7 +110,7 @@ export class Instance extends _Instance {
 		const dot = (player.getHitbox().getVelocity()[0] * normal[2] + player.getHitbox().getVelocity()[2] * normal[0]) * remainingTime;
 		const velocity = new Vector3(dot * normal[2], 0, dot * normal[0]);
 
-		if (velocity.isNull()) {
+		if (velocity.magnitude() === 0) {
 			return {
 				scaledVelocity,
 			};
@@ -200,7 +200,7 @@ export class Instance extends _Instance {
 		const xOffset = -event.movementX * Instance.#SENSITIVITY;
 		const yOffset = -event.movementY * Instance.#SENSITIVITY;
 
-		camera.applyYawAndPitch(xOffset, yOffset);
+		// camera.applyYawAndPitch(xOffset, yOffset);
 	}
 
 	/* #useCaptureSession() {
