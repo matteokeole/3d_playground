@@ -1,11 +1,9 @@
 import {NotImplementedError} from "../Error/index.js";
-import {Geometry} from "../Geometry/index.js";
 import {Matrix4, Vector3} from "../math/index.js";
 
 /**
  * @typedef {Object} CameraDescriptor
  * @property {Vector3} position
- * @property {Geometry} [proxyGeometry]
  */
 
 /**

@@ -22,7 +22,7 @@ export class Scene {
 	/**
 	 * @type {Mesh[]}
 	 */
-	#physicMeshes;
+	#hullMeshes;
 
 	/**
 	 * @type {import("../Clusterizer.js").ClusteredMeshes}
@@ -37,7 +37,7 @@ export class Scene {
 	constructor() {
 		this.#geometries = [];
 		this.#meshes = [];
-		this.#physicMeshes = [];
+		this.#hullMeshes = [];
 		this.#clusteredMeshes = null;
 		this.#instancesByGeometry = new Map();
 	}
@@ -50,8 +50,8 @@ export class Scene {
 		return this.#meshes;
 	}
 
-	getPhysicMeshes() {
-		return this.#physicMeshes;
+	getHullMeshes() {
+		return this.#hullMeshes;
 	}
 
 	getClusteredMeshes() {
@@ -105,8 +105,8 @@ export class Scene {
 			this.#instancesByGeometry.get(geometry).push(mesh);
 			this.#meshes.push(mesh);
 
-			if (mesh.getProxyGeometry()) {
-				this.#physicMeshes.push(mesh);
+			if (mesh.getHull()) {
+				this.#hullMeshes.push(mesh);
 			}
 		}
 	}

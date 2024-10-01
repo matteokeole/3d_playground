@@ -50,11 +50,9 @@ export class Instance extends _Instance {
 
 		// let velocity = this.#moveGround(accelDir, prevVelocity, deltaTime);
 
-		const cameraProxyGeometry = camera.getProxyGeometry();
-
-		if (cameraProxyGeometry) {
+		if (false) {
 			// const previousHullY = cameraHull.getPosition()[1];
-			const physicMeshes = scene.getPhysicMeshes();
+			const physicMeshes = scene.getHullMeshes();
 
 			this.#updateCamera(camera, physicMeshes);
 

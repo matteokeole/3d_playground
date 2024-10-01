@@ -44,7 +44,7 @@ export class DevInstance extends Instance {
 		const meshes = scene.getMeshes();
 		const playerMesh = meshes.find(mesh => mesh.getDebugName() === "player");
 		const playerMeshIndex = meshes.findIndex(mesh => mesh.getDebugName() === "player");
-		const otherPhysicMeshes = scene.getPhysicMeshes().filter(mesh => mesh.getDebugName() !== "player");
+		const otherPhysicMeshes = scene.getHullMeshes().filter(mesh => mesh.getDebugName() !== "player");
 
 		if (!playerMesh) {
 			return;
@@ -100,7 +100,7 @@ export class DevInstance extends Instance {
 			}
 		}
 
-		if (playerMesh.getProxyGeometry()) {
+		if (playerMesh.isSolid() && playerMesh.getHull() !== null) {
 			this.#testCollide(camera, otherPhysicMeshes, playerMesh);
 		}
 
@@ -386,14 +386,14 @@ export class DevInstance extends Instance {
 	 * @param {Mesh} staticMesh
 	 */
 	#hitTest(dynamicMesh, staticMesh) {
-		const simplex = GJK.test3d(dynamicMesh, staticMesh);
+		const simplex = GJK.test3d(dynamicMesh.getHull(), staticMesh.getHull());
 		const intersecting = simplex !== null;
 
 		if (!intersecting) {
 			return null;
 		}
 
-		const collision = EPA.test3d(dynamicMesh, staticMesh, simplex);
+		const collision = EPA.test3d(dynamicMesh.getHull(), staticMesh.getHull(), simplex);
 
 		return collision;
 	}

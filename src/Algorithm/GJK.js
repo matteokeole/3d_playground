@@ -1,5 +1,5 @@
+import {PhysicalObject} from "../index.js";
 import {Vector3} from "../math/index.js";
-import {Mesh} from "../Mesh/index.js";
 
 export class GJK {
 	/**
@@ -8,13 +8,13 @@ export class GJK {
 	static #MAX_ITERATIONS = 32;
 
 	/**
-	 * @param {Mesh} mesh1
-	 * @param {Mesh} mesh2
+	 * @param {PhysicalObject} object1
+	 * @param {PhysicalObject} object2
 	 * @param {Vector3} D Direction
 	 */
-	static support(mesh1, mesh2, D) {
-		const s1 = new Vector3(mesh1.getProxyGeometry().support(D, mesh1.getWorld()));
-		const s2 = mesh2.getProxyGeometry().support(new Vector3(D).negate(), mesh2.getWorld());
+	static support(object1, object2, D) {
+		const s1 = new Vector3(object1.getGeometry().support(D, object1.getWorld()));
+		const s2 = object2.getGeometry().support(new Vector3(D).negate(), object2.getWorld());
 
 		return s1.subtract(s2);
 	}
@@ -153,12 +153,12 @@ export class GJK {
 	}
 
 	/**
-	 * @param {Mesh} mesh1
-	 * @param {Mesh} mesh2
+	 * @param {PhysicalObject} object1
+	 * @param {PhysicalObject} object2
 	 */
-	static test3d(mesh1, mesh2) {
+	static test3d(object1, object2) {
 		const D = new Vector3(1, 0, 0);
-		const a = GJK.support(mesh1, mesh2, D);
+		const a = GJK.support(object1, object2, D);
 
 		if (a.dot(D) < 0) {
 			return null;
@@ -173,7 +173,7 @@ export class GJK {
 		D.negate();
 
 		for (let i = 0; i < GJK.#MAX_ITERATIONS; i++) {
-			const a = GJK.support(mesh1, mesh2, D);
+			const a = GJK.support(object1, object2, D);
 
 			if (a.dot(D) < 0) {
 				return null;

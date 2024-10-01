@@ -1,7 +1,7 @@
-import {Vector3, Vector4} from "../math/index.js";
-import {Mesh} from "../Mesh/index.js";
 import {GJK} from "./GJK.js";
 import {PolygonWinding} from "./PolygonWinding.js";
+import {PhysicalObject} from "../index.js";
+import {Vector3, Vector4} from "../math/index.js";
 
 /**
  * @typedef {Object} ClosestEdge
@@ -126,11 +126,11 @@ export class EPA {
 	}
 
 	/**
-	 * @param {Mesh} mesh1
-	 * @param {Mesh} mesh2
+	 * @param {PhysicalObject} object1
+	 * @param {PhysicalObject} object2
 	 * @param {import("../math/index.js").Simplex} simplex
 	 */
-	static test3d(mesh1, mesh2, simplex) {
+	static test3d(object1, object2, simplex) {
 		/**
 		 * @type {import("../math/index.js").Polytope}
 		 */
@@ -151,7 +151,7 @@ export class EPA {
 			minNormal.set(normalAndDistance.subarray(0, 3));
 			minDistance = normalAndDistance[3];
 
-			const s = GJK.support(mesh1, mesh2, minNormal);
+			const s = GJK.support(object1, object2, minNormal);
 			const sDistance = minNormal.dot(s);
 
 			if (Math.abs(sDistance - minDistance) > EPA.#THRESHOLD) {

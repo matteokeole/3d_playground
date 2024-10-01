@@ -1,4 +1,5 @@
 import {BoxGeometry, PolytopeGeometry} from "../../../../src/Geometry/index.js";
+import {Hull} from "../../../../src/Hull/index.js";
 import {Vector2, Vector3, Vector4} from "../../../../src/math/index.js";
 import {DynamicMesh, StaticMesh} from "../../../../src/Mesh/index.js";
 import {Scene} from "../../../../src/Scene/index.js";
@@ -114,7 +115,9 @@ async function createSourceScene() {
 
 	const plane = new StaticMesh({
 		geometry: planeGeometry,
-		proxyGeometry: planeGeometry,
+		hull: new Hull({
+			geometry: planeGeometry,
+		}),
 		material: null,
 	});
 	plane.setPosition(new Vector3(0, 0, 0));
@@ -122,7 +125,9 @@ async function createSourceScene() {
 
 	const squareWall1 = new StaticMesh({
 		geometry: squareWallGeometry,
-		proxyGeometry: squareWallGeometry,
+		hull: new Hull({
+			geometry: squareWallGeometry,
+		}),
 		material: null,
 	});
 	squareWall1.setPosition(new Vector3(128, 0, 0));
@@ -130,7 +135,9 @@ async function createSourceScene() {
 
 	const squareWall2 = new StaticMesh({
 		geometry: squareWallGeometry,
-		proxyGeometry: squareWallGeometry,
+		hull: new Hull({
+			geometry: squareWallGeometry,
+		}),
 		material: null,
 	});
 	squareWall2.setPosition(new Vector3(256, 0, 0));
@@ -138,7 +145,9 @@ async function createSourceScene() {
 
 	const squareWall3 = new StaticMesh({
 		geometry: squareWallGeometry,
-		proxyGeometry: squareWallGeometry,
+		hull: new Hull({
+			geometry: squareWallGeometry,
+		}),
 		material: null,
 	});
 	squareWall3.setPosition(new Vector3(384, 0, 0));
@@ -146,7 +155,9 @@ async function createSourceScene() {
 
 	const squareWall4 = new StaticMesh({
 		geometry: squareWallGeometry,
-		proxyGeometry: squareWallGeometry,
+		hull: new Hull({
+			geometry: squareWallGeometry,
+		}),
 		material: null,
 	});
 	squareWall4.setPosition(new Vector3(512, 0, 0));
@@ -154,7 +165,9 @@ async function createSourceScene() {
 
 	const leftBox = new StaticMesh({
 		geometry: boxGeometry,
-		proxyGeometry: boxGeometry,
+		hull: new Hull({
+			geometry: boxGeometry,
+		}),
 		material: null,
 	});
 	leftBox.setPosition(new Vector3(-112, 24, 32));
@@ -163,7 +176,9 @@ async function createSourceScene() {
 
 	const bridge = new StaticMesh({
 		geometry: boxGeometry,
-		proxyGeometry: boxGeometry,
+		hull: new Hull({
+			geometry: boxGeometry,
+		}),
 		material: null,
 	});
 	bridge.setPosition(new Vector3(-64, 42, 96));
@@ -172,7 +187,9 @@ async function createSourceScene() {
 
 	const centerBox = new StaticMesh({
 		geometry: boxGeometry,
-		proxyGeometry: boxGeometry,
+		hull: new Hull({
+			geometry: boxGeometry,
+		}),
 		material: null,
 	});
 	centerBox.setPosition(new Vector3(16, 24, 96));
@@ -181,7 +198,9 @@ async function createSourceScene() {
 
 	const rightBox = new StaticMesh({
 		geometry: boxGeometry,
-		proxyGeometry: boxGeometry,
+		hull: new Hull({
+			geometry: boxGeometry,
+		}),
 		material: null,
 	});
 	rightBox.setPosition(new Vector3(96, 24, 64));
@@ -190,7 +209,9 @@ async function createSourceScene() {
 
 	const slope = new StaticMesh({
 		geometry: slopeGeometry,
-		proxyGeometry: slopeGeometry,
+		hull: new Hull({
+			geometry: slopeGeometry,
+		}),
 		material: null,
 	});
 	slope.setPosition(new Vector3(96, 24, -24));
@@ -199,7 +220,9 @@ async function createSourceScene() {
 
 	const player = new DynamicMesh({
 		geometry: playerGeometry,
-		proxyGeometry: playerGeometry,
+		hull: new Hull({
+			geometry: playerGeometry,
+		}),
 		material: null,
 		debugName: "player",
 	});
@@ -267,7 +290,9 @@ async function createIrlScene() {
 
 	const plane1 = new StaticMesh({
 		geometry: planeGeometry,
-		proxyGeometry: planeGeometry,
+		hull: new Hull({
+			geometry: planeGeometry,
+		}),
 		material: null,
 	});
 	plane1.setPosition(new Vector3(0, 0, 0));
@@ -275,7 +300,9 @@ async function createIrlScene() {
 
 	const plane2 = new StaticMesh({
 		geometry: planeGeometry,
-		proxyGeometry: planeGeometry,
+		hull: new Hull({
+			geometry: planeGeometry,
+		}),
 		material: null,
 	});
 	plane2.setPosition(new Vector3(0, -2, 0));
@@ -284,7 +311,9 @@ async function createIrlScene() {
 
 	const leftBox = new StaticMesh({
 		geometry: boxGeometry,
-		proxyGeometry: boxGeometry,
+		hull: new Hull({
+			geometry: boxGeometry,
+		}),
 		material: null,
 	});
 	leftBox.setPosition(new Vector3(-112, 24, 32).divideScalar(64));
@@ -293,7 +322,9 @@ async function createIrlScene() {
 
 	const bridge = new StaticMesh({
 		geometry: boxGeometry,
-		proxyGeometry: boxGeometry,
+		hull: new Hull({
+			geometry: boxGeometry,
+		}),
 		material: null,
 	});
 	bridge.setPosition(new Vector3(-64, 42, 96).divideScalar(64));
@@ -302,7 +333,9 @@ async function createIrlScene() {
 
 	const centerBox = new StaticMesh({
 		geometry: boxGeometry,
-		proxyGeometry: boxGeometry,
+		hull: new Hull({
+			geometry: boxGeometry,
+		}),
 		material: null,
 	});
 	centerBox.setPosition(new Vector3(16, 24, 96).divideScalar(64));
@@ -311,7 +344,9 @@ async function createIrlScene() {
 
 	const rightBox = new StaticMesh({
 		geometry: boxGeometry,
-		proxyGeometry: boxGeometry,
+		hull: new Hull({
+			geometry: boxGeometry,
+		}),
 		material: null,
 	});
 	rightBox.setPosition(new Vector3(1.5, 0.88 / 2, 1));
@@ -320,7 +355,9 @@ async function createIrlScene() {
 
 	const slope = new StaticMesh({
 		geometry: slopeGeometry,
-		proxyGeometry: slopeGeometry,
+		hull: new Hull({
+			geometry: slopeGeometry,
+		}),
 		material: null,
 	});
 	slope.setPosition(new Vector3(96, 24, -24).divideScalar(64));
@@ -329,7 +366,9 @@ async function createIrlScene() {
 
 	const player = new DynamicMesh({
 		geometry: playerGeometry,
-		proxyGeometry: playerGeometry,
+		hull: new Hull({
+			geometry: playerGeometry,
+		}),
 		material: null,
 		debugName: "player",
 	});
