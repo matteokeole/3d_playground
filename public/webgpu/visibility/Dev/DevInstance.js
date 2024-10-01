@@ -178,13 +178,8 @@ export class DevInstance extends Instance {
 		/** @type {PerspectiveCamera} */
 		const camera = this._renderer.getCamera();
 
-		// Start refactor
-
 		const forward = camera.getForward();
 		const right = camera.getRight();
-
-		const forwardMove = this.getVerticalRawAxis();
-		const sideMove = this.getHorizontalRawAxis();
 
 		forward[1] = 0;
 		right[1] = 0;
@@ -192,63 +187,61 @@ export class DevInstance extends Instance {
 		forward.normalize();
 		right.normalize();
 
-		const wishVelocity = new Vector3(0, 0, 0);
-		wishVelocity[0] = forward[0] * forwardMove + right[0] * sideMove;
-		wishVelocity[1] = 0;
-		wishVelocity[2] = forward[2] * forwardMove + right[2] * sideMove;
+		const wishvel = new Vector3(0, 0, 0);
+		wishvel[0] = forward[0] * this.#forwardmove + right[0] * this.#sidemove;
+		wishvel[1] = 0;
+		wishvel[2] = forward[2] * this.#forwardmove + right[2] * this.#sidemove;
 
-		const wishSpeed = wishVelocity.magnitude();
-		const wishDirection = new Vector3(wishVelocity).normalize();
+		const wishdir = new Vector3(wishvel);
+		let wishspeed = wishdir.magnitude(); // = length of wishvel
+		wishdir.normalize();
 
-		wishDirection.multiplyScalar(this.#airAccelerateConstant);
+		// Clamp to max speed
+		if (wishspeed > this.#maxSpeed) {
+			wishvel.multiplyScalar(this.#maxSpeed / wishspeed);
 
-		this.#velocity.add(wishDirection);
-
-		const speed = this.#velocity.magnitude();
-
-		// Cap speed
-		if (speed > this.#maxSpeed) {
-			const newSpeed = speed - this.#maxSpeed;
-
-			this.#velocity.multiplyScalar((speed - newSpeed) / speed);
+			wishspeed = this.#maxSpeed;
 		}
 
-		// End refactor
+		this.#airAccelerate(wishdir, wishspeed, this.#airAccelerateConstant, deltaTime);
 	}
 
 	/**
-	 * @param {Vector3} wishDirection
-	 * @param {Number} wishSpeed
-	 * @param {Number} acceleration
+	 * @param {Vector3} wishdir
+	 * @param {Number} wishspeed
+	 * @param {Number} accel
 	 * @param {Number} deltaTime
 	 */
-	#airAccelerate(wishDirection, wishSpeed, acceleration, deltaTime) {
-		let wishSpd = wishSpeed;
+	#airAccelerate(wishdir, wishspeed, accel, deltaTime) {
+		let wishspd = wishspeed;
 
-		if (wishSpd > 30) {
-			wishSpd = 30;
+		if (wishspd > 30) {
+			wishspd = 30;
 		}
 
 		// Determine veer amount
-		const currentSpeed = this.#velocity.dot(wishDirection);
+		const currentspeed = this.#velocity.dot(wishdir);
 
 		// See how much to add
-		const addSpeed = wishSpd - currentSpeed;
+		const addspeed = wishspd - currentspeed;
 
 		// If not adding any, done.
-		if (addSpeed <= 0) {
+		if (addspeed <= 0) {
 			return;
 		}
 
 		// Determine acceleration speed after acceleration
-		let accelspeed = acceleration * wishSpeed * this.#friction * deltaTime;
+		let accelspeed = wishspeed * accel * deltaTime;
 
 		// Cap it
-		if (accelspeed > addSpeed) {
-			accelspeed = addSpeed;
+		if (accelspeed > addspeed) {
+			accelspeed = addspeed;
 		}
 
-		this.#velocity.add(new Vector3(wishDirection).multiplyScalar(accelspeed));
+		// Adjust vel.
+		this.#velocity[0] += accelspeed * wishdir[0];
+		this.#velocity[1] += accelspeed * wishdir[1];
+		this.#velocity[2] += accelspeed * wishdir[2];
 	}
 
 	/**
@@ -310,24 +303,6 @@ export class DevInstance extends Instance {
 		} */
 	}
 
-	#handleInputs() {
-		// Reset movements
-		this.#forwardmove = 0;
-		this.#sidemove = 0;
-
-		const forwardKeyState = this.getActiveKeyCodes()["KeyW"] ? 1 : 0;
-		const backKeyState = this.getActiveKeyCodes()["KeyS"] ? 1 : 0;
-
-		this.#forwardmove += this.#walkSpeed * forwardKeyState;
-		this.#forwardmove -= this.#walkSpeed * backKeyState;
-
-		const rightKeyState = this.getActiveKeyCodes()["KeyD"] ? 1 : 0;
-		const leftKeyState = this.getActiveKeyCodes()["KeyA"] ? 1 : 0;
-
-		this.#sidemove += this.#walkSpeed * rightKeyState;
-		this.#sidemove -= this.#walkSpeed * leftKeyState;
-	}
-
 	/**
 	 * @param {Vector3} wishdir The normalized direction that the player has requested to move (taking into account the movement keys and look direction)
 	 * @param {Number} wishspeed
@@ -357,18 +332,6 @@ export class DevInstance extends Instance {
 		this.#velocity[0] += accelspeed * wishdir[0];
 		this.#velocity[1] += accelspeed * wishdir[1];
 		this.#velocity[2] += accelspeed * wishdir[2];
-	}
-
-	/**
-	 * @param {Number} deltaTime
-	 */
-	#applyGravity(deltaTime) {
-		const gravity = new Vector3(this.#gravity);
-
-		this.#velocity[1] -= -gravity[1] * 0.5 * deltaTime;
-
-		// V(n+1) = V(n) + G * Δt
-		// this.#velocity.add(gravity.multiplyScalar(deltaTime));
 	}
 
 	/**
@@ -500,10 +463,30 @@ export class DevInstance extends Instance {
 	}
 
 	#handleJump() {
-		// Reset jump
-		// this.getActiveKeyCodes()["Space"] = false;
+		// Reset jump key state
+		// Bug: holding the key does re-enable it after some time
+		// Need a way to tell the difference between key press/key repeat
+		this.getActiveKeyCodes()["Space"] = false;
 
 		this.#velocity[1] = Math.sqrt(2 * 800 * 45.0);
 		this.#travellingMedium = "air";
+	}
+
+	#handleInputs() {
+		// Reset movements
+		this.#forwardmove = 0;
+		this.#sidemove = 0;
+
+		const forwardKeyState = this.getActiveKeyCodes()["KeyW"] ? 1 : 0;
+		const backKeyState = this.getActiveKeyCodes()["KeyS"] ? 1 : 0;
+
+		this.#forwardmove += this.#walkSpeed * forwardKeyState;
+		this.#forwardmove -= this.#walkSpeed * backKeyState;
+
+		const rightKeyState = this.getActiveKeyCodes()["KeyD"] ? 1 : 0;
+		const leftKeyState = this.getActiveKeyCodes()["KeyA"] ? 1 : 0;
+
+		this.#sidemove += this.#walkSpeed * rightKeyState;
+		this.#sidemove -= this.#walkSpeed * leftKeyState;
 	}
 }
