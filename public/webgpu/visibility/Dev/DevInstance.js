@@ -1,11 +1,12 @@
 import {Instance} from "../../../../src/index.js";
 import {EPA, GJK} from "../../../../src/Algorithm/index.js";
 import {PerspectiveCamera} from "../../../../src/Camera/index.js";
-import {max, rad, Vector3} from "../../../../src/math/index.js";
+import {max, PI, rad, Vector3} from "../../../../src/math/index.js";
 import {Mesh} from "../../../../src/Mesh/index.js";
 import {VisibilityRenderer} from "../VisibilityRenderer.js";
 import {PLAYER_COLLISION_HULL, PLAYER_EYE_LEVEL} from "../../../index.js";
 import {Player} from "./Player/Player.js";
+import {Door} from "./Door/Door.js";
 
 export class DevInstance extends Instance {
 	static #SENSITIVITY = 0.075;
@@ -37,21 +38,25 @@ export class DevInstance extends Instance {
 	 * @param {Number} deltaTime
 	 */
 	_update(deltaTime) {
-		/**
-		 * @type {VisibilityRenderer}
-		 */
+		/** @type {VisibilityRenderer} */
 		const renderer = this._renderer;
 		const scene = renderer.getScene();
-		const meshes = scene.getMeshes();
-		/**
-		 * @type {Player}
-		 */
-		const player = meshes.find(mesh => mesh.getDebugName() === "player");
-		const playerIndex = meshes.findIndex(mesh => mesh.getDebugName() === "player");
+		const hullMeshes = scene.getHullMeshes();
+		/** @type {Player} */
+		const player = hullMeshes.find(mesh => mesh.getDebugName() === "player");
+		const playerIndex = hullMeshes.findIndex(mesh => mesh.getDebugName() === "player");
 		const otherPhysicMeshes = scene.getHullMeshes().filter(mesh => mesh.getDebugName() !== "player");
 
 		if (!player) {
 			return;
+		}
+
+		/** @type {Door} */
+		const door = hullMeshes.find(hullMesh => hullMesh.getDebugName() === "door");
+		const doorIndex = hullMeshes.findIndex(hullMesh => hullMesh.getDebugName() === "door");
+
+		if (!door) {
+			throw new Error("No door to update");
 		}
 
 		const camera = this._renderer.getCamera();
@@ -104,7 +109,7 @@ export class DevInstance extends Instance {
 			}
 		}
 
-		if (player.isSolid() && player.getHull() !== null) {
+		if (player.isSolid()) {
 			this.#testCollide(camera, otherPhysicMeshes, player);
 		}
 
@@ -116,7 +121,7 @@ export class DevInstance extends Instance {
 		// The mesh world is already updated, upload it into the mesh buffer
 		renderer.writeMeshWorld(playerIndex, player.getWorld());
 
-		this.#updateDoor();
+		this.#handleDoorMechanic(renderer, player, door, doorIndex);
 
 		scene.updateTriggers();
 
@@ -465,23 +470,29 @@ export class DevInstance extends Instance {
 		this.#travellingMedium = "air";
 	}
 
-	#updateDoor() {
-		/**
-		 * @type {VisibilityRenderer}
-		 */
-		const renderer = this._renderer;
-		const hullMeshes = renderer.getScene().getHullMeshes();
-		const door = hullMeshes.find(hullMesh => hullMesh.getDebugName() === "door");
-		const doorIndex = hullMeshes.findIndex(hullMesh => hullMesh.getDebugName() === "door");
+	/**
+	 * @param {VisibilityRenderer} renderer
+	 * @param {Player} player
+	 * @param {Door} door
+	 * @param {Number} doorIndex
+	 */
+	#handleDoorMechanic(renderer, player, door, doorIndex) {
+		const useKey = this.getActiveKeyCodes()["KeyF"] ?? false;
 
-		if (!door) {
-			throw new Error("No door to update");
+		if (useKey && !door.isInUse()) {
+			door.use(player.getPosition());
+
+			door.getRotation()[1] = PI / 2;
+			door.updateWorld();
 		}
 
-		// door.getRotation()[1] += 0.01;
+		if (!useKey && door.isInUse()) {
+			door.quitUse();
 
-		// door.updateWorld();
+			door.getRotation()[1] = 0;
+			door.updateWorld();
+		}
 
-		// renderer.writeMeshWorld(doorIndex, door.getWorld());
+		renderer.writeMeshWorld(doorIndex, door.getWorld());
 	}
 }

@@ -6,6 +6,7 @@ import {Scene} from "../../../../src/Scene/index.js";
 import {FRAMES_PER_SECOND, PLAYER_COLLISION_HULL} from "../../../index.js";
 import {VisibilityRenderer} from "../VisibilityRenderer.js";
 import {DevInstance} from "./DevInstance.js";
+import {Door} from "./Door/Door.js";
 import {Player} from "./Player/Player.js";
 import {ThirdPersonCamera} from "./ThirdPersonCamera.js";
 import {DangerousTrigger} from "./Trigger/DangerousTrigger.js";
@@ -111,31 +112,8 @@ async function createSourceScene() {
 	});
 	const playerGeometry = new BoxGeometry(PLAYER_COLLISION_HULL);
 	const doorGeometry = new BoxGeometry(new Vector3(60, 100, 4));
-	const doorFrameGeometry = new PolytopeGeometry({
-		vertices: Float32Array.of(
-			// Left frame
-			0, 0, 0,
-			0, 100, 0,
-			4, 100, 0,
-			4, 0, 0,
-			// Right frame
-			64, 0, 0,
-			64, 100, 0,
-			68, 100, 0,
-			68, 0, 0,
-			// Top frame
-			0, 104, 0,
-			68, 104, 0,
-		),
-		indices: Uint32Array.of(
-			0, 1, 2,
-			0, 2, 3,
-			4, 5, 6,
-			4, 6, 7,
-			1, 8, 9,
-			1, 9, 6,
-		),
-	});
+	const verticalDoorFrameGeometry = new BoxGeometry(new Vector3(4, 100, 4));
+	const horizontalDoorFrameGeometry = new BoxGeometry(new Vector3(68, 4, 4));
 
 	///
 	/// Meshes
@@ -257,18 +235,40 @@ async function createSourceScene() {
 	player.setPosition(new Vector3(0, 70, 0));
 	player.updateWorld();
 
-	const doorFrame = new StaticMesh({
-		geometry: doorFrameGeometry,
+	const leftDoorFrame = new StaticMesh({
+		geometry: verticalDoorFrameGeometry,
 		hull: new Hull({
-			geometry: doorFrameGeometry,
+			geometry: verticalDoorFrameGeometry,
 		}),
 		material: null,
-		debugName: "doorframe",
+		debugName: "leftDoorframe",
 	});
-	doorFrame.setPosition(new Vector3(128, 0, 0));
-	doorFrame.updateWorld();
+	leftDoorFrame.setPosition(new Vector3(130, verticalDoorFrameGeometry.getSize()[1] / 2, 0));
+	leftDoorFrame.updateWorld();
 
-	const door = new DynamicMesh({
+	const rightDoorFrame = new StaticMesh({
+		geometry: verticalDoorFrameGeometry,
+		hull: new Hull({
+			geometry: verticalDoorFrameGeometry,
+		}),
+		material: null,
+		debugName: "rightDoorframe",
+	});
+	rightDoorFrame.setPosition(new Vector3(194, verticalDoorFrameGeometry.getSize()[1] / 2, 0));
+	rightDoorFrame.updateWorld();
+
+	const topDoorFrame = new StaticMesh({
+		geometry: horizontalDoorFrameGeometry,
+		hull: new Hull({
+			geometry: horizontalDoorFrameGeometry,
+		}),
+		material: null,
+		debugName: "topDoorframe",
+	});
+	topDoorFrame.setPosition(new Vector3(162, 102, 0));
+	topDoorFrame.updateWorld();
+
+	const door = new Door({
 		geometry: doorGeometry,
 		hull: new Hull({
 			geometry: doorGeometry,
@@ -301,7 +301,8 @@ async function createSourceScene() {
 	scene.addMeshes(slopeGeometry, [slope]);
 	scene.addMeshes(boxGeometry, [leftBox, bridge, centerBox, rightBox]);
 	// scene.addMeshes(squareWallGeometry, [squareWall2, squareWall3, squareWall4]);
-	scene.addMeshes(doorFrameGeometry, [doorFrame]);
+	scene.addMeshes(verticalDoorFrameGeometry, [leftDoorFrame, rightDoorFrame]);
+	scene.addMeshes(horizontalDoorFrameGeometry, [topDoorFrame]);
 	scene.addMeshes(doorGeometry, [door]);
 	scene.addMeshes(playerGeometry, [player]);
 
