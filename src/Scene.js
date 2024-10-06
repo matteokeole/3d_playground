@@ -2,7 +2,7 @@ import {Geometry} from "./Geometry/index.js";
 import {Mesh} from "./Mesh/index.js";
 
 /**
- * @deprecated
+ * @deprecated Use src/Scene/Scene instead
  */
 export class Scene {
 	#geometries;

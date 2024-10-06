@@ -1,0 +1,7 @@
+IntersectionTrigger {
+	ObjectType = Player
+
+	onIntersect(Player player) {
+		disable()
+	}
+}
