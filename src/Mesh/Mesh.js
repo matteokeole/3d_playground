@@ -76,6 +76,7 @@ export class Mesh {
 	#material;
 	#world;
 	#position;
+	#pivot;
 	#rotation;
 	#scale;
 	#debugName;
@@ -92,6 +93,7 @@ export class Mesh {
 		this.#material = descriptor.material ?? null;
 		this.#world = Matrix4.identity();
 		this.#position = new Vector3(0, 0, 0);
+		this.#pivot = new Vector3(0, 0, 0);
 		this.#rotation = new Vector3(0, 0, 0);
 		this.#scale = new Vector3(1, 1, 1);
 		this.#debugName = descriptor.debugName ?? null;
@@ -128,20 +130,6 @@ export class Mesh {
 		return this.#world;
 	}
 
-	updateWorld() {
-		const translation = Matrix4.translation(this.#position);
-		const rotation = Matrix4.rotation(this.#rotation);
-		const scale = Matrix4.scale(this.#scale);
-
-		const world = translation.multiply(rotation).multiply(scale);
-
-		this.#world = world;
-
-		if (this.#hull !== null) {
-			this.#hull.setWorld(world);
-		}
-	}
-
 	getPosition() {
 		return this.#position;
 	}
@@ -151,6 +139,17 @@ export class Mesh {
 	 */
 	setPosition(position) {
 		this.#position = position;
+	}
+
+	getPivot() {
+		return this.#pivot;
+	}
+
+	/**
+	 * @param {Vector3} pivot
+	 */
+	setPivot(pivot) {
+		this.#pivot = pivot;
 	}
 
 	getRotation() {
@@ -177,5 +176,23 @@ export class Mesh {
 
 	getDebugName() {
 		return this.#debugName;
+	}
+
+	updateWorld() {
+		const positionTranslation = Matrix4.translation(this.#position);
+		const rotation = Matrix4.rotation(this.#rotation);
+		const pivotTranslation = Matrix4.translation(this.#pivot);
+		const scale = Matrix4.scale(this.#scale);
+
+		const world = positionTranslation
+			.multiply(rotation)
+			.multiply(pivotTranslation)
+			.multiply(scale);
+
+		this.#world = world;
+
+		if (this.#hull !== null) {
+			this.#hull.setWorld(world);
+		}
 	}
 }

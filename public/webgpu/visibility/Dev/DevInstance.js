@@ -116,6 +116,8 @@ export class DevInstance extends Instance {
 		// The mesh world is already updated, upload it into the mesh buffer
 		renderer.writeMeshWorld(playerIndex, player.getWorld());
 
+		this.#updateDoor();
+
 		scene.updateTriggers();
 
 		this.getDebugger().update({
@@ -129,14 +131,15 @@ export class DevInstance extends Instance {
 			"Position": player.getPosition(),
 			"Velocity": this.#velocity,
 			"Velocity length": this.#velocity.magnitude().toFixed(2),
-			"Controls": "---------------",
+			"Controls": "-------------",
 			// AZERTY layout
 			"KeyZ": this.getActiveKeyCodes()["KeyW"] ?? false,
 			"KeyQ": this.getActiveKeyCodes()["KeyA"] ?? false,
 			"KeyS": this.getActiveKeyCodes()["KeyS"] ?? false,
 			"KeyD": this.getActiveKeyCodes()["KeyD"] ?? false,
+			"KeyF": this.getActiveKeyCodes()["KeyF"] ?? false,
 			"Space": this.getActiveKeyCodes()["Space"] ?? false,
-			"Player variables": "---",
+			"Player variables": "-----",
 			"Health": player.getHealth(),
 		});
 	}
@@ -460,5 +463,25 @@ export class DevInstance extends Instance {
 
 		this.#velocity[1] = Math.sqrt(2 * 800 * 45.0);
 		this.#travellingMedium = "air";
+	}
+
+	#updateDoor() {
+		/**
+		 * @type {VisibilityRenderer}
+		 */
+		const renderer = this._renderer;
+		const hullMeshes = renderer.getScene().getHullMeshes();
+		const door = hullMeshes.find(hullMesh => hullMesh.getDebugName() === "door");
+		const doorIndex = hullMeshes.findIndex(hullMesh => hullMesh.getDebugName() === "door");
+
+		if (!door) {
+			throw new Error("No door to update");
+		}
+
+		// door.getRotation()[1] += 0.01;
+
+		// door.updateWorld();
+
+		// renderer.writeMeshWorld(doorIndex, door.getWorld());
 	}
 }
