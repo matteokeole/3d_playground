@@ -362,6 +362,24 @@ export class DevInstance extends Instance {
 	}
 
 	/**
+	 * @todo CD between solid DM and other solid DM/solid SM:
+	 * foreach solid DM:
+	 *   foreach solid SM:
+	 *     collision = test(DM, SM);
+	 * 
+	 *     if no collision:
+	 *       continue
+	 * 
+	 *     resolve(collision)
+	 * 
+	 *   foreach solid DM: (current DM removed)
+	 *     collision = test(DM, SM);
+	 * 
+	 *     if no collision:
+	 *       continue
+	 * 
+	 *     resolve(collision)
+	 * 
 	 * @param {PerspectiveCamera} camera
 	 * @param {Mesh[]} physicMeshes
 	 * @param {Mesh} player
