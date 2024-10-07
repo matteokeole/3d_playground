@@ -1,16 +1,16 @@
-import {ShaderMaterial} from "../../../Material/index.js";
+import {Material} from "../../../Material/index.js";
 import {WebGLShader} from "../Shader/index.js";
 
 /**
- * @typedef {Object} WebGLShaderMaterialDescriptor
+ * @typedef {Object} WebGLMaterialDescriptor
  * @property {WebGLShader} shader
  */
 
-export class WebGLShaderMaterial extends ShaderMaterial {
+export class WebGLMaterial extends Material {
 	#shader;
 
 	/**
-	 * @param {WebGLShaderMaterialDescriptor} descriptor
+	 * @param {WebGLMaterialDescriptor} descriptor
 	 */
 	constructor(descriptor) {
 		super(descriptor);

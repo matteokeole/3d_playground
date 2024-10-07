@@ -2,6 +2,12 @@ import {Matrix4} from "../../../src/math/index.js";
 import {WebGPURenderer} from "../../../src/Renderer/index.js";
 import {Scene} from "../../../src/Scene/index.js";
 
+/**
+ * @typedef {Object} SceneMember
+ * @property {Number} sizeBytes
+ * @property {(f32View: Float32Array, u32View: Uint32Array, offsetInts: Number) => void} writer
+ */
+
 export class VisibilityRenderer extends WebGPURenderer {
 	/**
 	 * @param {Scene} scene
@@ -11,12 +17,19 @@ export class VisibilityRenderer extends WebGPURenderer {
 
 		this._buffers.viewUniform = this.#createViewUniformBuffer();
 
-		this._buffers.vertexStorage = this.#createVertexStorageBuffer();
-		this._buffers.indexStorage = this.#createIndexStorageBuffer();
-		this._buffers.clusterStorage = this.#createClusterStorageBuffer();
-		this._buffers.normalStorage = this.#createNormalStorageBuffer();
-		this._buffers.meshStorage = this.#createMeshStorageBuffer();
-		this._buffers.geometryStorage = this.#createGeometryStorageBuffer();
+		this._buffers.vertexBuffer = this.#createVertexStorageBuffer();
+		this._buffers.indexBuffer = this.#createIndexStorageBuffer();
+		this._buffers.clusterBuffer = this.#createClusterStorageBuffer();
+		this._buffers.normalBuffer = this.#createNormalStorageBuffer();
+		this._buffers.meshBuffer = this.#createMeshStorageBuffer();
+		this._buffers.geometryBuffer = this.#createGeometryStorageBuffer();
+
+		this._buffers.sceneUniform = this.#createSceneUniformBuffer([
+			{
+				sizeBytes: this.#getMaterialBufferSizeBytes(),
+				writer: this.#writeMaterialBuffer,
+			},
+		]);
 
 		this._buffers.indirect = this.#createGeometryIndirectBuffer();
 
@@ -219,6 +232,12 @@ export class VisibilityRenderer extends WebGPURenderer {
 		});
 		const indirectBufferMap = new Uint32Array(indirectBuffer.getMappedRange());
 
+		// indexCount (IndexCountPerInstance) — The number of indices to draw.
+		// instanceCount (InstanceCount) — The number of instances to draw.
+		// firstIndex (StartIndexLocation) — Offset into the index buffer, in indices, begin drawing from.
+		// baseVertex (BaseVertexLocation) — Added to each index value before indexing into the vertex buffers.
+		// firstInstance (StartInstanceLocation) — First instance to draw.
+
 		// Instance = Cluster
 		indirectBufferMap[0] = indicesPerCluster; // The number of indices per instance to draw
 		indirectBufferMap[1] = clusterCount; // The number of instances to draw
@@ -227,29 +246,6 @@ export class VisibilityRenderer extends WebGPURenderer {
 		indirectBuffer.unmap();
 
 		return indirectBuffer;
-	}
-
-	#createClusterStorageBuffer() {
-		const clusteredMeshes = this._scene.getClusteredMeshes();
-
-		const clusterStorageBuffer = this._device.createBuffer({
-			label: "Cluster",
-			size: clusteredMeshes.clusters.length * Uint32Array.BYTES_PER_ELEMENT,
-			usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-			mappedAtCreation: true,
-		});
-
-		const clusterStorageBufferMap = new Uint32Array(clusterStorageBuffer.getMappedRange());
-
-		for (let i = 0; i < clusteredMeshes.clusters.length; i++) {
-			const cluster = clusteredMeshes.clusters[i];
-
-			clusterStorageBufferMap[i] = cluster.meshIndex;
-		}
-
-		clusterStorageBuffer.unmap();
-
-		return clusterStorageBuffer;
 	}
 
 	#createNormalStorageBuffer() {
@@ -300,41 +296,27 @@ export class VisibilityRenderer extends WebGPURenderer {
 		return normalStorageBuffer;
 	}
 
-	#createMeshStorageBuffer() {
-		const meshes = this._scene.getMeshes();
+	#createClusterStorageBuffer() {
+		const clusteredMeshes = this._scene.getClusteredMeshes();
 
-		const meshStorageBuffer = this._device.createBuffer({
-			label: "Mesh",
-			size: meshes.length * 20 * Float32Array.BYTES_PER_ELEMENT,
+		const clusterStorageBuffer = this._device.createBuffer({
+			label: "Cluster",
+			size: clusteredMeshes.clusters.length * Uint32Array.BYTES_PER_ELEMENT,
 			usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
 			mappedAtCreation: true,
 		});
 
-		const mappedRange = meshStorageBuffer.getMappedRange();
-		const meshStorageBufferMap = new Float32Array(mappedRange);
+		const clusterStorageBufferMap = new Uint32Array(clusterStorageBuffer.getMappedRange());
 
-		/**
-		 * @todo Find a better way of writing ints and floats without creating two different views
-		 */
-		// Set mesh world
-		for (let i = 0; i < meshes.length; i++) {
-			const mesh = meshes[i];
+		for (let i = 0; i < clusteredMeshes.clusters.length; i++) {
+			const cluster = clusteredMeshes.clusters[i];
 
-			meshStorageBufferMap.set(mesh.getWorld(), i * 20);
+			clusterStorageBufferMap[i] = cluster.meshIndex;
 		}
 
-		const meshStorageBufferMap2 = new Uint32Array(mappedRange);
+		clusterStorageBuffer.unmap();
 
-		// Set mesh geometry index
-		for (let i = 0; i < meshes.length; i++) {
-			const mesh = meshes[i];
-
-			meshStorageBufferMap2[i * 20 + 16] = mesh.getGeometryIndex();
-		}
-
-		meshStorageBuffer.unmap();
-
-		return meshStorageBuffer;
+		return clusterStorageBuffer;
 	}
 
 	#createGeometryStorageBuffer() {
@@ -364,6 +346,111 @@ export class VisibilityRenderer extends WebGPURenderer {
 		geometryStorageBuffer.unmap();
 
 		return geometryStorageBuffer;
+	}
+
+	#createMeshStorageBuffer() {
+		const meshes = this._scene.getMeshes();
+
+		const meshStorageBuffer = this._device.createBuffer({
+			label: "Mesh",
+			size: meshes.length * 20 * Float32Array.BYTES_PER_ELEMENT,
+			usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+			mappedAtCreation: true,
+		});
+
+		const mappedRange = meshStorageBuffer.getMappedRange();
+		const meshStorageBufferMap = new Float32Array(mappedRange);
+
+		/**
+		 * @todo Refactor 2 different buffer views
+		 */
+		// Set mesh world
+		for (let i = 0; i < meshes.length; i++) {
+			const mesh = meshes[i];
+
+			meshStorageBufferMap.set(mesh.getWorld(), i * 20);
+		}
+
+		const meshStorageBufferMap2 = new Uint32Array(mappedRange);
+
+		// Set mesh geometry index
+		for (let i = 0; i < meshes.length; i++) {
+			const mesh = meshes[i];
+
+			meshStorageBufferMap2[i * 20 + 16] = mesh.getGeometryIndex();
+		}
+
+		meshStorageBuffer.unmap();
+
+		return meshStorageBuffer;
+	}
+
+	/**
+	 * @param {SceneMember[]} sceneMembers
+	 */
+	#createSceneUniformBuffer(sceneMembers) {
+		const sceneMemberOffsets = new Array(sceneMembers.length).fill(0);
+		let memberOffsetBytes = 0;
+
+		// Calculate scene member offset and total scene size
+		{
+			for (let memberIndex = 0; memberIndex < sceneMembers.length; memberIndex++) {
+				sceneMemberOffsets[memberIndex] = memberOffsetBytes;
+
+				const member = sceneMembers[memberIndex];
+				const memberSizeBytes = member.sizeBytes;
+
+				memberOffsetBytes = memberOffsetBytes + memberSizeBytes;
+			}
+		}
+
+		const sceneSizeBytes = memberOffsetBytes;
+
+		const sceneUniformBuffer = this._device.createBuffer({
+			label: "Scene",
+			size: sceneSizeBytes,
+			usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+			mappedAtCreation: true,
+		});
+
+		const mappedRange = sceneUniformBuffer.getMappedRange();
+		const f32View = new Float32Array(mappedRange);
+		const u32View = new Uint32Array(mappedRange);
+
+		for (let memberIndex = 0; memberIndex < sceneMembers.length; memberIndex++) {
+			const member = sceneMembers[memberIndex];
+			const writer = member.writer;
+			const memberOffsetBytes = sceneMemberOffsets[memberIndex];
+			const memberOffsetInt = memberOffsetBytes * Uint32Array.BYTES_PER_ELEMENT; // Used for both f32 and u32
+
+			writer.call(this, f32View, u32View, memberOffsetInt);
+		}
+
+		// Unmap
+		sceneUniformBuffer.unmap();
+
+		debugger;
+
+		return sceneUniformBuffer;
+	}
+
+	#getMaterialBufferSizeBytes() {
+		const materials = this._scene.getMaterials();
+
+		return 1 * Uint32Array.BYTES_PER_ELEMENT * materials.length;
+	}
+
+	/**
+	 * @param {Float32Array} f32View
+	 * @param {Uint32Array} u32View
+	 * @param {Number} offsetInts
+	 */
+	#writeMaterialBuffer(f32View, u32View, offsetInts) {
+		const materials = this._scene.getMaterials();
+
+		for (let materialIndex = 0; materialIndex < materials.length; materialIndex++) {
+			u32View[offsetInts + materialIndex] = materialIndex;
+		}
 	}
 
 	#createViewBindGroupLayout() {

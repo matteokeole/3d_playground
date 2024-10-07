@@ -1,5 +1,4 @@
 import {Matrix3} from "../math/index.js";
-import {Material} from "./Material.js";
 
 /**
  * @typedef {Object} MaterialDescriptor
@@ -8,7 +7,10 @@ import {Material} from "./Material.js";
  * @property {Number} normalMapIndex
  */
 
-export class TextureMaterial extends Material {
+/**
+ * @deprecated Use Material instead
+ */
+export class TextureMaterial {
 	#textureMatrix;
 	#textureIndex;
 	#normalMapIndex;
@@ -17,8 +19,6 @@ export class TextureMaterial extends Material {
 	 * @param {MaterialDescriptor} descriptor
 	 */
 	constructor(descriptor) {
-		super();
-
 		this.#textureMatrix = descriptor.textureMatrix;
 		this.#textureIndex = descriptor.textureIndex;
 		this.#normalMapIndex = descriptor.normalMapIndex;

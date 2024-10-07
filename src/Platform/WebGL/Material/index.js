@@ -1,1 +1,1 @@
-export {WebGLShaderMaterial} from "./WebGLShaderMaterial.js";
+export {WebGLMaterial} from "./WebGLMaterial.js";

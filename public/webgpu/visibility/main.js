@@ -23,9 +23,9 @@ export default async function() {
 	);
 	await renderer.loadShader(
 		"material",
-		"public/webgpu/visibility/Shader/Material.wgsl",
-		"public/webgpu/visibility/Shader/Material.vert.wgsl",
-		"public/webgpu/visibility/Shader/Material.frag.wgsl",
+		"public/webgpu/visibility/Shader/Visualization.wgsl",
+		"public/webgpu/visibility/Shader/Quad.vert.wgsl",
+		"public/webgpu/visibility/Shader/Visualization.frag.wgsl",
 	);
 
 	const viewport = new Vector2(innerWidth, innerHeight);

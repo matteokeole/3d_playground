@@ -1,8 +1,4 @@
-const FLAT_SHADING_LIGHT_POSITION: vec3f = vec3f(-64, 256, -128);
-const BACKGROUND_COLOR: vec3f = vec3f(0, 0, 0);
-
-const DRAW_INDEXED_INDIRECT_BUFFER_SIZE: u32 = 5;
-const DRAW_INDEXED_INDIRECT_PADDING: u32 = 3;
+// Include Visualization.wgsl
 
 @fragment
 fn main(in: In) -> @location(0) vec4f {

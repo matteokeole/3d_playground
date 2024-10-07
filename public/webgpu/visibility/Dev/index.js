@@ -1,5 +1,6 @@
 import {BoxGeometry, PolytopeGeometry} from "../../../../src/Geometry/index.js";
 import {Hull} from "../../../../src/Hull/index.js";
+import {Material} from "../../../../src/Material/index.js";
 import {Matrix4, Vector2, Vector3, Vector4} from "../../../../src/math/index.js";
 import {DynamicMesh, StaticMesh} from "../../../../src/Mesh/index.js";
 import {Scene} from "../../../../src/Scene/index.js";
@@ -29,16 +30,20 @@ export default async function() {
 	);
 	await renderer.loadShader(
 		"material",
-		"public/webgpu/visibility/Shader/Material.wgsl",
-		"public/webgpu/visibility/Shader/Material.vert.wgsl",
-		"public/webgpu/visibility/Shader/Material.frag.wgsl",
+		"public/webgpu/visibility/Shader/Visualization.wgsl",
+		"public/webgpu/visibility/Shader/Quad.vert.wgsl",
+		"public/webgpu/visibility/Shader/Visualization.frag.wgsl",
+	);
+	await renderer.loadShader(
+		"test",
+		"public/webgpu/visibility/Shader/Test.wgsl",
 	);
 
 	const viewport = new Vector2(innerWidth, innerHeight);
 	renderer.setViewport(new Vector4(0, 0, viewport[0], viewport[1]));
 	renderer.resize();
 
-	const scene = await createSourceScene();
+	const scene = await createSourceScene(renderer);
 
 	scene.clusterize();
 
@@ -60,8 +65,10 @@ export default async function() {
  * 
  * Can also test HL1 elevator
  * Dimensions: 223.9 x 223.9 square
+ * 
+ * @param {VisibilityRenderer} renderer
  */
-async function createSourceScene() {
+async function createSourceScene(renderer) {
 	/*
 	#gravity = new Vector3(0, -800, 0);
 	#groundAccelerateConstant = 10;
@@ -71,6 +78,14 @@ async function createSourceScene() {
 	#stopSpeed = 100;
 	#friction = 4; // https://developer.valvesoftware.com/wiki/Sv_friction
 	*/
+
+	///
+	/// Materials
+	///
+
+	const testMaterial = new Material({
+		shader: renderer.getShader("test"),
+	});
 
 	///
 	/// Geometries
@@ -185,7 +200,7 @@ async function createSourceScene() {
 		hull: new Hull({
 			geometry: boxGeometry,
 		}),
-		material: null,
+		material: testMaterial,
 	});
 	bridge.setPosition(new Vector3(-64, 42, 96));
 	bridge.setScale(new Vector3(64, 12, 64));
@@ -313,8 +328,10 @@ async function createSourceScene() {
 
 /**
  * Creates a scene with realistic proportions (roughly)
+ * 
+ * @param {VisibilityRenderer} renderer
  */
-async function createIrlScene() {
+async function createIrlScene(renderer) {
 	/*
 	#gravity = new Vector3(0, -9.80665, 0);
 	#jumpSpeed = 2;

@@ -1,28 +1,29 @@
-import {ShaderMaterial} from "../../../Material/index.js";
+import {Material} from "../../../Material/index.js";
 import {WebGPUShader} from "../Shader/index.js";
 
 /**
- * @typedef {Object} WebGPUShaderMaterialDescriptor
+ * @typedef {Object} WebGPUMaterialDescriptor
  * @property {GPUDevice} device
  * @property {GPUPipelineLayout} pipelineLayout
  * @property {String} preferredCanvasFormat
  * @property {WebGPUShader} shader
  */
 
-export class WebGPUShaderMaterial extends ShaderMaterial {
+export class WebGPUMaterial extends Material {
 	#shader;
 	#pipeline;
 
 	/**
-	 * @param {WebGPUShaderMaterialDescriptor} descriptor
+	 * @param {WebGPUMaterialDescriptor} descriptor
 	 */
 	constructor(descriptor) {
 		super(descriptor);
 
 		this.#shader = descriptor.shader;
-		this.#pipeline = descriptor.device.createPipeline({
+		this.#pipeline = descriptor.device.createRenderPipeline({
 			layout: descriptor.pipelineLayout,
 			vertex: {
+				entryPoint: null, // Determined automatically
 				module: this.#shader.getVertexShaderModule(),
 			},
 			/**

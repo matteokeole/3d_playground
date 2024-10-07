@@ -1,1 +1,1 @@
-export {WebGPUShaderMaterial} from "./WebGPUShaderMaterial.js";
+export {WebGPUMaterial} from "./WebGPUMaterial.js";

@@ -22,6 +22,11 @@ export class Scene {
 	#meshes;
 
 	/**
+	 * @type {Material[]}
+	 */
+	#materials;
+
+	/**
 	 * @type {Mesh[]}
 	 */
 	#hullMeshes;
@@ -49,6 +54,7 @@ export class Scene {
 	constructor() {
 		this.#geometries = [];
 		this.#meshes = [];
+		this.#materials = [];
 		this.#hullMeshes = [];
 		this.#triggers = [];
 		this.#intersectionTriggerIndices = [];
@@ -62,6 +68,10 @@ export class Scene {
 
 	getMeshes() {
 		return this.#meshes;
+	}
+
+	getMaterials() {
+		return this.#materials;
 	}
 
 	getHullMeshes() {
@@ -129,6 +139,10 @@ export class Scene {
 
 			if (mesh.getHull()) {
 				this.#hullMeshes.push(mesh);
+			}
+
+			if (mesh.getMaterial()) {
+				this.#materials.push(mesh.getMaterial());
 			}
 		}
 	}
