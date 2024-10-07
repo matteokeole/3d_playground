@@ -1,8 +1,11 @@
-import {BoxGeometry, PolytopeGeometry} from "../../../../src/Geometry/index.js";
+import {BoxGeometry, Geometry, PolytopeGeometry} from "../../../../src/Geometry/index.js";
 import {Hull} from "../../../../src/Hull/index.js";
+import {FileLoader} from "../../../../src/Loader/FileLoader.js";
+import {TextLoader} from "../../../../src/Loader/TextLoader.js";
 import {Material} from "../../../../src/Material/index.js";
 import {Matrix4, Vector2, Vector3, Vector4} from "../../../../src/math/index.js";
 import {DynamicMesh, StaticMesh} from "../../../../src/Mesh/index.js";
+import {OBJParser} from "../../../../src/Parser/Text/OBJParser.js";
 import {Scene} from "../../../../src/Scene/index.js";
 import {FRAMES_PER_SECOND, PLAYER_COLLISION_HULL} from "../../../index.js";
 import {VisibilityRenderer} from "../VisibilityRenderer.js";
@@ -34,16 +37,16 @@ export default async function() {
 		"public/webgpu/visibility/Shader/Quad.vert.wgsl",
 		"public/webgpu/visibility/Shader/Visualization.frag.wgsl",
 	);
-	await renderer.loadShader(
+	/* await renderer.loadShader(
 		"test",
 		"public/webgpu/visibility/Shader/Test.wgsl",
-	);
+	); */
 
 	const viewport = new Vector2(innerWidth, innerHeight);
 	renderer.setViewport(new Vector4(0, 0, viewport[0], viewport[1]));
 	renderer.resize();
 
-	const scene = await createSourceScene(renderer);
+	const scene = await createBunnyScene(renderer);
 
 	scene.clusterize();
 
@@ -83,9 +86,9 @@ async function createSourceScene(renderer) {
 	/// Materials
 	///
 
-	const testMaterial = new Material({
+	/* const testMaterial = new Material({
 		shader: renderer.getShader("test"),
-	});
+	}); */
 
 	///
 	/// Geometries
@@ -200,7 +203,7 @@ async function createSourceScene(renderer) {
 		hull: new Hull({
 			geometry: boxGeometry,
 		}),
-		material: testMaterial,
+		material: null,
 	});
 	bridge.setPosition(new Vector3(-64, 42, 96));
 	bridge.setScale(new Vector3(64, 12, 64));
@@ -473,11 +476,81 @@ async function createIrlScene(renderer) {
 	return scene;
 }
 
+/**
+ * @param {VisibilityRenderer} renderer
+ */
+async function createBunnyScene(renderer) {
+	const textLoader = new TextLoader();
+	const objParser = new OBJParser();
+
+	const bunnyObjText = await textLoader.load("assets/models/Bunny/Bunny.obj");
+	const bunnyObj = objParser.parse(bunnyObjText);
+
+	///
+	/// Geometries
+	///
+
+	const bunnyGeometry = new Geometry({
+		vertices: bunnyObj.vertices,
+		indices: bunnyObj.indices,
+		normals: bunnyObj.normals,
+		tangents: Float32Array.of(),
+		uvs: Float32Array.of(),
+	});
+	const playerGeometry = new BoxGeometry(new Vector3(0.45, 1.75, 0.45));
+
+	///
+	/// Meshes
+	///
+
+	const bunnies = [];
+	const firstBunnyPosition = new Vector3(-2, 27, -2);
+	const bunnyOffset = 2;
+
+	for (let x = 0; x < 3; x++) {
+		for (let z = 0; z < 3; z++) {
+			const bunny = new StaticMesh({
+				geometry: bunnyGeometry,
+				material: null,
+				debugName: `bunny-${x}-${z}`,
+			});
+			bunny.setPosition(new Vector3(
+				firstBunnyPosition[0] + x * bunnyOffset,
+				firstBunnyPosition[1],
+				firstBunnyPosition[2] + z * bunnyOffset,
+			));
+			bunny.updateWorld();
+
+			bunnies.push(bunny);
+		}
+	}
+
+	const player = new Player({
+		solid: false,
+		geometry: playerGeometry,
+		material: null,
+		debugName: "player",
+	});
+	player.setPosition(new Vector3(0, 0, 0));
+	player.updateWorld();
+
+	///
+	/// Scene
+	///
+
+	const scene = new Scene();
+
+	scene.addMeshes(playerGeometry, [player]);
+	scene.addMeshes(bunnyGeometry, bunnies);
+
+	return scene;
+}
+
 function createCamera() {
 	const camera = new ThirdPersonCamera({
 		position: new Vector3(0, 0, 0),
-		distance: 0,
-		fieldOfView: 75,
+		distance: 5,
+		fieldOfView: 60,
 		nearClipPlane: 0.1,
 		farClipPlane: 1000,
 	});

@@ -41,11 +41,12 @@ export class DevInstance extends Instance {
 		/** @type {VisibilityRenderer} */
 		const renderer = this._renderer;
 		const scene = renderer.getScene();
+		const meshes = scene.getMeshes();
 		const hullMeshes = scene.getHullMeshes();
 		/** @type {Player} */
-		const player = hullMeshes.find(mesh => mesh.getDebugName() === "player");
-		const playerIndex = hullMeshes.findIndex(mesh => mesh.getDebugName() === "player");
-		const otherPhysicMeshes = scene.getHullMeshes().filter(mesh => mesh.getDebugName() !== "player");
+		const player = meshes.find(mesh => mesh.getDebugName() === "player");
+		const playerIndex = meshes.findIndex(mesh => mesh.getDebugName() === "player");
+		const otherPhysicMeshes = meshes.filter(mesh => mesh.getDebugName() !== "player");
 
 		if (!player) {
 			return;
@@ -54,10 +55,6 @@ export class DevInstance extends Instance {
 		/** @type {Door} */
 		const door = hullMeshes.find(hullMesh => hullMesh.getDebugName() === "door");
 		const doorIndex = hullMeshes.findIndex(hullMesh => hullMesh.getDebugName() === "door");
-
-		if (!door) {
-			throw new Error("No door to update");
-		}
 
 		const camera = this._renderer.getCamera();
 
@@ -69,7 +66,7 @@ export class DevInstance extends Instance {
 
 		// Velocity computation
 		{
-			this.#addCorrectGravity(deltaTime);
+			// this.#addCorrectGravity(deltaTime);
 
 			if (this.getActiveKeyCodes()["Space"] === true) {
 				if (this.#travellingMedium === "ground") {
@@ -96,7 +93,7 @@ export class DevInstance extends Instance {
 				this.#airMove(deltaTime);
 			}
 
-			this.#fixupGravityVelocity(deltaTime);
+			// this.#fixupGravityVelocity(deltaTime);
 
 			if (this.#travellingMedium === "air") {
 				// Apply velocity
@@ -121,7 +118,9 @@ export class DevInstance extends Instance {
 		// The mesh world is already updated, upload it into the mesh buffer
 		renderer.writeMeshWorld(playerIndex, player.getWorld());
 
-		this.#handleDoorMechanic(renderer, player, door, doorIndex);
+		if (door) {
+			this.#handleDoorMechanic(renderer, player, door, doorIndex);
+		}
 
 		scene.updateTriggers();
 

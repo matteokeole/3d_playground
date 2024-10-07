@@ -13,6 +13,7 @@ struct View {
 
 struct Cluster {
 	meshIndex: u32,
+	materialIndex: u32,
 }
 
 struct Mesh {

@@ -7,7 +7,6 @@
 @group(2) @binding(3) var<storage> normalBuffer: array<f32>;
 @group(3) @binding(0) var<storage> meshBuffer: array<Mesh>;
 @group(3) @binding(1) var<storage> geometryBuffer: array<Geometry>;
-@group(3) @binding(2) var<uniform> scene: Scene;
 
 struct View {
 	viewport: vec4u,
@@ -34,14 +33,6 @@ struct BarycentricDerivatives {
 	lambda: vec3f,
 	ddx: vec3f,
 	ddy: vec3f,
-}
-
-struct Scene {
-	materialBuffer: array<Material>,
-}
-
-struct Material {
-	index: u32,
 }
 
 struct In {
@@ -187,4 +178,8 @@ fn ndc(uv: vec2f) -> vec2f {
 	let v: f32 = uv.y / height * 2 - 1;
 
 	return vec2f(u, -v);
+}
+
+fn adjustVisualizationColor(color: vec3f) -> vec3f {
+	return color * 0.75 + 0.25;
 }
