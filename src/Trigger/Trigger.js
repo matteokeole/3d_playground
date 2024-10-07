@@ -1,11 +1,13 @@
-import {PhysicalObject} from "../index.js";
+import {PhysicalObject} from "../PhysicalObject.js";
 import {Matrix4, Vector3} from "../math/index.js";
+import {TriggerState} from "./TriggerState.js";
 
 /**
  * @abstract
  */
 export class Trigger extends PhysicalObject {
 	#position;
+	#state;
 
 	/**
 	 * @param {import("../PhysicalObject.js").PhysicalObjectDescriptor} descriptor
@@ -14,6 +16,7 @@ export class Trigger extends PhysicalObject {
 		super(descriptor);
 
 		this.#position = new Vector3(0, 0, 0);
+		this.#state = TriggerState.ON;
 	}
 
 	getPosition() {
@@ -25,6 +28,17 @@ export class Trigger extends PhysicalObject {
 	 */
 	setPosition(position) {
 		this.#position = position;
+	}
+
+	getState() {
+		return this.#state;
+	}
+
+	/**
+	 * @param {TriggerState} state
+	 */
+	setState(state) {
+		this.#state = state;
 	}
 
 	updateWorld() {

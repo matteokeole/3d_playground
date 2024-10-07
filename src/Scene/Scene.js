@@ -1,6 +1,8 @@
+import {GJK} from "../Algorithm/index.js";
 import {Clusterizer} from "../Clusterizer.js";
 import {Geometry} from "../Geometry/index.js";
 import {Mesh} from "../Mesh/index.js";
+import {IntersectionTrigger, Trigger, TriggerState} from "../Trigger/index.js";
 
 /**
  * @typedef {Object} AddMeshesDescriptor
@@ -34,10 +36,22 @@ export class Scene {
 	 */
 	#instancesByGeometry;
 
+	/**
+	 * @type {Trigger[]}
+	 */
+	#triggers;
+
+	/**
+	 * @type {Number[]}
+	 */
+	#intersectionTriggerIndices;
+
 	constructor() {
 		this.#geometries = [];
 		this.#meshes = [];
 		this.#hullMeshes = [];
+		this.#triggers = [];
+		this.#intersectionTriggerIndices = [];
 		this.#clusteredMeshes = null;
 		this.#instancesByGeometry = new Map();
 	}
@@ -84,6 +98,14 @@ export class Scene {
 		return this.#instancesByGeometry.get(geometry).length;
 	}
 
+	getTriggers() {
+		return this.#triggers;
+	}
+
+	getIntersectionTriggerIndices() {
+		return this.#intersectionTriggerIndices;
+	}
+
 	/**
 	 * @param {Geometry} geometry
 	 * @param {Mesh[]} meshes
@@ -111,7 +133,60 @@ export class Scene {
 		}
 	}
 
+	/**
+	 * @param {Trigger} trigger
+	 */
+	addTrigger(trigger) {
+		this.#triggers.push(trigger);
+
+		if (trigger instanceof IntersectionTrigger) {
+			this.#intersectionTriggerIndices.push(this.#triggers.length - 1);
+		}
+	}
+
 	clusterize() {
 		this.#clusteredMeshes = Clusterizer.parse(this);
+	}
+
+	updateTriggers() {
+		this.#updateIntersectionTriggers();
+	}
+
+	#updateIntersectionTriggers() {
+		for (let index = 0; index < this.#intersectionTriggerIndices.length; index++) {
+			const intersectionTriggerIndex = this.#intersectionTriggerIndices[index];
+
+			/**
+			 * @type {IntersectionTrigger}
+			 */
+			const intersectionTrigger = this.#triggers[intersectionTriggerIndex];
+
+			if (intersectionTrigger.getState() === TriggerState.OFF) {
+				continue;
+			}
+
+			/**
+			 * @todo Test intersection between trigger and object
+			 */
+			for (let physicalObjectIndex = 0; physicalObjectIndex < this.#hullMeshes.length; physicalObjectIndex++) {
+				const physicalObject = this.#meshes[physicalObjectIndex];
+
+				if (!(physicalObject instanceof intersectionTrigger.getObjectType())) {
+					continue;
+				}
+
+				const simplex = GJK.test3d(intersectionTrigger, physicalObject.getHull());
+
+				if (simplex === null) {
+					continue;
+				}
+
+				intersectionTrigger.onIntersect(physicalObject);
+
+				if (intersectionTrigger.getState() === TriggerState.OFF) {
+					break;
+				}
+			}
+		}
 	}
 }

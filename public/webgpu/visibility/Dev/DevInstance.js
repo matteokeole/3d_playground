@@ -1,10 +1,12 @@
 import {Instance} from "../../../../src/index.js";
 import {EPA, GJK} from "../../../../src/Algorithm/index.js";
 import {PerspectiveCamera} from "../../../../src/Camera/index.js";
-import {max, rad, Vector3} from "../../../../src/math/index.js";
+import {max, PI, rad, Vector3} from "../../../../src/math/index.js";
 import {Mesh} from "../../../../src/Mesh/index.js";
 import {VisibilityRenderer} from "../VisibilityRenderer.js";
 import {PLAYER_COLLISION_HULL, PLAYER_EYE_LEVEL} from "../../../index.js";
+import {Player} from "./Player/Player.js";
+import {Door} from "./Door/Door.js";
 
 export class DevInstance extends Instance {
 	static #SENSITIVITY = 0.075;
@@ -36,18 +38,25 @@ export class DevInstance extends Instance {
 	 * @param {Number} deltaTime
 	 */
 	_update(deltaTime) {
-		/**
-		 * @type {VisibilityRenderer}
-		 */
+		/** @type {VisibilityRenderer} */
 		const renderer = this._renderer;
 		const scene = renderer.getScene();
-		const meshes = scene.getMeshes();
-		const playerMesh = meshes.find(mesh => mesh.getDebugName() === "player");
-		const playerMeshIndex = meshes.findIndex(mesh => mesh.getDebugName() === "player");
+		const hullMeshes = scene.getHullMeshes();
+		/** @type {Player} */
+		const player = hullMeshes.find(mesh => mesh.getDebugName() === "player");
+		const playerIndex = hullMeshes.findIndex(mesh => mesh.getDebugName() === "player");
 		const otherPhysicMeshes = scene.getHullMeshes().filter(mesh => mesh.getDebugName() !== "player");
 
-		if (!playerMesh) {
+		if (!player) {
 			return;
+		}
+
+		/** @type {Door} */
+		const door = hullMeshes.find(hullMesh => hullMesh.getDebugName() === "door");
+		const doorIndex = hullMeshes.findIndex(hullMesh => hullMesh.getDebugName() === "door");
+
+		if (!door) {
+			throw new Error("No door to update");
 		}
 
 		const camera = this._renderer.getCamera();
@@ -79,10 +88,10 @@ export class DevInstance extends Instance {
 				this.#walkMove(deltaTime);
 
 				// Apply velocity
-				playerMesh.getPosition()[0] += this.#velocity[0] * deltaTime;
-				// playerMesh.getPosition[1] = 0;
-				playerMesh.getPosition()[2] += this.#velocity[2] * deltaTime;
-				playerMesh.updateWorld();
+				player.getPosition()[0] += this.#velocity[0] * deltaTime;
+				// player.getPosition[1] = 0;
+				player.getPosition()[2] += this.#velocity[2] * deltaTime;
+				player.updateWorld();
 			} else {
 				this.#airMove(deltaTime);
 			}
@@ -91,7 +100,7 @@ export class DevInstance extends Instance {
 
 			if (this.#travellingMedium === "air") {
 				// Apply velocity
-				this.#applyVelocity(playerMesh, deltaTime);
+				this.#applyVelocity(player, deltaTime);
 			}
 
 			// If we are on ground, no downward velocity.
@@ -100,17 +109,21 @@ export class DevInstance extends Instance {
 			}
 		}
 
-		if (playerMesh.isSolid() && playerMesh.getHull() !== null) {
-			this.#testCollide(camera, otherPhysicMeshes, playerMesh);
+		if (player.isSolid()) {
+			this.#testCollide(camera, otherPhysicMeshes, player);
 		}
 
-		this.#cameraLookAtPlayer(camera, playerMesh);
+		this.#cameraLookAtPlayer(camera, player);
 
 		// Camera position must be set before extracting it for the player mesh
 		camera.update();
 
 		// The mesh world is already updated, upload it into the mesh buffer
-		renderer.writeMeshWorld(playerMeshIndex, playerMesh.getWorld());
+		renderer.writeMeshWorld(playerIndex, player.getWorld());
+
+		this.#handleDoorMechanic(renderer, player, door, doorIndex);
+
+		scene.updateTriggers();
 
 		this.getDebugger().update({
 			"Delta time": deltaTime.toPrecision(3),
@@ -120,16 +133,19 @@ export class DevInstance extends Instance {
 			"Forward": camera.getForward(),
 			"Player": "---------------",
 			"Medium": this.#travellingMedium,
-			"Position": playerMesh.getPosition(),
+			"Position": player.getPosition(),
 			"Velocity": this.#velocity,
 			"Velocity length": this.#velocity.magnitude().toFixed(2),
-			"Controls": "---------------",
+			"Controls": "-------------",
 			// AZERTY layout
 			"KeyZ": this.getActiveKeyCodes()["KeyW"] ?? false,
 			"KeyQ": this.getActiveKeyCodes()["KeyA"] ?? false,
 			"KeyS": this.getActiveKeyCodes()["KeyS"] ?? false,
 			"KeyD": this.getActiveKeyCodes()["KeyD"] ?? false,
+			"KeyF": this.getActiveKeyCodes()["KeyF"] ?? false,
 			"Space": this.getActiveKeyCodes()["Space"] ?? false,
+			"Player variables": "-----",
+			"Health": player.getHealth(),
 		});
 	}
 
@@ -138,14 +154,13 @@ export class DevInstance extends Instance {
 	}
 
 	/**
-	 * @param {Mesh} playerMesh
-	 * @param {PerspectiveCamera} camera
+	 * @param {Mesh} player
 	 * @param {Number} deltaTime
 	 */
-	#applyVelocity(playerMesh, deltaTime) {
+	#applyVelocity(player, deltaTime) {
 		// P(n+1) = P(n) + V * Δt
-		playerMesh.getPosition().add(new Vector3(this.#velocity).multiplyScalar(deltaTime));
-		playerMesh.updateWorld();
+		player.getPosition().add(new Vector3(this.#velocity).multiplyScalar(deltaTime));
+		player.updateWorld();
 	}
 
 	/**
@@ -347,11 +362,29 @@ export class DevInstance extends Instance {
 	}
 
 	/**
+	 * @todo CD between solid DM and other solid DM/solid SM:
+	 * foreach solid DM:
+	 *   foreach solid SM:
+	 *     collision = test(DM, SM);
+	 * 
+	 *     if no collision:
+	 *       continue
+	 * 
+	 *     resolve(collision)
+	 * 
+	 *   foreach solid DM: (current DM removed)
+	 *     collision = test(DM, SM);
+	 * 
+	 *     if no collision:
+	 *       continue
+	 * 
+	 *     resolve(collision)
+	 * 
 	 * @param {PerspectiveCamera} camera
 	 * @param {Mesh[]} physicMeshes
-	 * @param {Mesh} playerMesh
+	 * @param {Mesh} player
 	 */
-	#testCollide(camera, physicMeshes, playerMesh) {
+	#testCollide(camera, physicMeshes, player) {
 		/**
 		 * @todo Bug: This makes the gravity affect the velocity,
 		 * causing the speed calculations to differ
@@ -361,7 +394,7 @@ export class DevInstance extends Instance {
 
 		for (let i = 0; i < physicMeshes.length; i++) {
 			const physicMesh = physicMeshes[i];
-			const hitResponse = this.#hitTest(playerMesh, physicMesh);
+			const hitResponse = this.#hitTest(player, physicMesh);
 
 			if (!hitResponse) {
 				continue;
@@ -372,8 +405,8 @@ export class DevInstance extends Instance {
 			/**
 			 * @todo Fix blocking edges between geometries
 			 */
-			playerMesh.getPosition().subtract(force);
-			playerMesh.updateWorld();
+			player.getPosition().subtract(force);
+			player.updateWorld();
 
 			// Colliding with an object changes the travelling medium to "ground"
 			// Bug: player can jump on the side of the mesh to reach it
@@ -420,10 +453,10 @@ export class DevInstance extends Instance {
 
 	/**
 	 * @param {PerspectiveCamera} camera
-	 * @param {Mesh} playerMesh
+	 * @param {Mesh} player
 	 */
-	#cameraLookAtPlayer(camera, playerMesh) {
-		camera.setPosition(playerMesh.getPosition());
+	#cameraLookAtPlayer(camera, player) {
+		camera.setPosition(player.getPosition());
 		camera.getPosition()[1] += -PLAYER_COLLISION_HULL[1] / 2 + PLAYER_EYE_LEVEL; // Reset to foot level, then add to get to eye level
 	}
 
@@ -453,5 +486,31 @@ export class DevInstance extends Instance {
 
 		this.#velocity[1] = Math.sqrt(2 * 800 * 45.0);
 		this.#travellingMedium = "air";
+	}
+
+	/**
+	 * @param {VisibilityRenderer} renderer
+	 * @param {Player} player
+	 * @param {Door} door
+	 * @param {Number} doorIndex
+	 */
+	#handleDoorMechanic(renderer, player, door, doorIndex) {
+		const useKey = this.getActiveKeyCodes()["KeyF"] ?? false;
+
+		if (useKey && !door.isInUse()) {
+			door.use(player.getPosition());
+
+			door.getRotation()[1] = PI / 2;
+			door.updateWorld();
+		}
+
+		if (!useKey && door.isInUse()) {
+			door.quitUse();
+
+			door.getRotation()[1] = 0;
+			door.updateWorld();
+		}
+
+		renderer.writeMeshWorld(doorIndex, door.getWorld());
 	}
 }

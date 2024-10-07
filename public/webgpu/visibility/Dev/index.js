@@ -1,12 +1,15 @@
 import {BoxGeometry, PolytopeGeometry} from "../../../../src/Geometry/index.js";
 import {Hull} from "../../../../src/Hull/index.js";
-import {Vector2, Vector3, Vector4} from "../../../../src/math/index.js";
+import {Matrix4, Vector2, Vector3, Vector4} from "../../../../src/math/index.js";
 import {DynamicMesh, StaticMesh} from "../../../../src/Mesh/index.js";
 import {Scene} from "../../../../src/Scene/index.js";
 import {FRAMES_PER_SECOND, PLAYER_COLLISION_HULL} from "../../../index.js";
 import {VisibilityRenderer} from "../VisibilityRenderer.js";
 import {DevInstance} from "./DevInstance.js";
+import {Door} from "./Door/Door.js";
+import {Player} from "./Player/Player.js";
 import {ThirdPersonCamera} from "./ThirdPersonCamera.js";
+import {DangerousTrigger} from "./Trigger/DangerousTrigger.js";
 
 export default async function() {
 	const canvas = document.createElement("canvas");
@@ -108,6 +111,9 @@ async function createSourceScene() {
 		),
 	});
 	const playerGeometry = new BoxGeometry(PLAYER_COLLISION_HULL);
+	const doorGeometry = new BoxGeometry(new Vector3(60, 100, 4));
+	const verticalDoorFrameGeometry = new BoxGeometry(new Vector3(4, 100, 4));
+	const horizontalDoorFrameGeometry = new BoxGeometry(new Vector3(68, 4, 4));
 
 	///
 	/// Meshes
@@ -218,7 +224,7 @@ async function createSourceScene() {
 	slope.setScale(new Vector3(64, 48, 48));
 	slope.updateWorld();
 
-	const player = new DynamicMesh({
+	const player = new Player({
 		geometry: playerGeometry,
 		hull: new Hull({
 			geometry: playerGeometry,
@@ -229,6 +235,62 @@ async function createSourceScene() {
 	player.setPosition(new Vector3(0, 70, 0));
 	player.updateWorld();
 
+	const leftDoorFrame = new StaticMesh({
+		geometry: verticalDoorFrameGeometry,
+		hull: new Hull({
+			geometry: verticalDoorFrameGeometry,
+		}),
+		material: null,
+		debugName: "leftDoorframe",
+	});
+	leftDoorFrame.setPosition(new Vector3(130, verticalDoorFrameGeometry.getSize()[1] / 2, 0));
+	leftDoorFrame.updateWorld();
+
+	const rightDoorFrame = new StaticMesh({
+		geometry: verticalDoorFrameGeometry,
+		hull: new Hull({
+			geometry: verticalDoorFrameGeometry,
+		}),
+		material: null,
+		debugName: "rightDoorframe",
+	});
+	rightDoorFrame.setPosition(new Vector3(194, verticalDoorFrameGeometry.getSize()[1] / 2, 0));
+	rightDoorFrame.updateWorld();
+
+	const topDoorFrame = new StaticMesh({
+		geometry: horizontalDoorFrameGeometry,
+		hull: new Hull({
+			geometry: horizontalDoorFrameGeometry,
+		}),
+		material: null,
+		debugName: "topDoorframe",
+	});
+	topDoorFrame.setPosition(new Vector3(162, 102, 0));
+	topDoorFrame.updateWorld();
+
+	const door = new Door({
+		geometry: doorGeometry,
+		hull: new Hull({
+			geometry: doorGeometry,
+		}),
+		material: null,
+		debugName: "door",
+	});
+	door.setPosition(new Vector3(134, doorGeometry.getSize()[1] / 2, 0));
+	door.setPivot(new Vector3(28, 0, 0));
+	door.updateWorld();
+
+	///
+	/// Triggers
+	///
+
+	const dangerousTrigger = new DangerousTrigger({
+		geometry: squareWallGeometry,
+		world: Matrix4.identity(),
+	});
+	dangerousTrigger.setPosition(new Vector3(128, 0, 0));
+	dangerousTrigger.updateWorld();
+
 	///
 	/// Scene
 	///
@@ -238,8 +300,13 @@ async function createSourceScene() {
 	scene.addMeshes(planeGeometry, [plane]);
 	scene.addMeshes(slopeGeometry, [slope]);
 	scene.addMeshes(boxGeometry, [leftBox, bridge, centerBox, rightBox]);
-	scene.addMeshes(squareWallGeometry, [squareWall1, squareWall2, squareWall3, squareWall4]);
+	// scene.addMeshes(squareWallGeometry, [squareWall2, squareWall3, squareWall4]);
+	scene.addMeshes(verticalDoorFrameGeometry, [leftDoorFrame, rightDoorFrame]);
+	scene.addMeshes(horizontalDoorFrameGeometry, [topDoorFrame]);
+	scene.addMeshes(doorGeometry, [door]);
 	scene.addMeshes(playerGeometry, [player]);
+
+	scene.addTrigger(dangerousTrigger);
 
 	return scene;
 }
