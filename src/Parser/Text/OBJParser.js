@@ -1,5 +1,9 @@
-import {Vector3} from "../../math/index.js";
+import {OBJUnhandledFaceError} from "../../Error/OBJ/index.js";
 import {Parser} from "../index.js";
+
+/**
+ * @typedef {Number[][]} UnparsedOBJData Same order as OBJ face indices (SoA)
+ */
 
 /**
  * @typedef {Object} OBJData
@@ -8,84 +12,87 @@ import {Parser} from "../index.js";
  * @property {Float32Array} normals
  */
 
+/**
+ * @typedef {(strings: String[], unparsedData: UnparsedOBJData) => void} KeywordHandlerCallback
+ */
+
 export class OBJParser extends Parser {
+	static #LINE_EXPRESSION = /(\w*)(?: )*(.*)/;
+
 	/**
-	 * @type {Record.<String, *>}
+	 * @type {Record.<String, KeywordHandlerCallback>}
 	 */
 	static #KEYWORDS_HANDLERS = {
-		v(lineSplits, {vertices}) {
-			for (let i = 0; i < lineSplits.length; i++) {
-				const lineSplit = lineSplits[i];
-				const float = parseFloat(lineSplit);
+		v(vertexComponentStrings, unparsedData) {
+			for (let stringIndex = 0; stringIndex < vertexComponentStrings.length; stringIndex++) {
+				const vertexComponentString = vertexComponentStrings[stringIndex];
+				const vertexComponent = parseFloat(vertexComponentString);
 
-				vertices.push(float);
+				unparsedData[0].push(vertexComponent);
 			}
 		},
-		vn(parts, {unsortedNormals}) {
-			const normal = new Vector3(
-				parseFloat(parts[0]),
-				parseFloat(parts[1]),
-				parseFloat(parts[2]),
-			);
+		vn(normalComponentStrings, unparsedData) {
+			for (let stringIndex = 0; stringIndex < normalComponentStrings.length; stringIndex++) {
+				const normalComponentString = normalComponentStrings[stringIndex];
+				const normalComponent = parseFloat(normalComponentString);
 
-			unsortedNormals.push(...normal);
+				unparsedData[2].push(normalComponent);
+			}
 		},
-		/* vt(parts, {uvs}) {
-			const parsedParts = parts.map(parseFloat);
+		vt(uvComponentStrings, unparsedData) {
+			for (let stringIndex = 0; stringIndex < uvComponentStrings.length; stringIndex++) {
+				const uvComponentString = uvComponentStrings[stringIndex];
+				const uvComponent = parseFloat(uvComponentString);
 
-			uvs.push(parsedParts);
-		}, */
-		f(parts, {vertexIndices, unsortedNormals, normals, vertices}) {
-			const triangleCount = parts.length - 2;
-			const currentVertexCount = vertices.length / 3;
+				unparsedData[1].push(uvComponent);
+			}
+		},
+		f(faceVertexStrings, unparsedData) {
+			if (faceVertexStrings.length < 3 || faceVertexStrings.length > 4) {
+				throw new OBJUnhandledFaceError(faceVertexStrings.length);
+			}
 
-			for (let i = 0; i < triangleCount; i++) {
-				OBJParser.#addVertex(parts[0], currentVertexCount, {vertexIndices, unsortedNormals, normals});
-				OBJParser.#addVertex(parts[i + 1], currentVertexCount, {vertexIndices, unsortedNormals, normals});
-				OBJParser.#addVertex(parts[i + 2], currentVertexCount, {vertexIndices, unsortedNormals, normals});
+			/**
+			 * Number of triangles in the face. This can either be:
+			 * - 1 for a triangle (3 - 2)
+			 * - 2 for a polygon (4 - 2)
+			 */
+			const triangleCount = faceVertexStrings.length - 2;
+
+			for (let triangleIndex = 0; triangleIndex < triangleCount; triangleIndex++) {
+				// The provoking vertex is the same for every triangle the face is composed of
+				// For polygon faces: 0 1 2 then 0 2 3
+				OBJParser.#addVertex(faceVertexStrings[0], unparsedData);
+				OBJParser.#addVertex(faceVertexStrings[1 + triangleIndex], unparsedData);
+				OBJParser.#addVertex(faceVertexStrings[2 + triangleIndex], unparsedData);
 			}
 		},
 	};
 
 	/**
-	 * @param {String} face
-	 * @param {Number} vertexCount
+	 * @param {String} indexStringBlob
+	 * @param {UnparsedOBJData} unparsedData
 	 */
-	static #addVertex(face, vertexCount, {vertexIndices, unsortedNormals, normals}) {
-		const splittedFace = face.split("/");
-		let vertexIndex = parseInt(splittedFace[0]);
+	static #addVertex(indexStringBlob, unparsedData) {
+		const indexStrings = indexStringBlob.split("/");
 
-		if (vertexIndex < 0) {
-			vertexIndex += vertexCount;
-		}
+		for (let indexStringIndex = 0; indexStringIndex < indexStrings.length; indexStringIndex++) {
+			const indexString = indexStrings[indexStringIndex];
 
-		vertexIndex -= 1;
-
-		vertexIndices.push(vertexIndex);
-
-		/**
-		 * @todo Parse UVs
-		 */
-		// let uvIndex;
-
-		let normalIndex;
-
-		if (splittedFace.length === 3) {
-			normalIndex = parseInt(splittedFace[2]);
-
-			if (normalIndex < 0) {
-				normalIndex += vertexCount;
+			if (!indexString) {
+				// Encountered "//" case
+				continue;
 			}
 
-			normalIndex -= 1;
+			let index = parseInt(indexString);
 
-			const normal = new Vector3(
-				unsortedNormals[normalIndex * 3 + 0],
-				unsortedNormals[normalIndex * 3 + 1],
-				unsortedNormals[normalIndex * 3 + 2],
-			);
+			if (index < 0) {
+				index = index + unparsedData[indexStringIndex].length * 3;
+			}
 
-			normals.push(normal[0], normal[1], normal[2]);
+			index = index - 1;
+
+			unparsedData[indexStringIndex + 3].push(index);
 		}
 	}
 
@@ -94,23 +101,14 @@ export class OBJParser extends Parser {
 	 */
 	parse(text) {
 		const lines = text.split("\n");
-		const lineExpression = /(\w*)(?: )*(.*)/;
-		const vertices = [];
-		const vertexIndices = [];
-		const uvs = [
-			[0, 0],
-		];
-		const unsortedNormals = [];
-		const normals = [];
-		const vertexData = [
-			vertices,
-			uvs,
-			normals,
-		];
-		const webglVertexData = [
-			[], // Positions
-			[], // UVs
-			[], // Normals
+
+		const unparsedData = [
+			[], // Position components
+			[], // UV components
+			[], // Normal components
+			[], // Position indices
+			[], // UV indices
+			[], // Normal indices
 		];
 
 		for (let i = 0; i < lines.length; i++) {
@@ -126,7 +124,7 @@ export class OBJParser extends Parser {
 				continue;
 			}
 
-			const exec = lineExpression.exec(line);
+			const exec = OBJParser.#LINE_EXPRESSION.exec(line);
 
 			if (!exec) {
 				continue;
@@ -135,7 +133,7 @@ export class OBJParser extends Parser {
 			const keyword = exec[1];
 
 			if (!(keyword in OBJParser.#KEYWORDS_HANDLERS)) {
-				// console.warn(`Unhandled keyword "${keyword}" at line`, i + 1);
+				console.warn(`OBJParser: Unhandled keyword "${keyword}" at line`, i + 1);
 
 				continue;
 			}
@@ -143,7 +141,7 @@ export class OBJParser extends Parser {
 			const keywordHandler = OBJParser.#KEYWORDS_HANDLERS[keyword];
 			const lineSplits = line.split(/\s+/).slice(1);
 
-			keywordHandler(lineSplits, {vertices, vertexIndices, unsortedNormals, normals, uvs, vertexData, webglVertexData});
+			keywordHandler(lineSplits, unparsedData);
 		}
 
 		/**
@@ -151,9 +149,9 @@ export class OBJParser extends Parser {
 		 */
 		const data = {};
 
-		data.vertices = new Float32Array(vertices);
-		data.indices = new Uint32Array(vertexIndices);
-		data.normals = new Float32Array(normals);
+		data.vertices = new Float32Array(unparsedData[0]);
+		data.indices = new Uint32Array(unparsedData[3]);
+		data.normals = new Float32Array(unparsedData[2]);
 
 		return data;
 	}

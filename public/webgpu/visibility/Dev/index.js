@@ -540,8 +540,8 @@ async function createBunnyScene(renderer) {
 
 	const scene = new Scene();
 
-	scene.addMeshes(playerGeometry, [player]);
 	scene.addMeshes(bunnyGeometry, bunnies);
+	scene.addMeshes(playerGeometry, [player]);
 
 	return scene;
 }

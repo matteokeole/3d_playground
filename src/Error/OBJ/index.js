@@ -1,0 +1,1 @@
+export {OBJUnhandledFaceError} from "./OBJUnhandledFaceError.js";

@@ -24,6 +24,10 @@ fn main(in: In) -> @location(0) vec4f {
 	let testClusterIndex: u32 = visibility >> VISIBILITY_CLUSTER_MASK;
 
 	if (testClusterIndex == 0) {
+		if (VISUALIZATION_MODE == VISUALIZATION_MODE_DEPTH) {
+			return vec4f(1, 1, 1, 1);
+		}
+
 		return vec4f(0, 0, 0, 1);
 	}
 
@@ -100,18 +104,16 @@ fn visualizeFaceNormal(triangle: array<vec4f, 3>, world: mat4x4f) -> vec3f {
 }
 
 fn visualizeVertexNormal(triangle: array<vec4f, 3>, normals: array<vec3f, 3>, uv: vec2f, world: mat4x4f) -> vec3f {
-	// let a: vec4f = view.viewProjection * world * triangle[0];
-	// let b: vec4f = view.viewProjection * world * triangle[1];
-	// let c: vec4f = view.viewProjection * world * triangle[2];
-	// let p: vec2f = ndc(uv);
+	let a: vec4f = view.viewProjection * world * triangle[0];
+	let b: vec4f = view.viewProjection * world * triangle[1];
+	let c: vec4f = view.viewProjection * world * triangle[2];
+	let p: vec2f = ndc(uv);
 
-	return normals[0] + normals[1] + normals[2] / 3;
+	let derivatives: BarycentricDerivatives = computeBarycentricDerivatives(a, b, c, p, vec2f(view.viewport.zw));
 
-	// let derivatives: BarycentricDerivatives = computeBarycentricDerivatives(a, b, c, p, vec2f(view.viewport.zw));
+	let normal: vec3f = normalize(interpolate3x3(derivatives, normals[0], normals[1], normals[2]));
 
-	// let normal: vec3f = normalize(interpolate3x3(derivatives, normals[0], normals[1], normals[2]));
-
-	// return normal * 0.5 + 0.5;
+	return normal * 0.5 + 0.5;
 }
 
 fn visualizeBarycentricCoordinates(triangle: array<vec4f, 3>, uv: vec2f, world: mat4x4f) -> vec3f {
@@ -125,8 +127,6 @@ fn visualizeBarycentricCoordinates(triangle: array<vec4f, 3>, uv: vec2f, world: 
 	return derivatives.lambda;
 }
 
-// TODO: Fix inverted surfaceToLight?
-// The light is at the camera position
 fn visualizeFlatShading(triangle: array<vec4f, 3>, uv: vec2f, world: mat4x4f) -> vec3f {
 	let a: vec3f = triangle[0].xyz;
 	let b: vec3f = triangle[1].xyz;
@@ -134,10 +134,11 @@ fn visualizeFlatShading(triangle: array<vec4f, 3>, uv: vec2f, world: mat4x4f) ->
 	let surface: vec3f = vec3f(ndc(uv), (a.z + b.z + c.z) / 3);
 
 	let normal: vec3f = normalize(cross(b - a, c - a));
-	let surfaceToLight: vec3f = normalize(view.position);
+	const lightPosition: vec3f = vec3f(1, 1, 1);
+	let surfaceToLight: vec3f = normalize(lightPosition);
 
 	let shade: f32 = max(dot(surfaceToLight, normal), 0);
-	let color: vec3f = vec3f(0.2, 0.3, 0.7);
+	const color: vec3f = vec3f(0.5, 0.7, 0.3);
 
 	return color * shade;
 }

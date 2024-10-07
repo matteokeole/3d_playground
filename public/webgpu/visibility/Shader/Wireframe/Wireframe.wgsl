@@ -11,6 +11,12 @@ struct View {
 	position: vec3f,
 }
 
+struct Vertex {
+	position: vec3f,
+	normal: vec3f,
+	uv: vec2f,
+}
+
 struct Cluster {
 	meshIndex: u32,
 	materialIndex: u32,

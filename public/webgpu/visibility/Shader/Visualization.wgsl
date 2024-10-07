@@ -14,6 +14,12 @@ struct View {
 	position: vec3f,
 }
 
+struct Vertex {
+	position: vec3f,
+	normal: vec3f,
+	uv: vec2f,
+}
+
 struct Cluster {
 	meshIndex: u32,
 	materialIndex: u32,
@@ -149,7 +155,7 @@ fn fetchVertex(vertexBufferOffset: u32) -> vec4f {
 // Suzanne: last normal component is at index 8711
 // Bunny: first normal component is at index 8712
 fn fetchNormals(clusterIndex: u32, clusterTriangleIndex: u32, geometry: Geometry) -> array<vec3f, 3> {
-	let offset: u32 = clusterIndex * TRIANGLES_PER_CLUSTER * 9 + clusterTriangleIndex * 9;
+	let offset: u32 = clusterIndex * TRIANGLES_PER_CLUSTER * 9 + clusterTriangleIndex * 9; // TODO: Offset must be relative to current mesh
 
 	let normal0: vec3f = fetchNormal(geometry.normalBufferOffset + offset + 0 * 3);
 	let normal1: vec3f = fetchNormal(geometry.normalBufferOffset + offset + 1 * 3);
