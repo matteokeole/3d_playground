@@ -481,7 +481,8 @@ async function createBunnyScene(renderer) {
 	const textLoader = new TextLoader();
 	const objParser = new OBJParser();
 
-	const bunnyObjText = await textLoader.load("assets/models/Bunny/Bunny.obj");
+	// const bunnyObjText = await textLoader.load("assets/models/Bunny/bunny.obj");
+	const bunnyObjText = await textLoader.load("assets/models/living_room/living_room.obj");
 	const bunnyObj = objParser.parse(bunnyObjText);
 
 	///
@@ -504,8 +505,8 @@ async function createBunnyScene(renderer) {
 	const firstBunnyPosition = new Vector3(-2, -0.5, -2);
 	const bunnyOffset = 2;
 
-	for (let x = 0; x < 3; x++) {
-		for (let z = 0; z < 3; z++) {
+	for (let x = 0; x < 1; x++) {
+		for (let z = 0; z < 1; z++) {
 			const bunny = new StaticMesh({
 				geometry: bunnyGeometry,
 				material: null,
@@ -519,8 +520,8 @@ async function createBunnyScene(renderer) {
 				firstBunnyPosition[1],
 				firstBunnyPosition[2] + z * bunnyOffset,
 			));
-			bunny.getRotation()[0] += pitch;
-			bunny.getRotation()[1] += yaw;
+			// bunny.getRotation()[0] += pitch;
+			// bunny.getRotation()[1] += yaw;
 			bunny.updateWorld();
 
 			bunnies.push(bunny);
@@ -542,7 +543,7 @@ async function createBunnyScene(renderer) {
 
 	const scene = new Scene();
 
-	scene.addMeshes(floorGeometry, [floor]);
+	// scene.addMeshes(floorGeometry, [floor]);
 	scene.addMeshes(bunnyGeometry, bunnies);
 
 	return scene;

@@ -34,6 +34,20 @@ struct Geometry {
 	normalBufferOffset: u32, // Offset in indices where the geometry starts in the vertex normal buffer
 }
 
+struct Material {
+	ambient: vec3f,
+	diffuse: vec3f,
+	specular: vec3f,
+	shininess: f32,
+}
+
+struct Light {
+	position: vec3f,
+	ambient: vec3f,
+	diffuse: vec3f,
+	specular: vec3f,
+}
+
 struct Primitive {
 	vertex0: Vertex,
 	vertex0Position: vec4f,

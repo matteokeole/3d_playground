@@ -150,24 +150,56 @@ fn visualizeBlinnPhongShading(primitive: Primitive, uv: vec2f, world: mat4x4f) -
 	var normal: vec3f = interpolate3x3(derivatives, primitive.vertex0Normal, primitive.vertex1Normal, primitive.vertex2Normal);
 	normal = (world * vec4f(normal, 0)).xyz;
 
-	let lightPosition: vec3f = view.position;
-	const ambient: f32 = 0.1;
-	const objectColor: vec3f = vec3f(0.4, 0.4, 0.7);
-	const lightColor: vec3f = vec3f(1, 1, 1);
-	const shininess: f32 = 300;
+	let light: Light = Light(
+		view.position,
+		// vec3f(0, 10, 0), // Position
+		vec3f(0.2, 0.2, 0.2), // Ambient
+		vec3f(0.5, 0.5, 0.5), // Diffuse
+		vec3f(1, 1, 1), // Specular
+	);
 
-	let lightDirection: vec3f = normalize(lightPosition - fragPos);
+	// Emerald
+	/* const material: Material = Material(
+		vec3f(0.0215, 0.1745, 0.0215), // Ambient
+		vec3f(0.07568, 0.61424, 0.07568), // Diffuse
+		vec3f(0.633, 0.727811, 0.633), // Specular
+		0.6 * 128, // Shininess
+	); */
 
-	let diffuse: f32 = max(dot(normal, lightDirection), 0);
+	// Ruby
+	/* const material: Material = Material(
+		vec3f(0.1745, 0.01175, 0.01175), // Ambient
+		vec3f(0.61424, 0.04136, 0.04136), // Diffuse
+		vec3f(0.727811, 0.626959, 0.626959), // Specular
+		0.6 * 128, // Shininess
+	); */
 
-	const ambientVec: vec3f = lightColor * ambient;
-	let diffuseVec: vec3f = lightColor * diffuse;
+	// Gold
+	/* const material: Material = Material(
+		vec3f(0.24725, 0.1995, 0.0745), // Ambient
+		vec3f(0.75164, 0.60648, 0.22648), // Diffuse
+		vec3f(0.628281, 0.555802, 0.366065), // Specular
+		0.4 * 128, // Shininess
+	); */
 
-	let viewDirection: vec3f = normalize(view.position - fragPos);
+	// Cyan plastic
+	const material: Material = Material(
+		vec3f(0.0, 0.1, 0.06), // Ambient
+		vec3f(0.0, 0.50980392, 0.50980392), // Diffuse
+		vec3f(0.50196078, 0.50196078, 0.50196078), // Specular
+		0.25 * 128, // Shininess
+	);
+
+	let lightDirection: vec3f = normalize(light.position - fragPos); // Light position towards frag position
+	let viewDirection: vec3f = normalize(view.position - fragPos); // Viewer position towards frag position
 	let halfwayDirection: vec3f = normalize(lightDirection + viewDirection);
 
-	let specular: f32 = pow(max(dot(normal, halfwayDirection), 0), shininess) * 4;
-	let specularVec: vec3f = lightColor * specular;
+	let diff: f32 = max(dot(normal, lightDirection), 0);
+	let spec: f32 = pow(max(dot(normal, halfwayDirection), 0), material.shininess) * 4;
 
-	return objectColor * (ambientVec + diffuseVec + specularVec);
+	let ambient: vec3f = light.ambient * material.ambient;
+	let diffuse: vec3f = light.diffuse * material.diffuse * diff;
+	let specular: vec3f = light.specular * material.specular * spec;
+
+	return ambient + diffuse + specular;
 }

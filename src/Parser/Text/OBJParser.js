@@ -48,9 +48,21 @@ export class OBJParser extends Parser {
 				unparsedData[1].push(uvComponent);
 			}
 		},
+		/**
+		 * Constructs a face with the provided indices for each vertex.
+		 * Throws if a face has less than 3 vertices.
+		 * If a face has more than 4 vertices (living_room/living_room.obj has 2 faces with 16 vertices each),
+		 * it is skipped.
+		 * 
+		 * @throws {OBJUnhandledFaceError}
+		 */
 		f(faceVertexStrings, unparsedData) {
-			if (faceVertexStrings.length < 3 || faceVertexStrings.length > 4) {
+			if (faceVertexStrings.length < 3) {
 				throw new OBJUnhandledFaceError(faceVertexStrings.length);
+			}
+
+			if (faceVertexStrings.length > 4) {
+				return;
 			}
 
 			/**
@@ -99,6 +111,8 @@ export class OBJParser extends Parser {
 
 	/**
 	 * @param {String} text
+	 * 
+	 * @throws {Error}
 	 */
 	parse(text) {
 		const lines = text.split("\n");
