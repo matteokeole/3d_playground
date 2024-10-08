@@ -32,6 +32,7 @@ struct Mesh {
 struct Geometry {
 	vertexBufferOffset: u32, // Offset in indices where the geometry starts in the vertex position buffer
 	normalBufferOffset: u32, // Offset in indices where the geometry starts in the vertex normal buffer
+	normalCount: u32,
 }
 
 struct Material {
@@ -80,8 +81,12 @@ const VERTEX_POSITION_STRIDE: u32 = 3;
 const VERTEX_NORMAL_STRIDE: u32 = 3;
 
 const NEAR: f32 = 0.1;
-const FAR: f32 = 10;
+const FAR: f32 = 512; // HL1 scene
 
+///
+/// Translates an int to a normalized RGB color.
+/// Note: 0 is not visible with this hash.
+///
 fn intToColor(int: u32) -> vec3f {
 	var hash: u32 = murmurMix(int);
 	var color: vec3f = vec3f(

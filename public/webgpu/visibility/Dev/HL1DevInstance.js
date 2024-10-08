@@ -66,7 +66,7 @@ export class HL1DevInstance extends Instance {
 
 		// Velocity computation
 		{
-			// this.#addCorrectGravity(deltaTime);
+			this.#addCorrectGravity(deltaTime);
 
 			if (this.getActiveKeyCodes()["Space"] === true) {
 				if (this.#travellingMedium === "ground") {
@@ -86,14 +86,14 @@ export class HL1DevInstance extends Instance {
 
 				// Apply velocity
 				player.getPosition()[0] += this.#velocity[0] * deltaTime;
-				// player.getPosition[1] = 0;
+				player.getPosition[1] = 0;
 				player.getPosition()[2] += this.#velocity[2] * deltaTime;
 				player.updateWorld();
 			} else {
 				this.#airMove(deltaTime);
 			}
 
-			// this.#fixupGravityVelocity(deltaTime);
+			this.#fixupGravityVelocity(deltaTime);
 
 			if (this.#travellingMedium === "air") {
 				// Apply velocity
@@ -125,6 +125,7 @@ export class HL1DevInstance extends Instance {
 		scene.updateTriggers();
 
 		this.getDebugger().update({
+			"Instance": "HL1",
 			"Delta time": deltaTime.toPrecision(3),
 			"Camera": "---------------",
 			"..Right": camera.getRight(),

@@ -53,79 +53,113 @@ function createCornellBoxScene() {
 	///
 
 	const floorGeometry = new PolytopeGeometry({
-		indices: Uint32Array.of(
-			0, 1, 2,
-			0, 2, 3,
-		),
-		vertices: Float32Array.of(
+		positions: Float32Array.of(
 			552.8, 0.0,   0.0,
 			  0.0, 0.0,   0.0,
 			  0.0, 0.0, 559.2,
 			549.6, 0.0, 559.2,
 		),
-	});
-	const lightGeometry = new PolytopeGeometry({
-		indices: Uint32Array.of(
+		positionIndices: Uint32Array.of(
 			0, 1, 2,
 			0, 2, 3,
 		),
-		vertices: Float32Array.of(
+		normals: Float32Array.of(),
+		normalIndices: Uint32Array.of(),
+	});
+	const lightGeometry = new PolytopeGeometry({
+		positions: Float32Array.of(
 			343.0, 548.8, 227.0,
 			343.0, 548.8, 332.0,
 			213.0, 548.8, 332.0,
 			213.0, 548.8, 227.0,
 		),
-	});
-	const ceilingGeometry = new PolytopeGeometry({
-		indices: Uint32Array.of(
+		positionIndices: Uint32Array.of(
 			0, 1, 2,
 			0, 2, 3,
 		),
-		vertices: Float32Array.of(
+		normals: Float32Array.of(),
+		normalIndices: Uint32Array.of(),
+	});
+	const ceilingGeometry = new PolytopeGeometry({
+		positions: Float32Array.of(
 			556.0, 548.8,   0.0,
 			556.0, 548.8, 559.2,
 			  0.0, 548.8, 559.2,
 			  0.0, 548.8,   0.0,
 		),
-	});
-	const backWallGeometry = new PolytopeGeometry({
-		indices: Uint32Array.of(
+		positionIndices: Uint32Array.of(
 			0, 1, 2,
 			0, 2, 3,
 		),
-		vertices: Float32Array.of(
+		normals: Float32Array.of(),
+		normalIndices: Uint32Array.of(),
+	});
+	const backWallGeometry = new PolytopeGeometry({
+		positions: Float32Array.of(
 			549.6,   0.0, 559.2,
 			  0.0,   0.0, 559.2,
 			  0.0, 548.8, 559.2,
 			556.0, 548.8, 559.2,
 		),
-	});
-	const rightWallGeometry = new PolytopeGeometry({
-		indices: Uint32Array.of(
+		positionIndices: Uint32Array.of(
 			0, 1, 2,
 			0, 2, 3,
 		),
-		vertices: Float32Array.of(
+		normals: Float32Array.of(),
+		normalIndices: Uint32Array.of(),
+	});
+	const rightWallGeometry = new PolytopeGeometry({
+		positions: Float32Array.of(
 			0.0,   0.0, 559.2,
 			0.0,   0.0,   0.0,
 			0.0, 548.8,   0.0,
 			0.0, 548.8, 559.2,
 		),
-	});
-	const leftWallGeometry = new PolytopeGeometry({
-		indices: Uint32Array.of(
+		positionIndices: Uint32Array.of(
 			0, 1, 2,
 			0, 2, 3,
 		),
-		vertices: Float32Array.of(
+		normals: Float32Array.of(),
+		normalIndices: Uint32Array.of(),
+	});
+	const leftWallGeometry = new PolytopeGeometry({
+		positions: Float32Array.of(
 			552.8,   0.0,   0.0,
 			549.6,   0.0, 559.2,
 			556.0, 548.8, 559.2,
 			556.0, 548.8,   0.0,
 		),
+		positionIndices: Uint32Array.of(
+			0, 1, 2,
+			0, 2, 3,
+		),
+		normals: Float32Array.of(),
+		normalIndices: Uint32Array.of(),
 	});
 	const shortBlockGeometry = new PolytopeGeometry({
-		indices: Uint32Array.of(
+		positions: Float32Array.of(
+			130.0, 165.0,  65.0,
+			82.0,  165.0, 225.0,
+			240.0, 165.0, 272.0,
+			290.0, 165.0, 114.0,
+			290.0,   0.0, 114.0,
+			290.0, 165.0, 114.0,
+			240.0, 165.0, 272.0,
+			240.0,   0.0, 272.0,
+			130.0,   0.0,  65.0,
+			130.0, 165.0,  65.0,
+			290.0, 165.0, 114.0,
+			290.0,   0.0, 114.0,
+			82.0,    0.0, 225.0,
+			82.0,  165.0, 225.0,
+			130.0, 165.0,  65.0,
+			130.0,   0.0,  65.0,
+			240.0,   0.0, 272.0,
+			240.0, 165.0, 272.0,
+			82.0,  165.0, 225.0,
+			82.0,    0.0, 225.0,
+		),
+		positionIndices: Uint32Array.of(
 			0, 1, 2,
 			0, 2, 3,
 			4, 5, 6,
@@ -137,31 +171,33 @@ function createCornellBoxScene() {
 			16, 17, 18,
 			16, 18, 19,
 		),
-		vertices: Float32Array.of(
-			130.0, 165.0,  65.0,
-			82.0,  165.0, 225.0,
-			240.0, 165.0, 272.0,
-			290.0, 165.0, 114.0,
-			290.0,   0.0, 114.0,
-			290.0, 165.0, 114.0,
-			240.0, 165.0, 272.0,
-			240.0,   0.0, 272.0,
-			130.0,   0.0,  65.0,
-			130.0, 165.0,  65.0,
-			290.0, 165.0, 114.0,
-			290.0,   0.0, 114.0,
-			82.0,    0.0, 225.0,
-			82.0,  165.0, 225.0,
-			130.0, 165.0,  65.0,
-			130.0,   0.0,  65.0,
-			240.0,   0.0, 272.0,
-			240.0, 165.0, 272.0,
-			82.0,  165.0, 225.0,
-			82.0,    0.0, 225.0,
-		),
+		normals: Float32Array.of(),
+		normalIndices: Uint32Array.of(),
 	});
 	const tallBlockGeometry = new PolytopeGeometry({
-		indices: Uint32Array.of(
+		positions: Float32Array.of(
+			423.0, 330.0, 247.0,
+			265.0, 330.0, 296.0,
+			314.0, 330.0, 456.0,
+			472.0, 330.0, 406.0,
+			423.0,   0.0, 247.0,
+			423.0, 330.0, 247.0,
+			472.0, 330.0, 406.0,
+			472.0,   0.0, 406.0,
+			472.0,   0.0, 406.0,
+			472.0, 330.0, 406.0,
+			314.0, 330.0, 456.0,
+			314.0,   0.0, 456.0,
+			314.0,   0.0, 456.0,
+			314.0, 330.0, 456.0,
+			265.0, 330.0, 296.0,
+			265.0,   0.0, 296.0,
+			265.0,   0.0, 296.0,
+			265.0, 330.0, 296.0,
+			423.0, 330.0, 247.0,
+			423.0,   0.0, 247.0,
+		),
+		positionIndices: Uint32Array.of(
 			0, 1, 2,
 			0, 2, 3,
 			4, 5, 6,
@@ -173,42 +209,54 @@ function createCornellBoxScene() {
 			16, 17, 18,
 			16, 18, 19,
 		),
-		vertices: Float32Array.of(
-			423.0, 330.0, 247.0,
-			265.0, 330.0, 296.0,
-			314.0, 330.0, 456.0,
-			472.0, 330.0, 406.0,
-			423.0,   0.0, 247.0,
-			423.0, 330.0, 247.0,
-			472.0, 330.0, 406.0,
-			472.0,   0.0, 406.0,
-			472.0,   0.0, 406.0,
-			472.0, 330.0, 406.0,
-			314.0, 330.0, 456.0,
-			314.0,   0.0, 456.0,
-			314.0,   0.0, 456.0,
-			314.0, 330.0, 456.0,
-			265.0, 330.0, 296.0,
-			265.0,   0.0, 296.0,
-			265.0,   0.0, 296.0,
-			265.0, 330.0, 296.0,
-			423.0, 330.0, 247.0,
-			423.0,   0.0, 247.0,
-		),
+		normals: Float32Array.of(),
+		normalIndices: Uint32Array.of(),
 	});
 
 	///
 	/// Meshes
 	///
 
-	const floor = new Mesh(floorGeometry, null);
-	const light = new Mesh(lightGeometry, null);
-	const ceiling = new Mesh(ceilingGeometry, null);
-	const backWall = new Mesh(backWallGeometry, null);
-	const rightWall = new Mesh(rightWallGeometry, null);
-	const leftWall = new Mesh(leftWallGeometry, null);
-	const shortBlock = new Mesh(shortBlockGeometry, null);
-	const tallBlock = new Mesh(tallBlockGeometry, null);
+	const floor = new Mesh({
+		solid: false,
+		geometry: floorGeometry,
+		material: null,
+	});
+	const light = new Mesh({
+		solid: false,
+		geometry: lightGeometry,
+		material: null,
+	});
+	const ceiling = new Mesh({
+		solid: false,
+		geometry: ceilingGeometry,
+		material: null,
+	});
+	const backWall = new Mesh({
+		solid: false,
+		geometry: backWallGeometry,
+		material: null,
+	});
+	const rightWall = new Mesh({
+		solid: false,
+		geometry: rightWallGeometry,
+		material: null,
+	});
+	const leftWall = new Mesh({
+		solid: false,
+		geometry: leftWallGeometry,
+		material: null,
+	});
+	const shortBlock = new Mesh({
+		solid: false,
+		geometry: shortBlockGeometry,
+		material: null,
+	});
+	const tallBlock = new Mesh({
+		solid: false,
+		geometry: tallBlockGeometry,
+		material: null,
+	});
 
 	///
 	/// Scene

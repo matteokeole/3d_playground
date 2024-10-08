@@ -7,7 +7,7 @@ import {OBJParser} from "../../../../src/Parser/Text/OBJParser.js";
 import {Scene} from "../../../../src/Scene/index.js";
 import {FRAMES_PER_SECOND, PLAYER_COLLISION_HULL} from "../../../index.js";
 import {VisibilityRenderer} from "../VisibilityRenderer.js";
-import {LookAroundDevInstance} from "./LookAroundDevInstance.js";
+import {FreecamDevInstance} from "./FreecamDevInstance.js";
 import {Door} from "./Door/Door.js";
 import {Player} from "./Player/Player.js";
 import {ThirdPersonCamera} from "./ThirdPersonCamera.js";
@@ -16,7 +16,7 @@ import {DangerousTrigger} from "./Trigger/DangerousTrigger.js";
 export default async function() {
 	const canvas = document.createElement("canvas");
 	const renderer = new VisibilityRenderer(canvas);
-	const instance = new LookAroundDevInstance({
+	const instance = new FreecamDevInstance({
 		renderer,
 		framesPerSecond: FRAMES_PER_SECOND,
 	});
@@ -94,20 +94,22 @@ async function createSourceScene(renderer) {
 
 	const planeGeometry = new BoxGeometry(new Vector3(2560, 0, 2560));
 	const squareWallGeometry = new PolytopeGeometry({
-		vertices: Float32Array.of(
+		positions: Float32Array.of(
 			0,   0,   0,
 			0,   128, 0,
 			128, 128, 0,
 			128, 0,   0,
 		),
-		indices: Uint32Array.of(
+		positionIndices: Uint32Array.of(
 			0, 1, 2,
 			0, 2, 3,
 		),
+		normals: Float32Array.of(),
+		normalIndices: Uint32Array.of(),
 	});
 	const boxGeometry = new BoxGeometry(new Vector3(1, 1, 1));
 	const slopeGeometry = new PolytopeGeometry({
-		vertices: Float32Array.of(
+		positions: Float32Array.of(
 			-0.5,  0.5,  0.5,
 			 0.5,  0.5,  0.5,
 			-0.5, -0.5, -0.8,
@@ -115,7 +117,7 @@ async function createSourceScene(renderer) {
 			-0.5, -0.5,  0.5,
 			 0.5, -0.5,  0.5,
 		),
-		indices: Uint32Array.of(
+		positionIndices: Uint32Array.of(
 			0, 1, 2,
 			1, 3, 2,
 			0, 2, 4,
@@ -125,6 +127,8 @@ async function createSourceScene(renderer) {
 			2, 3, 4,
 			3, 5, 4,
 		),
+		normals: Float32Array.of(),
+		normalIndices: Uint32Array.of(),
 	});
 	const playerGeometry = new BoxGeometry(PLAYER_COLLISION_HULL);
 	const doorGeometry = new BoxGeometry(new Vector3(60, 100, 4));
@@ -316,7 +320,7 @@ async function createSourceScene(renderer) {
 	scene.addMeshes(planeGeometry, [plane]);
 	scene.addMeshes(slopeGeometry, [slope]);
 	scene.addMeshes(boxGeometry, [leftBox, bridge, centerBox, rightBox]);
-	// scene.addMeshes(squareWallGeometry, [squareWall2, squareWall3, squareWall4]);
+	scene.addMeshes(squareWallGeometry, [squareWall2, squareWall3, squareWall4]);
 	scene.addMeshes(verticalDoorFrameGeometry, [leftDoorFrame, rightDoorFrame]);
 	scene.addMeshes(horizontalDoorFrameGeometry, [topDoorFrame]);
 	scene.addMeshes(doorGeometry, [door]);
@@ -348,7 +352,7 @@ async function createIrlScene(renderer) {
 	const planeGeometry = new BoxGeometry(new Vector3(6, 0, 6));
 	const boxGeometry = new BoxGeometry(new Vector3(1, 1, 1));
 	const slopeGeometry = new PolytopeGeometry({
-		vertices: Float32Array.of(
+		positions: Float32Array.of(
 			-0.5,  0.5,  0.5,
 			 0.5,  0.5,  0.5,
 			-0.5, -0.5, -0.8,
@@ -356,7 +360,7 @@ async function createIrlScene(renderer) {
 			-0.5, -0.5,  0.5,
 			 0.5, -0.5,  0.5,
 		),
-		indices: Uint32Array.of(
+		positionIndices: Uint32Array.of(
 			0, 1, 2,
 			1, 3, 2,
 			0, 2, 4,
@@ -366,6 +370,8 @@ async function createIrlScene(renderer) {
 			2, 3, 4,
 			3, 5, 4,
 		),
+		normals: Float32Array.of(),
+		normalIndices: Uint32Array.of(),
 	});
 	const playerGeometry = new BoxGeometry(new Vector3(0.45, 1.75, 0.45));
 
@@ -481,8 +487,7 @@ async function createBunnyScene(renderer) {
 	const textLoader = new TextLoader();
 	const objParser = new OBJParser();
 
-	// const bunnyObjText = await textLoader.load("assets/models/Bunny/bunny.obj");
-	const bunnyObjText = await textLoader.load("assets/models/living_room/living_room.obj");
+	const bunnyObjText = await textLoader.load("assets/models/Bunny/bunny.obj");
 	const bunnyObj = objParser.parse(bunnyObjText);
 
 	///
@@ -505,8 +510,8 @@ async function createBunnyScene(renderer) {
 	const firstBunnyPosition = new Vector3(-2, -0.5, -2);
 	const bunnyOffset = 2;
 
-	for (let x = 0; x < 1; x++) {
-		for (let z = 0; z < 1; z++) {
+	for (let x = 0; x < 3; x++) {
+		for (let z = 0; z < 3; z++) {
 			const bunny = new StaticMesh({
 				geometry: bunnyGeometry,
 				material: null,
@@ -520,8 +525,8 @@ async function createBunnyScene(renderer) {
 				firstBunnyPosition[1],
 				firstBunnyPosition[2] + z * bunnyOffset,
 			));
-			// bunny.getRotation()[0] += pitch;
-			// bunny.getRotation()[1] += yaw;
+			bunny.getRotation()[0] += pitch;
+			bunny.getRotation()[1] += yaw;
 			bunny.updateWorld();
 
 			bunnies.push(bunny);
@@ -543,7 +548,7 @@ async function createBunnyScene(renderer) {
 
 	const scene = new Scene();
 
-	// scene.addMeshes(floorGeometry, [floor]);
+	scene.addMeshes(floorGeometry, [floor]);
 	scene.addMeshes(bunnyGeometry, bunnies);
 
 	return scene;
@@ -551,9 +556,9 @@ async function createBunnyScene(renderer) {
 
 function createCamera() {
 	const camera = new ThirdPersonCamera({
-		position: new Vector3(0, 5, 0),
+		position: new Vector3(0, 0, 0),
 		distance: 0,
-		fieldOfView: 60,
+		fieldOfView: 75,
 		nearClipPlane: 0.1,
 		farClipPlane: 1000,
 	});

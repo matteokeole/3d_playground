@@ -137,10 +137,10 @@ export class BoxGeometry extends Geometry {
 	 */
 	constructor(size) {
 		super({
-			positions: BoxGeometry.#VERTEX_POSITIONS,
-			positionIndices: BoxGeometry.#VERTEX_POSITION_INDICES,
-			normals: BoxGeometry.#VERTEX_NORMALS,
-			normalIndices: BoxGeometry.#VERTEX_NORMAL_INDICES,
+			positions: new Float32Array(BoxGeometry.#VERTEX_POSITIONS),
+			positionIndices: new Uint32Array(BoxGeometry.#VERTEX_POSITION_INDICES),
+			normals: new Float32Array(BoxGeometry.#VERTEX_NORMALS),
+			normalIndices: new Uint32Array(BoxGeometry.#VERTEX_NORMAL_INDICES),
 		});
 
 		this.#size = size;

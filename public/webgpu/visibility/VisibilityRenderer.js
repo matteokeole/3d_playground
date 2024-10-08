@@ -308,7 +308,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 
 	#createGeometryStorageBuffer() {
 		const geometries = this._scene.getGeometries();
-		const GEOMETRY_STRIDE = 2;
+		const GEOMETRY_STRIDE = 3;
 
 		const geometryStorageBuffer = this._device.createBuffer({
 			label: "Geometry",
@@ -324,12 +324,15 @@ export class VisibilityRenderer extends WebGPURenderer {
 
 		for (let i = 0; i < geometries.length; i++) {
 			const geometry = geometries[i];
+			const vertexPositionCount = geometry.getPositions().length / 3;
+			const vertexNormalCount = geometry.getNormals().length / 3;
 
 			viewAsU32[i * GEOMETRY_STRIDE + 0] = vertexOffset;
 			viewAsU32[i * GEOMETRY_STRIDE + 1] = normalOffset;
+			viewAsU32[i * GEOMETRY_STRIDE + 2] = vertexNormalCount;
 
-			vertexOffset += geometry.getPositions().length / 3;
-			normalOffset += geometry.getNormals().length / 3;
+			vertexOffset += vertexPositionCount;
+			normalOffset += vertexNormalCount;
 		}
 
 		geometryStorageBuffer.unmap();

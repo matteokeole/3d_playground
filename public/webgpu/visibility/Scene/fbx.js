@@ -49,10 +49,16 @@ export async function createScene() {
 	}
 
 	const geometry = new PolytopeGeometry({
-		vertices,
-		indices: triangleIndices,
+		positions: vertices,
+		positionIndices: triangleIndices,
+		normals: Float32Array.of(),
+		normalIndices: Uint32Array.of(),
 	});
-	const mesh = new Mesh(geometry, null);
+	const mesh = new Mesh({
+		solid: false,
+		geometry,
+		material: null,
+	});
 
 	mesh.setPosition(new Vector3(0, 0, 2));
 	mesh.setRotation(new Vector3(-PI / 2, 0, PI / 2));

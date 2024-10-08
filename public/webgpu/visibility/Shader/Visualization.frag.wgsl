@@ -50,13 +50,13 @@ fn main(in: In) -> @location(0) vec4f {
 		color = intToColor(triangleIndex);
 	}
 	else if (VISUALIZATION_MODE == VISUALIZATION_MODE_CLUSTER) {
-		color = intToColor(clusterIndex);
+		color = intToColor(clusterIndex + 1);
 	}
 	else if (VISUALIZATION_MODE == VISUALIZATION_MODE_MESH) {
-		color = intToColor(cluster.meshIndex);
+		color = intToColor(cluster.meshIndex + 1);
 	}
 	else if (VISUALIZATION_MODE == VISUALIZATION_MODE_GEOMETRY) {
-		color = intToColor(mesh.geometryIndex);
+		color = intToColor(mesh.geometryIndex + 1);
 	}
 	else if (VISUALIZATION_MODE == VISUALIZATION_MODE_DEPTH) {
 		let depth: f32 = textureLoad(depthTexture, uv, 0);
@@ -68,6 +68,10 @@ fn main(in: In) -> @location(0) vec4f {
 		color = visualizeFaceNormal(primitive, mesh.world);
 	}
 	else if (VISUALIZATION_MODE == VISUALIZATION_MODE_VERTEX_NORMAL) {
+		if (geometry.normalCount == 0) {
+			return vec4f(0, 0, 0, 1);
+		}
+
 		color = visualizeVertexNormal(primitive, uvf, mesh.world);
 	}
 	else if (VISUALIZATION_MODE == VISUALIZATION_MODE_BARYCENTRIC_COORDINATES) {
@@ -86,9 +90,11 @@ fn main(in: In) -> @location(0) vec4f {
 }
 
 fn visualizeFaceNormal(primitive: Primitive, world: mat4x4f) -> vec3f {
-	let a: vec3f = primitive.vertex0Position.xyz;
-	let b: vec3f = primitive.vertex1Position.xyz;
-	let c: vec3f = primitive.vertex2Position.xyz;
+	// Vertices must be multiplied by the model matrix
+	// because of possible rotations on the mesh
+	let a: vec3f = (world * primitive.vertex0Position).xyz;
+	let b: vec3f = (world * primitive.vertex1Position).xyz;
+	let c: vec3f = (world * primitive.vertex2Position).xyz;
 
 	let normal: vec3f = normalize(cross(b - a, c - a));
 
@@ -103,7 +109,9 @@ fn visualizeVertexNormal(primitive: Primitive, uv: vec2f, world: mat4x4f) -> vec
 
 	let derivatives: BarycentricDerivatives = computeBarycentricDerivatives(a, b, c, p, vec2f(view.viewport.zw));
 
-	let normal: vec3f = normalize(interpolate3x3(derivatives, primitive.vertex0Normal, primitive.vertex1Normal, primitive.vertex2Normal));
+	// TODO: Use normal matrix from geometry
+	var normal: vec3f = interpolate3x3(derivatives, primitive.vertex0Normal, primitive.vertex1Normal, primitive.vertex2Normal);
+	normal = (world * vec4f(normal, 0)).xyz;
 
 	return normal * 0.5 + 0.5;
 }
@@ -119,6 +127,7 @@ fn visualizeBarycentricCoordinates(primitive: Primitive, uv: vec2f, world: mat4x
 	return derivatives.lambda;
 }
 
+// TODO: Fix incorrect lighting
 fn visualizeFlatShading(primitive: Primitive, uv: vec2f, world: mat4x4f) -> vec3f {
 	let a: vec3f = primitive.vertex0Position.xyz;
 	let b: vec3f = primitive.vertex1Position.xyz;
@@ -126,8 +135,7 @@ fn visualizeFlatShading(primitive: Primitive, uv: vec2f, world: mat4x4f) -> vec3
 	let surface: vec3f = vec3f(ndc(uv), (a.z + b.z + c.z) / 3);
 
 	let normal: vec3f = normalize(cross(b - a, c - a));
-	const lightPosition: vec3f = vec3f(1, 1, 1);
-	let surfaceToLight: vec3f = normalize(lightPosition);
+	let surfaceToLight: vec3f = normalize(view.position);
 
 	let shade: f32 = max(dot(surfaceToLight, normal), 0);
 	const color: vec3f = vec3f(0.5, 0.7, 0.3);
