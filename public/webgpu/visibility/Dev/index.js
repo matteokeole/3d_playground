@@ -1,7 +1,7 @@
 import {BoxGeometry, Geometry, PolytopeGeometry} from "../../../../src/Geometry/index.js";
 import {Hull} from "../../../../src/Hull/index.js";
 import {TextLoader} from "../../../../src/Loader/TextLoader.js";
-import {Matrix4, Vector2, Vector3, Vector4} from "../../../../src/math/index.js";
+import {Matrix4, rad, Vector2, Vector3, Vector4} from "../../../../src/math/index.js";
 import {DynamicMesh, StaticMesh} from "../../../../src/Mesh/index.js";
 import {OBJParser} from "../../../../src/Parser/Text/OBJParser.js";
 import {Scene} from "../../../../src/Scene/index.js";
@@ -488,13 +488,13 @@ async function createBunnyScene(renderer) {
 	/// Geometries
 	///
 
+	const floorGeometry = new BoxGeometry(new Vector3(8, 0, 8));
 	const bunnyGeometry = new Geometry({
 		positions: bunnyObj.vertices,
 		positionIndices: bunnyObj.vertexIndices,
 		normals: bunnyObj.normals,
 		normalIndices: bunnyObj.normalIndices,
 	});
-	const playerGeometry = new BoxGeometry(new Vector3(0.45, 1.75, 0.45));
 
 	///
 	/// Meshes
@@ -511,25 +511,30 @@ async function createBunnyScene(renderer) {
 				material: null,
 				debugName: `bunny-${x}-${z}`,
 			});
+			const pitch = rad(Math.random() * 180);
+			const yaw = rad(Math.random() * 180);
+
 			bunny.setPosition(new Vector3(
 				firstBunnyPosition[0] + x * bunnyOffset,
 				firstBunnyPosition[1],
 				firstBunnyPosition[2] + z * bunnyOffset,
 			));
+			bunny.getRotation()[0] += pitch;
+			bunny.getRotation()[1] += yaw;
 			bunny.updateWorld();
 
 			bunnies.push(bunny);
 		}
 	}
 
-	const player = new Player({
+	const floor = new StaticMesh({
 		solid: false,
-		geometry: playerGeometry,
+		geometry: floorGeometry,
 		material: null,
-		debugName: "player",
+		debugName: "floor",
 	});
-	player.setPosition(new Vector3(0, 0, 0));
-	player.updateWorld();
+	floor.setPosition(new Vector3(0, -2.5, 0));
+	floor.updateWorld();
 
 	///
 	/// Scene
@@ -537,8 +542,8 @@ async function createBunnyScene(renderer) {
 
 	const scene = new Scene();
 
+	scene.addMeshes(floorGeometry, [floor]);
 	scene.addMeshes(bunnyGeometry, bunnies);
-	// scene.addMeshes(playerGeometry, [player]);
 
 	return scene;
 }

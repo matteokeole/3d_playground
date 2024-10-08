@@ -173,9 +173,9 @@ export class VisibilityRenderer extends WebGPURenderer {
 		const viewUniformBuffer = this._device.createBuffer({
 			label: "View uniform",
 			size:
-				4  * Uint32Array.BYTES_PER_ELEMENT +
+				 4 * Uint32Array.BYTES_PER_ELEMENT +
 				16 * Float32Array.BYTES_PER_ELEMENT +
-				4  * Float32Array.BYTES_PER_ELEMENT,
+				 4 * Float32Array.BYTES_PER_ELEMENT,
 			usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
 		});
 
@@ -186,7 +186,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 		const vertexBuffer = this._scene.getClusteredMeshes().vertexPositionBuffer;
 
 		const vertexPositionBuffer = this._device.createBuffer({
-			label: "Vertex buffer",
+			label: "Vertex position",
 			size: vertexBuffer.byteLength,
 			usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
 			mappedAtCreation: true,
@@ -200,6 +200,26 @@ export class VisibilityRenderer extends WebGPURenderer {
 		vertexPositionBuffer.unmap();
 
 		return vertexPositionBuffer;
+	}
+
+	#createVertexNormalBuffer() {
+		const normalBuffer = this._scene.getClusteredMeshes().vertexNormalBuffer;
+
+		const vertexNormalBuffer = this._device.createBuffer({
+			label: "Vertex normal",
+			size: normalBuffer.byteLength,
+			usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+			mappedAtCreation: true,
+		});
+
+		const mappedRange = vertexNormalBuffer.getMappedRange();
+		const viewAsF32 = new Float32Array(mappedRange);
+
+		viewAsF32.set(normalBuffer);
+
+		vertexNormalBuffer.unmap();
+
+		return vertexNormalBuffer;
 	}
 
 	#createIndexStorageBuffer() {
@@ -255,55 +275,6 @@ export class VisibilityRenderer extends WebGPURenderer {
 		indirectBuffer.unmap();
 
 		return indirectBuffer;
-	}
-
-	#createVertexNormalBuffer() {
-		const geometries = this._scene.getGeometries();
-		let normalComponentCount = 0;
-
-		for (let i = 0; i < geometries.length; i++) {
-			const geometry = geometries[i];
-			const normals = geometry.getNormals();
-
-			if (normals.length === 0) {
-				console.warn("Found geometry without normals.");
-
-				const vertexNormalBuffer = this._device.createBuffer({
-					label: "Normal buffer",
-					size: 3 * Float32Array.BYTES_PER_ELEMENT,
-					usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-				});
-
-				return vertexNormalBuffer;
-			}
-
-			normalComponentCount += geometry.getNormals().length;
-		}
-
-		const vertexNormalBuffer = this._device.createBuffer({
-			label: "Normal buffer",
-			size: normalComponentCount * Float32Array.BYTES_PER_ELEMENT,
-			usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-			mappedAtCreation: true,
-		});
-
-		const mappedRange = vertexNormalBuffer.getMappedRange();
-		const viewAsF32 = new Float32Array(mappedRange);
-
-		let offset = 0;
-
-		for (let i = 0; i < geometries.length; i++) {
-			const geometry = geometries[i];
-			const normals = geometry.getNormals();
-
-			viewAsF32.set(normals, offset);
-
-			offset += normals.length;
-		}
-
-		vertexNormalBuffer.unmap();
-
-		return vertexNormalBuffer;
 	}
 
 	#createClusterStorageBuffer() {
@@ -368,34 +339,24 @@ export class VisibilityRenderer extends WebGPURenderer {
 
 	#createMeshStorageBuffer() {
 		const meshes = this._scene.getMeshes();
+		const MESH_STRIDE = 20;
 
 		const meshStorageBuffer = this._device.createBuffer({
 			label: "Mesh",
-			size: meshes.length * 20 * Float32Array.BYTES_PER_ELEMENT,
+			size: meshes.length * MESH_STRIDE * Float32Array.BYTES_PER_ELEMENT,
 			usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
 			mappedAtCreation: true,
 		});
 
 		const mappedRange = meshStorageBuffer.getMappedRange();
-		const meshStorageBufferMap = new Float32Array(mappedRange);
+		const viewAsF32 = new Float32Array(mappedRange);
+		const viewAsU32 = new Uint32Array(mappedRange);
 
-		/**
-		 * @todo Refactor 2 different buffer views
-		 */
-		// Set mesh world
 		for (let i = 0; i < meshes.length; i++) {
 			const mesh = meshes[i];
 
-			meshStorageBufferMap.set(mesh.getWorld(), i * 20);
-		}
-
-		const meshStorageBufferMap2 = new Uint32Array(mappedRange);
-
-		// Set mesh geometry index
-		for (let i = 0; i < meshes.length; i++) {
-			const mesh = meshes[i];
-
-			meshStorageBufferMap2[i * 20 + 16] = mesh.getGeometryIndex();
+			viewAsF32.set(mesh.getWorld(), i * MESH_STRIDE);
+			viewAsU32[i * MESH_STRIDE + 16] = mesh.getGeometryIndex();
 		}
 
 		meshStorageBuffer.unmap();

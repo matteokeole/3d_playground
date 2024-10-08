@@ -10,20 +10,19 @@ import {Matrix4, Vector2, Vector3} from "../math/index.js";
  * @property {Float32Array} [uvs]
  */
 
-/**
- * @abstract
- */
 export class Geometry {
 	/**
-	 * @param {Vector3} anchor1
-	 * @param {Vector3} anchor2
-	 * @param {Vector3} anchor3
+	 * Creates a normal using 3 vertices from a face.
+	 * 
+	 * @param {Vector3} a
+	 * @param {Vector3} b
+	 * @param {Vector3} c
 	 */
-	static getNormal(anchor1, anchor2, anchor3) {
-		const u = new Vector3(anchor2).subtract(anchor1);
-		const v = new Vector3(anchor3).subtract(anchor1);
+	static getNormal(a, b, c) {
+		const ab = new Vector3(b).subtract(a);
+		const ac = new Vector3(c).subtract(a);
 
-		return u.cross(v).normalize();
+		return ab.cross(ac).normalize();
 	}
 
 	/**

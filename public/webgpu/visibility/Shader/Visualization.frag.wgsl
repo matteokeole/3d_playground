@@ -143,11 +143,12 @@ fn visualizeBlinnPhongShading(primitive: Primitive, uv: vec2f, world: mat4x4f) -
 
 	let derivatives: BarycentricDerivatives = computeBarycentricDerivatives(a, b, c, p, vec2f(view.viewport.zw));
 
-	let normal: vec3f = interpolate3x3(derivatives, primitive.vertex0Normal, primitive.vertex1Normal, primitive.vertex2Normal);
-
 	var fragPos: vec3f = interpolate3x3(derivatives, primitive.vertex0Position.xyz, primitive.vertex1Position.xyz, primitive.vertex2Position.xyz);
-
 	fragPos = (world * vec4f(fragPos, 1)).xyz;
+
+	// TODO: Use normal matrix from geometry
+	var normal: vec3f = interpolate3x3(derivatives, primitive.vertex0Normal, primitive.vertex1Normal, primitive.vertex2Normal);
+	normal = (world * vec4f(normal, 0)).xyz;
 
 	let lightPosition: vec3f = view.position;
 	const ambient: f32 = 0.1;
