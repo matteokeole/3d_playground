@@ -68,10 +68,6 @@ export class Instance extends _Instance {
 		});
 	}
 
-	_render() {
-		this._renderer.render();
-	}
-
 	/**
 	 * @param {Number} deltaTime
 	 * @param {Vector3} velocity

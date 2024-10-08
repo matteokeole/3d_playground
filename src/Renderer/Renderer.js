@@ -30,6 +30,7 @@ export class Renderer {
 	_camera;
 
 	#isPointerLocked;
+	#canRender;
 
 	/**
 	 * @param {HTMLCanvasElement} canvas
@@ -43,6 +44,7 @@ export class Renderer {
 		this._scene = null;
 		this._camera = null;
 		this.#isPointerLocked = false;
+		this.#canRender = true;
 
 		document.addEventListener("pointerlockchange", () => {
 			const isPointerLocked = document.pointerLockElement === this._canvas;
@@ -151,7 +153,18 @@ export class Renderer {
 	/**
 	 * @abstract
 	 */
-	render() {}
+	async render() {}
+
+	canRender() {
+		return this.#canRender;
+	}
+
+	/**
+	 * @param {Boolean} canRender
+	 */
+	setCanRender(canRender) {
+		this.#canRender = canRender;
+	}
 
 	/**
 	 * @abstract

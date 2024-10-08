@@ -39,8 +39,4 @@ export class Instance extends _Instance {
 			"Forward": camera.getForward(),
 		});
 	}
-
-	_render() {
-		this._renderer.render();
-	}
 }

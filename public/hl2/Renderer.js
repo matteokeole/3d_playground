@@ -131,7 +131,7 @@ export class Renderer extends WebGLRenderer {
 		}
 	}
 
-	render() {
+	async render() {
 		this.#clear();
 
 		const gl = this._context;

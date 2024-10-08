@@ -196,7 +196,7 @@ export class Renderer extends WebGLRenderer {
 		gl.bindVertexArray(null);
 	}
 
-	render() {
+	async render() {
 		// this.#drawGBuffer();
 		this.#drawLightDepthFramebuffer();
 

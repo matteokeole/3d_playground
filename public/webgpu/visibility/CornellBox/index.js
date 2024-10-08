@@ -4,13 +4,13 @@ import {Vector2, Vector3, Vector4} from "../../../../src/math/index.js";
 import {Mesh} from "../../../../src/Mesh/index.js";
 import {Scene} from "../../../../src/Scene/index.js";
 import {FRAMES_PER_SECOND} from "../../../index.js";
-import {Instance} from "../Instance.js";
+import {FreecamDevInstance} from "../Dev/FreecamDevInstance.js";
 import {VisibilityRenderer} from "../VisibilityRenderer.js";
 
 export default async function() {
 	const canvas = document.createElement("canvas");
 	const renderer = new VisibilityRenderer(canvas);
-	const instance = new Instance({
+	const instance = new FreecamDevInstance({
 		renderer,
 		framesPerSecond: FRAMES_PER_SECOND,
 	});
@@ -34,9 +34,13 @@ export default async function() {
 	renderer.resize();
 
 	const scene = createCornellBoxScene();
-	const camera = createCornellBoxCamera();
+
+	scene.clusterize();
 
 	renderer.setScene(scene);
+
+	const camera = createCornellBoxCamera();
+
 	renderer.setCamera(camera);
 
 	document.body.appendChild(canvas);
@@ -279,7 +283,7 @@ function createCornellBoxScene() {
 function createCornellBoxCamera() {
 	const camera = new PerspectiveCamera({
 		position: new Vector3(278, 273, -800),
-		fieldOfView: 35, // Debug
+		fieldOfView: 60,
 		nearClipPlane: 0.01,
 		farClipPlane: 2000,
 	});

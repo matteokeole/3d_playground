@@ -1,53 +1,65 @@
 import {Shader} from "../../../Shader/index.js";
 
 export class WebGPUShader extends Shader {
+	/**
+	 * @param {GPUDevice} device
+	 * @param {String} name
+	 * @param {String} source
+	 */
+	static fromSource(device, name, source) {
+		return new WebGPUShader(device, name, source, source);
+	}
+
+	/**
+	 * @param {GPUDevice} device
+	 * @param {String} name
+	 * @param {String} vertexSource
+	 * @param {String} fragmentSource
+	 */
+	static fromSeparatedSources(device, name, vertexSource, fragmentSource) {
+		return new WebGPUShader(device, name, vertexSource, fragmentSource);
+	}
+
+	/**
+	 * @param {GPUDevice} device
+	 * @param {String} name
+	 * @param {String} commonSource
+	 * @param {String} vertexSource
+	 * @param {String} fragmentSource
+	 */
+	static fromCommonAndSeparatedSources(device, name, commonSource, vertexSource, fragmentSource) {
+		const commonVertexSource = `${commonSource}\n${vertexSource}`;
+		const commonFragmentSource = `${commonSource}\n${fragmentSource}`;
+
+		return new WebGPUShader(device, name, commonVertexSource, commonFragmentSource);
+	}
+
+	#name;
 	#vertexShaderModule;
 	#fragmentShaderModule;
 
 	/**
 	 * @param {GPUDevice} device
-	 * @param {String} source
-	 */
-	static fromSource(device, source) {
-		return new WebGPUShader(device, source, source);
-	}
-
-	/**
-	 * @param {GPUDevice} device
+	 * @param {String} name
 	 * @param {String} vertexSource
 	 * @param {String} fragmentSource
 	 */
-	static fromSeparatedSources(device, vertexSource, fragmentSource) {
-		return new WebGPUShader(device, vertexSource, fragmentSource);
-	}
-
-	/**
-	 * @param {GPUDevice} device
-	 * @param {String} commonSource
-	 * @param {String} vertexSource
-	 * @param {String} fragmentSource
-	 */
-	static fromCommonAndSeparatedSources(device, commonSource, vertexSource, fragmentSource) {
-		const commonVertexSource = `${commonSource}\n${vertexSource}`;
-		const commonFragmentSource = `${commonSource}\n${fragmentSource}`;
-
-		return new WebGPUShader(device, commonVertexSource, commonFragmentSource);
-	}
-
-	/**
-	 * @param {GPUDevice} device
-	 * @param {String} vertexSource
-	 * @param {String} fragmentSource
-	 */
-	constructor(device, vertexSource, fragmentSource) {
+	constructor(device, name, vertexSource, fragmentSource) {
 		super();
 
+		this.#name = name;
 		this.#vertexShaderModule = device.createShaderModule({
+			label: `${name} (vertex)`,
 			code: vertexSource,
 		});
 		this.#fragmentShaderModule = device.createShaderModule({
+			label: `${name} (fragment)`,
 			code: fragmentSource,
 		});
+	}
+
+	getName() {
+		return this.#name;
 	}
 
 	getVertexShaderModule() {

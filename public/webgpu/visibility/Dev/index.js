@@ -1,6 +1,7 @@
 import {BoxGeometry, Geometry, PolytopeGeometry} from "../../../../src/Geometry/index.js";
 import {Hull} from "../../../../src/Hull/index.js";
 import {TextLoader} from "../../../../src/Loader/TextLoader.js";
+import {Material} from "../../../../src/Material/index.js";
 import {Matrix4, rad, Vector2, Vector3, Vector4} from "../../../../src/math/index.js";
 import {DynamicMesh, StaticMesh} from "../../../../src/Mesh/index.js";
 import {OBJParser} from "../../../../src/Parser/Text/OBJParser.js";
@@ -503,6 +504,14 @@ async function createBunnyScene(renderer) {
 	});
 
 	///
+	/// Materials
+	///
+
+	const testMaterial = new Material({
+		shader: renderer.getShader("material"),
+	});
+
+	///
 	/// Meshes
 	///
 
@@ -514,7 +523,7 @@ async function createBunnyScene(renderer) {
 		for (let z = 0; z < 3; z++) {
 			const bunny = new StaticMesh({
 				geometry: bunnyGeometry,
-				material: null,
+				material: testMaterial,
 				debugName: `bunny-${x}-${z}`,
 			});
 			const pitch = rad(Math.random() * 180);
@@ -547,6 +556,9 @@ async function createBunnyScene(renderer) {
 	///
 
 	const scene = new Scene();
+
+	// Add materials in order
+	scene.addMaterial(testMaterial);
 
 	scene.addMeshes(floorGeometry, [floor]);
 	scene.addMeshes(bunnyGeometry, bunnies);

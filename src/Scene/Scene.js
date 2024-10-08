@@ -1,6 +1,7 @@
 import {GJK} from "../Algorithm/index.js";
 import {Clusterizer} from "../Clusterizer.js";
 import {Geometry} from "../Geometry/index.js";
+import {Material} from "../Material/index.js";
 import {Mesh} from "../Mesh/index.js";
 import {IntersectionTrigger, Trigger, TriggerState} from "../Trigger/index.js";
 
@@ -117,6 +118,13 @@ export class Scene {
 	}
 
 	/**
+	 * @param {Material} material
+	 */
+	addMaterial(material) {
+		this.#materials.push(material);
+	}
+
+	/**
 	 * @param {Geometry} geometry
 	 * @param {Mesh[]} meshes
 	 */
@@ -140,10 +148,6 @@ export class Scene {
 			if (mesh.getHull()) {
 				this.#hullMeshes.push(mesh);
 			}
-
-			if (mesh.getMaterial()) {
-				this.#materials.push(mesh.getMaterial());
-			}
 		}
 	}
 
@@ -164,6 +168,23 @@ export class Scene {
 
 	updateTriggers() {
 		this.#updateIntersectionTriggers();
+	}
+
+	/**
+	 * Generates console warnings if scene data is invalid.
+	 */
+	validate() {
+		if (this.#clusteredMeshes === null) {
+			console.warn("Scene validation: Scene is not clustered.");
+		}
+
+		if (this.#meshes.length === 0) {
+			console.warn("Scene validation: Mesh count is 0.");
+		}
+
+		if (this.#materials.length === 0) {
+			console.warn("Scene validation: Material count is 0.");
+		}
 	}
 
 	#updateIntersectionTriggers() {

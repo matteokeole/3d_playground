@@ -127,12 +127,7 @@ export class Instance {
 	 */
 	_update(deltaTime) {}
 
-	/**
-	 * @abstract
-	 */
-	_render() {}
-
-	#loop() {
+	async #loop() {
 		this.#animationFrameRequestId = requestAnimationFrame(this.#loop.bind(this));
 
 		const time = performance.now();
@@ -143,7 +138,10 @@ export class Instance {
 		// if (deltaTime > this.#frameInterval) {
 			try {
 				this._update(deltaTime);
-				this._render();
+
+				if (this._renderer.canRender()) {
+					await this._renderer.render();
+				}
 
 				this._frameIndex++;
 			} catch (error) {

@@ -21,14 +21,13 @@ fn main(in: In) -> @location(0) vec4f {
 	let uvf: vec2f = in.position.xy;
 	let uv: vec2u = vec2u(uvf);
 	let visibility: u32 = textureLoad(visibilityTexture, uv).r;
-	let testClusterIndex: u32 = visibility >> VISIBILITY_CLUSTER_MASK;
 
-	if (VISUALIZATION_MODE != VISUALIZATION_MODE_DEPTH && testClusterIndex == 0) {
+	if (VISUALIZATION_MODE != VISUALIZATION_MODE_DEPTH && visibility == 0) {
 		return vec4f(0, 0, 0, 1);
 	}
 
 	// Fetch cluster
-	let clusterIndex: u32 = testClusterIndex - 1;
+	let clusterIndex: u32 = (visibility >> VISIBILITY_CLUSTER_MASK) - 1;
 	let cluster: Cluster = clusterBuffer[clusterIndex];
 
 	// Fetch mesh

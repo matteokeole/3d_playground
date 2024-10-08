@@ -158,7 +158,7 @@ export class WebGPURenderer extends Renderer {
 	async #loadShaderFromSource(name, sourceUrl) {
 		const textLoader = this.getTextLoader();
 		const source = await textLoader.load(sourceUrl);
-		const shader = WebGPUShader.fromSource(this._device, source);
+		const shader = WebGPUShader.fromSource(this._device, name, source);
 
 		if (name in this._shaders) {
 			throw new Error(`The shader "${name}" is already defined in the shader map.`);
@@ -176,7 +176,7 @@ export class WebGPURenderer extends Renderer {
 		const textLoader = this.getTextLoader();
 		const vertexSource = await textLoader.load(vertexSourceUrl);
 		const fragmentSource = await textLoader.load(fragmentSourceUrl);
-		const shader = WebGPUShader.fromSeparatedSources(this._device, vertexSource, fragmentSource);
+		const shader = WebGPUShader.fromSeparatedSources(this._device, name, vertexSource, fragmentSource);
 
 		if (name in this._shaders) {
 			throw new Error(`The shader "${name}" is already defined in the shader map.`);
@@ -196,7 +196,7 @@ export class WebGPURenderer extends Renderer {
 		const commonSource = await textLoader.load(commonSourceUrl);
 		const vertexSource = await textLoader.load(vertexSourceUrl);
 		const fragmentSource = await textLoader.load(fragmentSourceUrl);
-		const shader = WebGPUShader.fromCommonAndSeparatedSources(this._device, commonSource, vertexSource, fragmentSource);
+		const shader = WebGPUShader.fromCommonAndSeparatedSources(this._device, name, commonSource, vertexSource, fragmentSource);
 
 		if (name in this._shaders) {
 			throw new Error(`The shader "${name}" is already defined in the shader map.`);

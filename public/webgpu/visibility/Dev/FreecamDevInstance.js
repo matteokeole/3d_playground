@@ -46,10 +46,6 @@ export class FreecamDevInstance extends Instance {
 		});
 	}
 
-	_render() {
-		this._renderer.render();
-	}
-
 	/**
 	 * @param {Number} deltaTime
 	 */

@@ -9,11 +9,20 @@ import {Scene} from "../../../src/Scene/index.js";
  */
 
 export class VisibilityRenderer extends WebGPURenderer {
+	async build() {
+		await super.build();
+
+		await this.loadShader("materialCount", "public/webgpu/visibility/Shader/MaterialCount.wgsl",);
+		await this.loadShader("materialStart", "public/webgpu/visibility/Shader/MaterialStart.wgsl",);
+	}
+
 	/**
 	 * @param {Scene} scene
 	 */
 	setScene(scene) {
 		super.setScene(scene);
+
+		scene.validate();
 
 		this._buffers.viewUniform = this.#createViewUniformBuffer();
 
@@ -25,6 +34,15 @@ export class VisibilityRenderer extends WebGPURenderer {
 		this._buffers.meshStorage = this.#createMeshStorageBuffer();
 		this._buffers.geometryStorage = this.#createGeometryStorageBuffer();
 
+		this._buffers.materialCount = this.#createMaterialCountBuffer();
+		this._buffers.debugMaterialCount = this.#createDebugMaterialCountBuffer();
+		this._buffers.materialStart = this.#createMaterialStartBuffer();
+		this._buffers.debugMaterialStart = this.#createDebugMaterialStartBuffer();
+		this._buffers.totalMaterialCount = this.#createTotalMaterialCountBuffer();
+
+		/**
+		 * @todo Group buffer within "Scene" uniform
+		 */
 		/* this._buffers.sceneUniform = this.#createSceneUniformBuffer([
 			{
 				sizeBytes: this.#getMaterialBufferSizeBytes(),
@@ -44,10 +62,13 @@ export class VisibilityRenderer extends WebGPURenderer {
 		this._renderPipelines.visibility = this.#createVisibilityRenderPipeline();
 		this._renderPipelines.material = this.#createMaterialRenderPipeline();
 
-		// this._computePipelines.clear = this.#createClearComputePipeline();
+		this._computePipelines.materialCount = this.#createMaterialCountComputePipeline();
+		this._computePipelines.materialStart = this.#createMaterialStartComputePipeline();
 	}
 
-	render() {
+	async render() {
+		this.setCanRender(false);
+
 		this.#writeViewUniformBuffer();
 		this.#writeCameraUniformBuffer();
 
@@ -55,11 +76,23 @@ export class VisibilityRenderer extends WebGPURenderer {
 
 		this.#renderVisibilityPass(commandEncoder);
 		this.#renderMaterialPass(commandEncoder);
-		// this.#computeClearPass(commandEncoder);
+
+		this.#computeMaterialCountPass(commandEncoder);
+		this.#computeMaterialStartPass(commandEncoder);
 
 		const commandBuffer = commandEncoder.finish();
 
 		this._device.queue.submit([commandBuffer]);
+
+		await this._device.queue.onSubmittedWorkDone();
+
+		// Debug: Check material count buffer contents
+		await this.#debugMaterialCount();
+
+		// Debug: Check material start buffer contents
+		await this.#debugMaterialStart();
+
+		this.setCanRender(true);
 	}
 
 	#createVisibilityRenderPipeline() {
@@ -151,23 +184,57 @@ export class VisibilityRenderer extends WebGPURenderer {
 		return materialRenderPipeline;
 	}
 
-	/* #createClearComputePipeline() {
-		this._bindGroupLayouts.clear = this.#createClearBindGroupLayout();
+	#createMaterialCountComputePipeline() {
+		this._bindGroupLayouts.materialCount = this.#createMaterialCountBindGroupLayout();
 
-		this._bindGroups.clear = this.#createClearBindGroup();
+		this._bindGroups.materialCount = this.#createMaterialCountBindGroup();
 
-		const clearComputePipelineLayout = this.#createClearComputePipelineLayout();
+		const materialCountPipelineLayout = this.#createMaterialCountPipelineLayout();
 
-		const clearComputePipeline = this._device.createComputePipeline({
-			layout: clearComputePipelineLayout,
+		const materialCountPipeline = this._device.createComputePipeline({
+			label: "Material count",
+			layout: materialCountPipelineLayout,
 			compute: {
-				module: this._shaderModules.clearCompute,
+				/**
+				 * @todo Implement proper compute shader loading
+				 * 
+				 * For now single-file compute shaders can be loaded,
+				 * and their source is available through both getVertexShaderModule()
+				 * and getFragmentShaderModule()
+				 */
+				module: this.getShader("materialCount").getVertexShaderModule(),
 				entryPoint: "main",
 			},
 		});
 
-		return clearComputePipeline;
-	} */
+		return materialCountPipeline;
+	}
+
+	#createMaterialStartComputePipeline() {
+		this._bindGroupLayouts.materialStart = this.#createMaterialStartBindGroupLayout();
+
+		this._bindGroups.materialStart = this.#createMaterialStartBindGroup();
+
+		const materialStartPipelineLayout = this.#createMaterialStartPipelineLayout();
+
+		const materialStartPipeline = this._device.createComputePipeline({
+			label: "Material start",
+			layout: materialStartPipelineLayout,
+			compute: {
+				/**
+				 * @todo Implement proper compute shader loading
+				 * 
+				 * For now single-file compute shaders can be loaded,
+				 * and their source is available through both getVertexShaderModule()
+				 * and getFragmentShaderModule()
+				 */
+				module: this.getShader("materialStart").getVertexShaderModule(),
+				entryPoint: "main",
+			},
+		});
+
+		return materialStartPipeline;
+	}
 
 	#createViewUniformBuffer() {
 		const viewUniformBuffer = this._device.createBuffer({
@@ -205,9 +272,16 @@ export class VisibilityRenderer extends WebGPURenderer {
 	#createVertexNormalBuffer() {
 		const normalBuffer = this._scene.getClusteredMeshes().vertexNormalBuffer;
 
+		let byteLength = normalBuffer.byteLength;
+
+		if (byteLength === 0) {
+			// Avoid empty buffer
+			byteLength = 3 * Float32Array.BYTES_PER_ELEMENT;
+		}
+
 		const vertexNormalBuffer = this._device.createBuffer({
 			label: "Vertex normal",
-			size: normalBuffer.byteLength,
+			size: byteLength,
 			usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
 			mappedAtCreation: true,
 		});
@@ -483,7 +557,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 				// Cluster
 				{
 					binding: 3,
-					visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+					visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT | GPUShaderStage.COMPUTE,
 					buffer: {
 						type: "read-only-storage",
 					},
@@ -538,6 +612,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 		const materialVisibilityBindGroupLayout = this._device.createBindGroupLayout({
 			label: "Material visibility bind group layout",
 			entries: [
+				// Depth texture
 				{
 					binding: 0,
 					visibility: GPUShaderStage.FRAGMENT,
@@ -545,28 +620,15 @@ export class VisibilityRenderer extends WebGPURenderer {
 						sampleType: "depth",
 					},
 				},
+				// Visibility texture
 				{
 					binding: 1,
-					visibility: GPUShaderStage.FRAGMENT,
+					visibility: GPUShaderStage.FRAGMENT | GPUShaderStage.COMPUTE,
 					storageTexture: {
 						access: "read-only",
 						format: "rg32uint",
 					},
 				},
-				/* {
-					binding: 2,
-					visibility: GPUShaderStage.FRAGMENT,
-					buffer: {
-						type: "storage",
-					},
-				},
-				{
-					binding: 3,
-					visibility: GPUShaderStage.FRAGMENT,
-					buffer: {
-						type: "storage",
-					},
-				}, */
 			],
 		});
 
@@ -599,35 +661,13 @@ export class VisibilityRenderer extends WebGPURenderer {
 		return meshBindGroupLayout;
 	}
 
-	/* #createClearBindGroupLayout() {
-		const clearBindGroupLayout = this._device.createBindGroupLayout({
-			label: "Clear",
+	#createMaterialCountBindGroupLayout() {
+		const materialCountBindGroupLayout = this._device.createBindGroupLayout({
+			label: "Material count",
 			entries: [
+				// Material count buffer
 				{
 					binding: 0,
-					visibility: GPUShaderStage.COMPUTE,
-					storageTexture: {
-						access: "write-only",
-						format: "r32uint",
-					},
-				},
-				{
-					binding: 1,
-					visibility: GPUShaderStage.COMPUTE,
-					storageTexture: {
-						access: "write-only",
-						format: "rg32uint",
-					},
-				},
-				{
-					binding: 2,
-					visibility: GPUShaderStage.COMPUTE,
-					buffer: {
-						type: "storage",
-					},
-				},
-				{
-					binding: 3,
 					visibility: GPUShaderStage.COMPUTE,
 					buffer: {
 						type: "storage",
@@ -636,8 +676,46 @@ export class VisibilityRenderer extends WebGPURenderer {
 			],
 		});
 
-		return clearBindGroupLayout;
-	} */
+		return materialCountBindGroupLayout;
+	}
+
+	#createMaterialStartBindGroupLayout() {
+		const materialStartBindGroupLayout = this._device.createBindGroupLayout({
+			label: "Material start",
+			entries: [
+				// Material count buffer
+				{
+					binding: 0,
+					visibility: GPUShaderStage.COMPUTE,
+					buffer: {
+						/**
+						 * @todo Atomics in "storage" address space must have "read_write" access mode
+						 * Give "read_write" or copy data to an uniform buffer?
+						 */
+						type: "storage",
+					},
+				},
+				// Material start buffer
+				{
+					binding: 1,
+					visibility: GPUShaderStage.COMPUTE,
+					buffer: {
+						type: "storage",
+					},
+				},
+				// Total material count buffer (helper)
+				{
+					binding: 2,
+					visibility: GPUShaderStage.COMPUTE,
+					buffer: {
+						type: "read-only-storage",
+					},
+				},
+			],
+		});
+
+		return materialStartBindGroupLayout;
+	}
 
 	#createViewBindGroup() {
 		const viewBindGroup = this._device.createBindGroup({
@@ -776,40 +854,59 @@ export class VisibilityRenderer extends WebGPURenderer {
 		return meshBindGroup;
 	}
 
-	/* #createClearBindGroup() {
-		const clearBindGroup = this._device.createBindGroup({
-			label: "Clear",
-			layout: this._bindGroupLayouts.clear,
+	#createMaterialCountBindGroup() {
+		const materialCountBindGroup = this._device.createBindGroup({
+			label: "Material count",
+			layout: this._bindGroupLayouts.materialCount,
 			entries: [
+				// Material count buffer
 				{
 					binding: 0,
-					resource: this._textures.depth.createView(),
-				},
-				{
-					binding: 1,
-					resource: this._textures.visibility.createView(),
-				},
-				{
-					binding: 2,
 					resource: {
-						buffer: this._buffers.depth,
-					},
-				},
-				{
-					binding: 3,
-					resource: {
-						buffer: this._buffers.visibility,
+						buffer: this._buffers.materialCount,
 					},
 				},
 			],
 		});
 
-		return clearBindGroup;
-	} */
+		return materialCountBindGroup;
+	}
+
+	#createMaterialStartBindGroup() {
+		const materialStartBindGroup = this._device.createBindGroup({
+			label: "Material start",
+			layout: this._bindGroupLayouts.materialStart,
+			entries: [
+				// Material count buffer
+				{
+					binding: 0,
+					resource: {
+						buffer: this._buffers.materialCount,
+					},
+				},
+				// Material start buffer
+				{
+					binding: 1,
+					resource: {
+						buffer: this._buffers.materialStart,
+					},
+				},
+				// Total material count buffer
+				{
+					binding: 2,
+					resource: {
+						buffer: this._buffers.totalMaterialCount,
+					},
+				},
+			],
+		});
+
+		return materialStartBindGroup;
+	}
 
 	#createVisibilityPipelineLayout() {
 		const visibilityPipelineLayout = this._device.createPipelineLayout({
-			label: "Visibility render",
+			label: "Visibility",
 			bindGroupLayouts: [
 				this._bindGroupLayouts.view,
 				this._bindGroupLayouts.geometry,
@@ -823,7 +920,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 
 	#createMaterialPipelineLayout() {
 		const materialPipelineLayout = this._device.createPipelineLayout({
-			label: "Material render",
+			label: "Material",
 			bindGroupLayouts: [
 				this._bindGroupLayouts.view,
 				this._bindGroupLayouts.materialVisibility,
@@ -835,17 +932,30 @@ export class VisibilityRenderer extends WebGPURenderer {
 		return materialPipelineLayout;
 	}
 
-	/* #createClearComputePipelineLayout() {
-		const clearComputePipelineLayout = this._device.createPipelineLayout({
-			label: "Clear compute",
+	#createMaterialCountPipelineLayout() {
+		const materialCountPipelineLayout = this._device.createPipelineLayout({
+			label: "Material count",
 			bindGroupLayouts: [
 				this._bindGroupLayouts.view,
-				this._bindGroupLayouts.clear,
+				this._bindGroupLayouts.materialVisibility,
+				this._bindGroupLayouts.geometry,
+				this._bindGroupLayouts.materialCount,
 			],
 		});
 
-		return clearComputePipelineLayout;
-	} */
+		return materialCountPipelineLayout;
+	}
+
+	#createMaterialStartPipelineLayout() {
+		const materialStartPipelineLayout = this._device.createPipelineLayout({
+			label: "Material start",
+			bindGroupLayouts: [
+				this._bindGroupLayouts.materialStart,
+			],
+		});
+
+		return materialStartPipelineLayout;
+	}
 
 	#createDepthTexture() {
 		const depthTexture = this._device.createTexture({
@@ -909,6 +1019,66 @@ export class VisibilityRenderer extends WebGPURenderer {
 		return depthBuffer;
 	}
 
+	#createMaterialCountBuffer() {
+		const materials = this.getScene().getMaterials();
+
+		const materialCountBuffer = this._device.createBuffer({
+			label: "Material count",
+			size: materials.length * 1 * Uint32Array.BYTES_PER_ELEMENT,
+			usage: GPUBufferUsage.COPY_SRC | GPUBufferUsage.STORAGE,
+		});
+
+		return materialCountBuffer;
+	}
+
+	#createDebugMaterialCountBuffer() {
+		const debugMaterialCountBuffer = this._device.createBuffer({
+			label: "Debug material count",
+			size: this._buffers.materialCount.size,
+			usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
+		});
+
+		return debugMaterialCountBuffer;
+	}
+
+	#createMaterialStartBuffer() {
+		const materialStartBuffer = this._device.createBuffer({
+			label: "Material start",
+			size: this._buffers.materialCount.size,
+			usage: GPUBufferUsage.COPY_SRC | GPUBufferUsage.STORAGE,
+		});
+
+		return materialStartBuffer;
+	}
+
+	#createDebugMaterialStartBuffer() {
+		const debugMaterialStartBuffer = this._device.createBuffer({
+			label: "Debug material start",
+			size: this._buffers.materialStart.size,
+			usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
+		});
+
+		return debugMaterialStartBuffer;
+	}
+
+	#createTotalMaterialCountBuffer() {
+		const totalMaterialCountBuffer = this._device.createBuffer({
+			label: "Total material count",
+			size: 1 * Uint32Array.BYTES_PER_ELEMENT,
+			usage: GPUBufferUsage.COPY_SRC | GPUBufferUsage.STORAGE,
+			mappedAtCreation: true,
+		});
+
+		const mappedRange = totalMaterialCountBuffer.getMappedRange();
+		const viewAsU32 = new Uint32Array(mappedRange);
+
+		viewAsU32[0] = this._buffers.materialCount.size / Uint32Array.BYTES_PER_ELEMENT;
+
+		totalMaterialCountBuffer.unmap();
+
+		return totalMaterialCountBuffer;
+	}
+
 	#writeViewUniformBuffer() {
 		const viewport = new Uint32Array(this.getViewport());
 
@@ -935,7 +1105,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 	 * @param {GPUCommandEncoder} commandEncoder
 	 */
 	#renderVisibilityPass(commandEncoder) {
-		const renderPass = commandEncoder.beginRenderPass({
+		const visibilityPass = commandEncoder.beginRenderPass({
 			colorAttachments: [
 				{
 					view: this._textures.visibility.createView(),
@@ -950,14 +1120,19 @@ export class VisibilityRenderer extends WebGPURenderer {
 				depthStoreOp: "store",
 			},
 		});
-		renderPass.setPipeline(this._renderPipelines.visibility);
-		renderPass.setBindGroup(0, this._bindGroups.view);
-		renderPass.setBindGroup(1, this._bindGroups.geometry);
-		renderPass.setBindGroup(2, this._bindGroups.mesh);
+		visibilityPass.setPipeline(this._renderPipelines.visibility);
+		visibilityPass.setBindGroup(0, this._bindGroups.view);
+		visibilityPass.setBindGroup(1, this._bindGroups.geometry);
+		visibilityPass.setBindGroup(2, this._bindGroups.mesh);
 
-		renderPass.drawIndirect(this._buffers.indirect, 0);
+		// 1. Render scene to visibility buffer
+		// 2. Dispatch compute shaders for every pixel to determine which materials are visible
+		// 3. Handle the visible materials
+		// 4. Dispatch compute shaders for every pixel to handle light sources
 
-		renderPass.end();
+		visibilityPass.drawIndirect(this._buffers.indirect, 0);
+
+		visibilityPass.end();
 	}
 
 	/**
@@ -985,16 +1160,59 @@ export class VisibilityRenderer extends WebGPURenderer {
 	/**
 	 * @param {GPUCommandEncoder} commandEncoder
 	 */
-	/* #computeClearPass(commandEncoder) {
-		const computePass = commandEncoder.beginComputePass();
-		computePass.setPipeline(this._computePipelines.clear);
-		computePass.setBindGroup(0, this._bindGroups.view);
-		computePass.setBindGroup(1, this._bindGroups.clear);
+	#computeMaterialCountPass(commandEncoder) {
+		const materialCountPass = commandEncoder.beginComputePass();
+		materialCountPass.setPipeline(this._computePipelines.materialCount);
+		materialCountPass.setBindGroup(0, this._bindGroups.view);
+		materialCountPass.setBindGroup(1, this._bindGroups.materialVisibility);
+		materialCountPass.setBindGroup(2, this._bindGroups.geometry);
+		materialCountPass.setBindGroup(3, this._bindGroups.materialCount);
 
-		const x = this._viewport[2] / 7;
-		const y = this._viewport[3] / 7;
+		// Split screen into 8x8 tiles
+		const x = (this._viewport[2] / 8) | 0;
+		const y = (this._viewport[3] / 8) | 0;
 
-		computePass.dispatchWorkgroups(x, y, 1);
-		computePass.end();
-	} */
+		materialCountPass.dispatchWorkgroups(x, y, 1);
+		materialCountPass.end();
+
+		// Debug: Check material count buffer contents
+		commandEncoder.copyBufferToBuffer(this._buffers.materialCount, 0, this._buffers.debugMaterialCount, 0, this._buffers.materialCount.size);
+	}
+
+	/**
+	 * @param {GPUCommandEncoder} commandEncoder
+	 */
+	#computeMaterialStartPass(commandEncoder) {
+		const materialStartPass = commandEncoder.beginComputePass();
+		materialStartPass.setPipeline(this._computePipelines.materialStart);
+		materialStartPass.setBindGroup(0, this._bindGroups.materialStart);
+
+		materialStartPass.dispatchWorkgroups(1, 1, 1);
+		materialStartPass.end();
+
+		// Debug: Check material start buffer contents
+		commandEncoder.copyBufferToBuffer(this._buffers.materialStart, 0, this._buffers.debugMaterialStart, 0, this._buffers.materialStart.size);
+	}
+
+	async #debugMaterialCount() {
+		await this._buffers.debugMaterialCount.mapAsync(GPUMapMode.READ);
+
+		const mappedRange = this._buffers.debugMaterialCount.getMappedRange();
+		const viewAsU32 = new Uint32Array(mappedRange);
+
+		// debugger;
+
+		this._buffers.debugMaterialCount.unmap();
+	}
+
+	async #debugMaterialStart() {
+		await this._buffers.debugMaterialStart.mapAsync(GPUMapMode.READ);
+
+		const mappedRange = this._buffers.debugMaterialStart.getMappedRange();
+		const viewAsU32 = new Uint32Array(mappedRange);
+
+		// debugger;
+
+		this._buffers.debugMaterialStart.unmap();
+	}
 }

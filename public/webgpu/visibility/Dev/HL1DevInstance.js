@@ -149,10 +149,6 @@ export class HL1DevInstance extends Instance {
 		});
 	}
 
-	_render() {
-		this._renderer.render();
-	}
-
 	/**
 	 * @param {Mesh} player
 	 * @param {Number} deltaTime
