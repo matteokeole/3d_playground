@@ -1,15 +1,13 @@
 import {BoxGeometry, Geometry, PolytopeGeometry} from "../../../../src/Geometry/index.js";
 import {Hull} from "../../../../src/Hull/index.js";
-import {FileLoader} from "../../../../src/Loader/FileLoader.js";
 import {TextLoader} from "../../../../src/Loader/TextLoader.js";
-import {Material} from "../../../../src/Material/index.js";
 import {Matrix4, Vector2, Vector3, Vector4} from "../../../../src/math/index.js";
 import {DynamicMesh, StaticMesh} from "../../../../src/Mesh/index.js";
 import {OBJParser} from "../../../../src/Parser/Text/OBJParser.js";
 import {Scene} from "../../../../src/Scene/index.js";
 import {FRAMES_PER_SECOND, PLAYER_COLLISION_HULL} from "../../../index.js";
 import {VisibilityRenderer} from "../VisibilityRenderer.js";
-import {DevInstance} from "./DevInstance.js";
+import {LookAroundDevInstance} from "./LookAroundDevInstance.js";
 import {Door} from "./Door/Door.js";
 import {Player} from "./Player/Player.js";
 import {ThirdPersonCamera} from "./ThirdPersonCamera.js";
@@ -18,7 +16,7 @@ import {DangerousTrigger} from "./Trigger/DangerousTrigger.js";
 export default async function() {
 	const canvas = document.createElement("canvas");
 	const renderer = new VisibilityRenderer(canvas);
-	const instance = new DevInstance({
+	const instance = new LookAroundDevInstance({
 		renderer,
 		framesPerSecond: FRAMES_PER_SECOND,
 	});
@@ -491,11 +489,10 @@ async function createBunnyScene(renderer) {
 	///
 
 	const bunnyGeometry = new Geometry({
-		vertices: bunnyObj.vertices,
-		indices: bunnyObj.indices,
+		positions: bunnyObj.vertices,
+		positionIndices: bunnyObj.vertexIndices,
 		normals: bunnyObj.normals,
-		tangents: Float32Array.of(),
-		uvs: Float32Array.of(),
+		normalIndices: bunnyObj.normalIndices,
 	});
 	const playerGeometry = new BoxGeometry(new Vector3(0.45, 1.75, 0.45));
 
@@ -504,7 +501,7 @@ async function createBunnyScene(renderer) {
 	///
 
 	const bunnies = [];
-	const firstBunnyPosition = new Vector3(-2, 27, -2);
+	const firstBunnyPosition = new Vector3(-2, -0.5, -2);
 	const bunnyOffset = 2;
 
 	for (let x = 0; x < 3; x++) {
@@ -541,7 +538,7 @@ async function createBunnyScene(renderer) {
 	const scene = new Scene();
 
 	scene.addMeshes(bunnyGeometry, bunnies);
-	scene.addMeshes(playerGeometry, [player]);
+	// scene.addMeshes(playerGeometry, [player]);
 
 	return scene;
 }

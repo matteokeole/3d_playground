@@ -6,8 +6,8 @@ export class SSDPlaneGeometry extends Geometry {
 	 * @param {[Vector3, Vector3, Vector3, Vector3]} anchors
 	 */
 	static fromAnchors(anchors) {
-		const normal = Geometry.getNormal(anchors[0], anchors[1], anchors[2]);
-		const tangent = Geometry.getTangent(anchors[0], anchors[1], anchors[2]);
+		const normal = SSDPlaneGeometry.getNormal(anchors[0], anchors[1], anchors[2]);
+		const tangent = SSDPlaneGeometry.getTangent(anchors[0], anchors[1], anchors[2]);
 
 		const vertices = new Float32Array(12);
 		vertices.set(anchors[0], 0);
@@ -16,14 +16,15 @@ export class SSDPlaneGeometry extends Geometry {
 		vertices.set(anchors[3], 9);
 
 		return new SSDPlaneGeometry({
-			indices: Uint32Array.of(),
-			vertices,
+			positions: vertices,
+			positionIndices: Uint32Array.of(),
 			normals: Float32Array.of(
 				...normal,
 				...normal,
 				...normal,
 				...normal,
 			),
+			normalIndices: Uint32Array.of(),
 			tangents: Float32Array.of(
 				...tangent,
 				...tangent,
@@ -43,7 +44,7 @@ export class SSDPlaneGeometry extends Geometry {
 	 * @type {Geometry["support"]}
 	 */
 	support(D, p) {
-		const vertices = this.getVertices();
+		const vertices = this.getPositions();
 		const support = new Vector3(0, 0, 0);
 		let maxDot = Number.NEGATIVE_INFINITY;
 

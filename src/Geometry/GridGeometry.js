@@ -1,4 +1,4 @@
-import {Matrix4, Vector2, Vector3} from "../math/index.js";
+import {Vector2, Vector3} from "../math/index.js";
 import {Geometry} from "./Geometry.js";
 
 /**
@@ -49,8 +49,8 @@ export class GridGeometry extends Geometry {
 		}
 
 		return {
-			vertices: vertexBuffer,
-			indices: indexBuffer,
+			positions: vertexBuffer,
+			positionIndices: indexBuffer,
 		};
 	}
 
@@ -61,8 +61,7 @@ export class GridGeometry extends Geometry {
 		super({
 			...GridGeometry.#calculateVerticesAndIndices(descriptor),
 			normals: Float32Array.of(),
-			tangents: Float32Array.of(),
-			uvs: Float32Array.of(),
+			normalIndices: Uint32Array.of(),
 		});
 	}
 
@@ -70,7 +69,7 @@ export class GridGeometry extends Geometry {
 	 * @type {Geometry["support"]}
 	 */
 	support(D, p) {
-		const vertices = this.getVertices();
+		const vertices = this.getPositions();
 		const support = new Vector3(0, 0, 0);
 		let maxDot = Number.NEGATIVE_INFINITY;
 

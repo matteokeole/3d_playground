@@ -7,14 +7,14 @@ const VISUALIZATION_MODE_GEOMETRY: u32 = 3;
 // Data visualization modes
 const VISUALIZATION_MODE_DEPTH: u32 = 10;
 const VISUALIZATION_MODE_FACE_NORMAL: u32 = 11;
-const VISUALIZATION_MODE_VERTEX_NORMAL: u32 = 12;
-const VISUALIZATION_MODE_BARYCENTRIC_COORDINATES: u32 = 13;
+const VISUALIZATION_MODE_BARYCENTRIC_COORDINATES: u32 = 12;
+const VISUALIZATION_MODE_VERTEX_NORMAL: u32 = 13;
 
 // Shading visualization modes
 const VISUALIZATION_MODE_FLAT_SHADING: u32 = 20;
 const VISUALIZATION_MODE_PHONG_SHADING: u32 = 21;
 
-const VISUALIZATION_MODE: u32 = VISUALIZATION_MODE_VERTEX_NORMAL;
+const VISUALIZATION_MODE: u32 = VISUALIZATION_MODE_PHONG_SHADING;
 
 @fragment
 fn main(in: In) -> @location(0) vec4f {
@@ -23,11 +23,7 @@ fn main(in: In) -> @location(0) vec4f {
 	let visibility: u32 = textureLoad(visibilityTexture, uv).r;
 	let testClusterIndex: u32 = visibility >> VISIBILITY_CLUSTER_MASK;
 
-	if (testClusterIndex == 0) {
-		if (VISUALIZATION_MODE == VISUALIZATION_MODE_DEPTH) {
-			return vec4f(1, 1, 1, 1);
-		}
-
+	if (VISUALIZATION_MODE != VISUALIZATION_MODE_DEPTH && testClusterIndex == 0) {
 		return vec4f(0, 0, 0, 1);
 	}
 
@@ -52,7 +48,6 @@ fn main(in: In) -> @location(0) vec4f {
 	var color: vec3f;
 
 	if (VISUALIZATION_MODE == VISUALIZATION_MODE_TRIANGLE) {
-		// TODO: Triangle 0 is not visible (intToColor(0) returns 0)
 		color = intToColor(triangleIndex);
 	}
 	else if (VISUALIZATION_MODE == VISUALIZATION_MODE_CLUSTER) {
@@ -74,7 +69,6 @@ fn main(in: In) -> @location(0) vec4f {
 		color = visualizeFaceNormal(triangle, mesh.world);
 	}
 	else if (VISUALIZATION_MODE == VISUALIZATION_MODE_VERTEX_NORMAL) {
-		// TODO: Normals are broken
 		color = visualizeVertexNormal(triangle, normals, uvf, mesh.world);
 	}
 	else if (VISUALIZATION_MODE == VISUALIZATION_MODE_BARYCENTRIC_COORDINATES) {
@@ -84,7 +78,6 @@ fn main(in: In) -> @location(0) vec4f {
 		color = visualizeFlatShading(triangle, uvf, mesh.world);
 	}
 	else if (VISUALIZATION_MODE == VISUALIZATION_MODE_PHONG_SHADING) {
-		// TODO: Normals are broken
 		color = visualizePhongShading(triangle, normals, uvf, mesh.world);
 	}
 

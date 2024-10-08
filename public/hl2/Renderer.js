@@ -164,7 +164,7 @@ export class Renderer extends WebGLRenderer {
 				const geometry = mesh.getGeometry();
 
 				gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.vertex);
-				gl.bufferData(gl.ARRAY_BUFFER, geometry.getVertices(), gl.STATIC_DRAW);
+				gl.bufferData(gl.ARRAY_BUFFER, geometry.getPositions(), gl.STATIC_DRAW);
 
 				gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.normal);
 				gl.bufferData(gl.ARRAY_BUFFER, geometry.getNormals(), gl.STATIC_DRAW);
@@ -178,7 +178,7 @@ export class Renderer extends WebGLRenderer {
 				if (geometry instanceof SSDPlaneGeometry) {
 					gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 				} else {
-					const indices = geometry.getIndices();
+					const indices = geometry.getPositionIndices();
 
 					gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
 					gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_BYTE, 0);
@@ -305,7 +305,7 @@ export class Renderer extends WebGLRenderer {
 						const geometry = mesh.getGeometry();
 
 						gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.vertex);
-						gl.bufferData(gl.ARRAY_BUFFER, geometry.getVertices(), gl.STATIC_DRAW);
+						gl.bufferData(gl.ARRAY_BUFFER, geometry.getPositions(), gl.STATIC_DRAW);
 
 						if (geometry instanceof SSDPlaneGeometry) {
 							gl.drawArrays(gl.LINE_LOOP, 0, 4);
@@ -313,7 +313,7 @@ export class Renderer extends WebGLRenderer {
 							continue;
 						}
 
-						const indices = geometry.getIndices();
+						const indices = geometry.getPositionIndices();
 
 						gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
 						gl.drawElements(gl.LINES, indices.length, gl.UNSIGNED_BYTE, 0);

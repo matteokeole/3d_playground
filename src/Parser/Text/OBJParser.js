@@ -8,8 +8,9 @@ import {Parser} from "../index.js";
 /**
  * @typedef {Object} OBJData
  * @property {Float32Array} vertices
- * @property {Uint32Array} indices
+ * @property {Uint32Array} vertexIndices
  * @property {Float32Array} normals
+ * @property {Uint32Array} normalIndices
  */
 
 /**
@@ -150,8 +151,13 @@ export class OBJParser extends Parser {
 		const data = {};
 
 		data.vertices = new Float32Array(unparsedData[0]);
-		data.indices = new Uint32Array(unparsedData[3]);
+		data.vertexIndices = new Uint32Array(unparsedData[3]);
 		data.normals = new Float32Array(unparsedData[2]);
+		data.normalIndices = new Uint32Array(unparsedData[5]);
+
+		if (data.normalIndices.length !== 0 && data.normalIndices.length !== data.vertexIndices.length) {
+			throw new Error("OBJParser: Model has normals but normal index count is not the same as position index count.");
+		}
 
 		return data;
 	}

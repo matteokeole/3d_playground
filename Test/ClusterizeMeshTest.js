@@ -15,8 +15,8 @@ export class ClusterizeMeshTest extends UnitTest {
 		const objData = objParser.parse(text);
 
 		const geometry = new PolytopeGeometry({
-			indices: objData.indices,
 			vertices: objData.vertices,
+			indices: objData.vertexIndices,
 		});
 
 		const clusteredGeometry = Clusterizer.clusterize(geometry);

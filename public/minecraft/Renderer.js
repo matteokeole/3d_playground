@@ -368,10 +368,10 @@ export class Renderer extends WebGLRenderer {
 					gl.uniformMatrix4fv(this._uniforms.gBuffer_cameraView, false, this._camera.getView());
 
 					gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._buffers.gBuffer_index);
-					gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, geometry.getIndices(), gl.STATIC_DRAW);
+					gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, geometry.getPositionIndices(), gl.STATIC_DRAW);
 
 					gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.gBuffer_vertex);
-					gl.bufferData(gl.ARRAY_BUFFER, geometry.getVertices(), gl.STATIC_DRAW);
+					gl.bufferData(gl.ARRAY_BUFFER, geometry.getPositions(), gl.STATIC_DRAW);
 
 					gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.gBuffer_normal);
 					gl.bufferData(gl.ARRAY_BUFFER, geometry.getNormals(), gl.STATIC_DRAW);
@@ -402,10 +402,10 @@ export class Renderer extends WebGLRenderer {
 						gl.uniformMatrix4fv(this._uniforms.lightDepth_lightViewProjection, false, this._scene.getPointLight().getViewProjection());
 
 						gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._buffers.lightDepth_index);
-						gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, geometry.getIndices(), gl.STATIC_DRAW);
+						gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, geometry.getPositionIndices(), gl.STATIC_DRAW);
 
 						gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.lightDepth_vertex);
-						gl.bufferData(gl.ARRAY_BUFFER, geometry.getVertices(), gl.STATIC_DRAW);
+						gl.bufferData(gl.ARRAY_BUFFER, geometry.getPositions(), gl.STATIC_DRAW);
 
 						gl.drawElementsInstanced(gl.TRIANGLES, 36, gl.UNSIGNED_BYTE, 0, meshes.length);
 					gl.useProgram(null);
@@ -458,10 +458,10 @@ export class Renderer extends WebGLRenderer {
 				gl.uniform3fv(this._uniforms.shadow_lightPosition, this._scene.getPointLight().getPosition());
 
 				gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._buffers.shadow_index);
-				gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, geometry.getIndices(), gl.STATIC_DRAW);
+				gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, geometry.getPositionIndices(), gl.STATIC_DRAW);
 
 				gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.shadow_vertex);
-				gl.bufferData(gl.ARRAY_BUFFER, geometry.getVertices(), gl.STATIC_DRAW);
+				gl.bufferData(gl.ARRAY_BUFFER, geometry.getPositions(), gl.STATIC_DRAW);
 
 				gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.shadow_normal);
 				gl.bufferData(gl.ARRAY_BUFFER, geometry.getNormals(), gl.STATIC_DRAW);

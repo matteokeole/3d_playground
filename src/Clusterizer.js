@@ -2,8 +2,10 @@ import {Scene} from "./Scene/index.js";
 
 /**
  * @typedef {Object} ClusteredMeshes
- * @property {Float32Array} vertexBuffer
- * @property {Uint32Array} indexBuffer
+ * @property {Float32Array} vertexPositionBuffer
+ * @property {Float32Array} vertexNormalBuffer
+ * @property {Uint32Array} vertexPositionIndexBuffer
+ * @property {Uint32Array} vertexNormalIndexBuffer
  * @property {ClusteredMesh[]} meshes
  * @property {Cluster[]} clusters
  */
@@ -56,14 +58,16 @@ export class Clusterizer {
 		clusteredMeshes.clusters = [];
 
 		const clusteredGeometries = [];
-		let totalVertexCount = 0;
+		let totalVertexPositionCount = 0;
+		let totalVertexNormalCount = 0;
 		let totalIndexCount = 0;
 
 		// Determine index count per unique geometry
 		for (let geometryIndex = 0; geometryIndex < geometries.length; geometryIndex++) {
 			const geometry = geometries[geometryIndex];
-			const vertices = geometry.getVertices();
-			const indices = geometry.getIndices();
+			const positions = geometry.getPositions();
+			const normals = geometry.getNormals();
+			const indices = geometry.getPositionIndices(); // Position indices SHOULD BE AS MANY as normal indices
 			const indexCount = indices.length;
 			const standaloneIndexCount = indexCount % Clusterizer.#INDICES_PER_CLUSTER;
 			const clusterCount = Math.floor(indexCount / Clusterizer.#INDICES_PER_CLUSTER) + Number(standaloneIndexCount > 0);
@@ -92,16 +96,25 @@ export class Clusterizer {
 
 			clusteredGeometries.push(clusteredGeometry);
 
-			totalVertexCount += vertices.length / 3;
+			totalVertexPositionCount += positions.length / 3;
+			totalVertexNormalCount += normals.length / 3;
 			totalIndexCount += clusteredGeometry.indexCount * meshCount;
 		}
 
-		// Write vertex buffer
-		clusteredMeshes.vertexBuffer = new Float32Array(3 * totalVertexCount);
+		// Write vertex position buffer
+		clusteredMeshes.vertexPositionBuffer = new Float32Array(3 * totalVertexPositionCount);
 
-		// Write index buffer
-		clusteredMeshes.indexBuffer = new Uint32Array(totalIndexCount);
-		let vertexOffset = 0;
+		// Write vertex normal buffer
+		clusteredMeshes.vertexNormalBuffer = new Float32Array(3 * totalVertexNormalCount);
+
+		// Write vertex position index buffer
+		clusteredMeshes.vertexPositionIndexBuffer = new Uint32Array(totalIndexCount);
+
+		// Write vertex normal index buffer
+		clusteredMeshes.vertexNormalIndexBuffer = new Uint32Array(totalIndexCount);
+
+		let vertexPositionOffset = 0;
+		let vertexNormalOffset = 0;
 		let indexOffset = 0; // Cluster-wise index offset
 		let meshIndexOffset = 0;
 
@@ -109,14 +122,18 @@ export class Clusterizer {
 			const clusteredGeometry = clusteredGeometries[clusteredGeometryIndex];
 			const geometry = scene.getGeometries()[clusteredGeometry.geometryIndex];
 
-			// Write geometry vertices to vertex buffer
-			clusteredMeshes.vertexBuffer.set(geometry.getVertices(), vertexOffset);
+			// Write vertex positions
+			clusteredMeshes.vertexPositionBuffer.set(geometry.getPositions(), vertexPositionOffset);
+
+			// Write vertex normals
+			clusteredMeshes.vertexNormalBuffer.set(geometry.getNormals(), vertexNormalOffset);
 
 			for (let meshIndex = 0; meshIndex < clusteredGeometry.meshCount; meshIndex++, meshIndexOffset++) {
-				// Set geometry indices
-				clusteredMeshes.indexBuffer.set(geometry.getIndices(), indexOffset);
-				// const offsettedIndices = Array.from(geometry.getIndices(), index => vertexOffset / 3 + index);
-				// clusteredMeshes.indexBuffer.set(offsettedIndices, indexOffset);
+				// Wreite vertex position indices
+				clusteredMeshes.vertexPositionIndexBuffer.set(geometry.getPositionIndices(), indexOffset);
+
+				// Wreite vertex normal indices
+				clusteredMeshes.vertexNormalIndexBuffer.set(geometry.getNormalIndices(), indexOffset);
 
 				indexOffset += clusteredGeometry.totalIndexCount;
 
@@ -141,7 +158,8 @@ export class Clusterizer {
 				clusteredMeshes.meshes.push(clusteredMesh);
 			}
 
-			vertexOffset += geometry.getVertices().length;
+			vertexPositionOffset += geometry.getPositions().length;
+			vertexNormalOffset += geometry.getNormals().length;
 		}
 
 		return clusteredMeshes;

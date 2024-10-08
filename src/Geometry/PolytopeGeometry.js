@@ -13,9 +13,10 @@ export class PolytopeGeometry extends Geometry {
 	 */
 	constructor(descriptor) {
 		super({
-			vertices: descriptor.vertices,
-			indices: descriptor.indices,
+			positions: descriptor.vertices,
+			positionIndices: descriptor.indices,
 			normals: Float32Array.of(),
+			normalIndices: Uint32Array.of(),
 			tangents: Float32Array.of(),
 			uvs: Float32Array.of(),
 		});
@@ -25,7 +26,7 @@ export class PolytopeGeometry extends Geometry {
 	 * @type {Geometry["support"]}
 	 */
 	support(D, p) {
-		const vertices = this.getVertices();
+		const vertices = this.getPositions();
 		const support = new Vector3(0, 0, 0);
 		let maxDot = Number.NEGATIVE_INFINITY;
 

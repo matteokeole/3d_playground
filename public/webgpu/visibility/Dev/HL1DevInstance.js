@@ -8,7 +8,7 @@ import {PLAYER_COLLISION_HULL, PLAYER_EYE_LEVEL} from "../../../index.js";
 import {Player} from "./Player/Player.js";
 import {Door} from "./Door/Door.js";
 
-export class DevInstance extends Instance {
+export class HL1DevInstance extends Instance {
 	static #SENSITIVITY = 0.075;
 
 	// Test constants
@@ -444,8 +444,8 @@ export class DevInstance extends Instance {
 			throw new Error("Only PerspectiveCamera instances supported.");
 		}
 
-		const pitch = this.getMouseYAxis(event) * DevInstance.#SENSITIVITY;
-		const yaw = this.getMouseXAxis(event) * DevInstance.#SENSITIVITY;
+		const pitch = this.getMouseYAxis(event) * HL1DevInstance.#SENSITIVITY;
+		const yaw = this.getMouseXAxis(event) * HL1DevInstance.#SENSITIVITY;
 
 		camera.rotate(new Vector3(rad(pitch), rad(yaw), 0));
 	}

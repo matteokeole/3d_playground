@@ -1,7 +1,7 @@
 @group(0) @binding(0) var<uniform> view: View;
-@group(1) @binding(0) var<storage> vertexBuffer: array<f32>;
-@group(1) @binding(1) var<storage> indexBuffer: array<u32>;
-@group(1) @binding(2) var<storage> clusterBuffer: array<Cluster>;
+@group(1) @binding(0) var<storage> vertexPositionBuffer: array<f32>;
+@group(1) @binding(2) var<storage> indexBuffer: array<Vertex>;
+@group(1) @binding(3) var<storage> clusterBuffer: array<Cluster>;
 @group(2) @binding(0) var<storage> meshBuffer: array<Mesh>;
 @group(2) @binding(1) var<storage> geometryBuffer: array<Geometry>;
 
@@ -12,9 +12,8 @@ struct View {
 }
 
 struct Vertex {
-	position: vec3f,
-	normal: vec3f,
-	uv: vec2f,
+	positionIndex: u32,
+	normalIndex: u32,
 }
 
 struct Cluster {

@@ -1,8 +1,8 @@
 @group(0) @binding(0) var<uniform> view: View;
 @group(1) @binding(1) var visibilityTexture: texture_storage_2d<rg32uint, read>;
-@group(2) @binding(0) var<storage> vertexBuffer: array<f32>;
-@group(2) @binding(1) var<storage> indexBuffer: array<u32>;
-@group(2) @binding(2) var<storage> clusters: array<Cluster>;
+@group(2) @binding(0) var<storage> vertexPositionBuffer: array<f32>;
+@group(2) @binding(2) var<storage> indexBuffer: array<Vertex>;
+@group(2) @binding(3) var<storage> clusterBuffer: array<Cluster>;
 @group(3) @binding(0) var<storage> meshes: array<Mesh>;
 
 struct View {
@@ -12,9 +12,8 @@ struct View {
 }
 
 struct Vertex {
-	position: vec3f,
-	normal: vec3f,
-	uv: vec2f,
+	positionIndex: u32,
+	normalIndex: u32,
 }
 
 struct Cluster {
@@ -85,9 +84,9 @@ fn computeBarycentricDerivatives(pt0: vec4f, pt1: vec4f, pt2: vec4f, pixelNdc: v
 fn fetchTriangle(clusterIndex: u32, clusterTriangleIndex: u32) -> array<vec4f, 3> {
 	let offset: u32 = clusterIndex * INDICES_PER_CLUSTER + clusterTriangleIndex * 3;
 
-	let index0: u32 = indexBuffer[offset + 0];
-	let index1: u32 = indexBuffer[offset + 1];
-	let index2: u32 = indexBuffer[offset + 2];
+	let index0: u32 = indexBuffer[offset + 0].positionIndex;
+	let index1: u32 = indexBuffer[offset + 1].positionIndex;
+	let index2: u32 = indexBuffer[offset + 2].positionIndex;
 
 	let vertex0: vec4f = fetchVertex(index0 * 3);
 	let vertex1: vec4f = fetchVertex(index1 * 3);
@@ -97,9 +96,9 @@ fn fetchTriangle(clusterIndex: u32, clusterTriangleIndex: u32) -> array<vec4f, 3
 }
 
 fn fetchVertex(vertexBufferOffset: u32) -> vec4f {
-	let x: f32 = vertexBuffer[vertexBufferOffset + 0];
-	let y: f32 = vertexBuffer[vertexBufferOffset + 1];
-	let z: f32 = vertexBuffer[vertexBufferOffset + 2];
+	let x: f32 = vertexPositionBuffer[vertexBufferOffset + 0];
+	let y: f32 = vertexPositionBuffer[vertexBufferOffset + 1];
+	let z: f32 = vertexPositionBuffer[vertexBufferOffset + 2];
 
 	let vertex: vec4f = vec4f(x, y, z, 1);
 

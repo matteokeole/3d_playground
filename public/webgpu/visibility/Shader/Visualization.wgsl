@@ -1,10 +1,10 @@
 @group(0) @binding(0) var<uniform> view: View;
 @group(1) @binding(0) var depthTexture: texture_depth_2d;
 @group(1) @binding(1) var visibilityTexture: texture_storage_2d<rg32uint, read>;
-@group(2) @binding(0) var<storage> vertexBuffer: array<f32>;
-@group(2) @binding(1) var<storage> indexBuffer: array<u32>;
-@group(2) @binding(2) var<storage> clusterBuffer: array<Cluster>;
-@group(2) @binding(3) var<storage> normalBuffer: array<f32>;
+@group(2) @binding(0) var<storage> vertexPositionBuffer: array<f32>;
+@group(2) @binding(1) var<storage> vertexNormalBuffer: array<f32>;
+@group(2) @binding(2) var<storage> indexBuffer: array<Vertex>;
+@group(2) @binding(3) var<storage> clusterBuffer: array<Cluster>;
 @group(3) @binding(0) var<storage> meshBuffer: array<Mesh>;
 @group(3) @binding(1) var<storage> geometryBuffer: array<Geometry>;
 
@@ -15,9 +15,8 @@ struct View {
 }
 
 struct Vertex {
-	position: vec3f,
-	normal: vec3f,
-	uv: vec2f,
+	positionIndex: u32,
+	normalIndex: u32,
 }
 
 struct Cluster {
@@ -130,44 +129,45 @@ fn interpolate3x3(derivatives: BarycentricDerivatives, a: vec3f, b: vec3f, c: ve
 fn fetchTriangle(clusterIndex: u32, clusterTriangleIndex: u32, geometry: Geometry) -> array<vec4f, 3> {
 	let offset: u32 = clusterIndex * INDICES_PER_CLUSTER + clusterTriangleIndex * 3;
 
-	let index0: u32 = indexBuffer[offset + 0];
-	let index1: u32 = indexBuffer[offset + 1];
-	let index2: u32 = indexBuffer[offset + 2];
+	let vertex0: Vertex = indexBuffer[offset + 0];
+	let vertex1: Vertex = indexBuffer[offset + 1];
+	let vertex2: Vertex = indexBuffer[offset + 2];
 
-	let vertex0: vec4f = fetchVertex((geometry.vertexBufferOffset + index0) * 3);
-	let vertex1: vec4f = fetchVertex((geometry.vertexBufferOffset + index1) * 3);
-	let vertex2: vec4f = fetchVertex((geometry.vertexBufferOffset + index2) * 3);
+	let vertexPosition0: vec4f = fetchVertex((geometry.vertexBufferOffset + vertex0.positionIndex) * 3);
+	let vertexPosition1: vec4f = fetchVertex((geometry.vertexBufferOffset + vertex1.positionIndex) * 3);
+	let vertexPosition2: vec4f = fetchVertex((geometry.vertexBufferOffset + vertex2.positionIndex) * 3);
 
-	return array(vertex0, vertex1, vertex2);
+	return array(vertexPosition0, vertexPosition1, vertexPosition2);
 }
 
 fn fetchVertex(vertexBufferOffset: u32) -> vec4f {
-	let x: f32 = vertexBuffer[vertexBufferOffset + 0];
-	let y: f32 = vertexBuffer[vertexBufferOffset + 1];
-	let z: f32 = vertexBuffer[vertexBufferOffset + 2];
+	let x: f32 = vertexPositionBuffer[vertexBufferOffset + 0];
+	let y: f32 = vertexPositionBuffer[vertexBufferOffset + 1];
+	let z: f32 = vertexPositionBuffer[vertexBufferOffset + 2];
 
 	let vertex: vec4f = vec4f(x, y, z, 1);
 
 	return vertex;
 }
 
-// TODO: Fix normal fetching
-// Suzanne: last normal component is at index 8711
-// Bunny: first normal component is at index 8712
 fn fetchNormals(clusterIndex: u32, clusterTriangleIndex: u32, geometry: Geometry) -> array<vec3f, 3> {
-	let offset: u32 = clusterIndex * TRIANGLES_PER_CLUSTER * 9 + clusterTriangleIndex * 9; // TODO: Offset must be relative to current mesh
+	let offset: u32 = clusterIndex * INDICES_PER_CLUSTER + clusterTriangleIndex * 3;
 
-	let normal0: vec3f = fetchNormal(geometry.normalBufferOffset + offset + 0 * 3);
-	let normal1: vec3f = fetchNormal(geometry.normalBufferOffset + offset + 1 * 3);
-	let normal2: vec3f = fetchNormal(geometry.normalBufferOffset + offset + 2 * 3);
+	let vertex0: Vertex = indexBuffer[offset + 0];
+	let vertex1: Vertex = indexBuffer[offset + 1];
+	let vertex2: Vertex = indexBuffer[offset + 2];
 
-	return array(normal0, normal1, normal2);
+	let vertexNormal0: vec3f = fetchNormal((geometry.normalBufferOffset + vertex0.normalIndex) * 3);
+	let vertexNormal1: vec3f = fetchNormal((geometry.normalBufferOffset + vertex1.normalIndex) * 3);
+	let vertexNormal2: vec3f = fetchNormal((geometry.normalBufferOffset + vertex2.normalIndex) * 3);
+
+	return array(vertexNormal0, vertexNormal1, vertexNormal2);
 }
 
 fn fetchNormal(normalBufferOffset: u32) -> vec3f {
-	let x: f32 = normalBuffer[normalBufferOffset + 0];
-	let y: f32 = normalBuffer[normalBufferOffset + 1];
-	let z: f32 = normalBuffer[normalBufferOffset + 2];
+	let x: f32 = vertexNormalBuffer[normalBufferOffset + 0];
+	let y: f32 = vertexNormalBuffer[normalBufferOffset + 1];
+	let z: f32 = vertexNormalBuffer[normalBufferOffset + 2];
 
 	let normal: vec3f = vec3f(x, y, z);
 

@@ -27,14 +27,16 @@ export async function createScene() {
 	const obj = objParser.parse(text);
 
 	const geometry = new Geometry({
-		vertices: obj.vertices,
-		indices: obj.indices,
+		positions: obj.vertices,
+		positionIndices: obj.vertexIndices,
 		normals: Float32Array.of(),
-		tangents: Float32Array.of(),
-		uvs: Float32Array.of(),
+		normalIndices: Uint32Array.of(),
 	});
 
-	const mesh = new Mesh(geometry, null);
+	const mesh = new Mesh({
+		geometry,
+		material: null,
+	});
 	mesh.setPosition(new Vector3(0, 0, 2));
 	// mesh.setRotation(new Vector3(PI / 2, PI, PI));
 	mesh.setScale(new Vector3().addScalar(1));
