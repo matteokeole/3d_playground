@@ -1,5 +1,3 @@
-const VERTEX_STRIDE: u32 = 2;
-
 @vertex
 fn main(in: VertexInput) -> VertexOutput {
 	let globalVertexIndex: u32 = in.clusterIndex * INDICES_PER_CLUSTER + in.localVertexIndex;

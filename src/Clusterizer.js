@@ -129,10 +129,10 @@ export class Clusterizer {
 			clusteredMeshes.vertexNormalBuffer.set(geometry.getNormals(), vertexNormalOffset);
 
 			for (let meshIndex = 0; meshIndex < clusteredGeometry.meshCount; meshIndex++, meshIndexOffset++) {
-				// Wreite vertex position indices
+				// Write vertex position indices
 				clusteredMeshes.vertexPositionIndexBuffer.set(geometry.getPositionIndices(), indexOffset);
 
-				// Wreite vertex normal indices
+				// Write vertex normal indices
 				clusteredMeshes.vertexNormalIndexBuffer.set(geometry.getNormalIndices(), indexOffset);
 
 				indexOffset += clusteredGeometry.totalIndexCount;

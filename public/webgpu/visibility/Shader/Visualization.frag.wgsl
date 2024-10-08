@@ -12,9 +12,9 @@ const VISUALIZATION_MODE_VERTEX_NORMAL: u32 = 13;
 
 // Shading visualization modes
 const VISUALIZATION_MODE_FLAT_SHADING: u32 = 20;
-const VISUALIZATION_MODE_PHONG_SHADING: u32 = 21;
+const VISUALIZATION_MODE_BLINN_PHONG_SHADING: u32 = 21;
 
-const VISUALIZATION_MODE: u32 = VISUALIZATION_MODE_PHONG_SHADING;
+const VISUALIZATION_MODE: u32 = VISUALIZATION_MODE_BLINN_PHONG_SHADING;
 
 @fragment
 fn main(in: In) -> @location(0) vec4f {
@@ -40,10 +40,9 @@ fn main(in: In) -> @location(0) vec4f {
 	// Fetch triangle vertices
 	let clusterTriangleIndex: u32 = visibility & VISIBILITY_TRIANGLE_MASK;
 	let triangleIndex: u32 = clusterIndex * TRIANGLES_PER_CLUSTER + clusterTriangleIndex;
-	let triangle: array<vec4f, 3> = fetchTriangle(clusterIndex, clusterTriangleIndex, geometry);
 
-	// Fetch triangle normals
-	let normals: array<vec3f, 3> = fetchNormals(clusterIndex, clusterTriangleIndex, geometry);
+	// Fetch primitive
+	let primitive: Primitive = fetchPrimitive(clusterIndex, clusterTriangleIndex, geometry);
 
 	var color: vec3f;
 
@@ -66,19 +65,19 @@ fn main(in: In) -> @location(0) vec4f {
 		color = vec3f(linearDepth);
 	}
 	else if (VISUALIZATION_MODE == VISUALIZATION_MODE_FACE_NORMAL) {
-		color = visualizeFaceNormal(triangle, mesh.world);
+		color = visualizeFaceNormal(primitive, mesh.world);
 	}
 	else if (VISUALIZATION_MODE == VISUALIZATION_MODE_VERTEX_NORMAL) {
-		color = visualizeVertexNormal(triangle, normals, uvf, mesh.world);
+		color = visualizeVertexNormal(primitive, uvf, mesh.world);
 	}
 	else if (VISUALIZATION_MODE == VISUALIZATION_MODE_BARYCENTRIC_COORDINATES) {
-		color = visualizeBarycentricCoordinates(triangle, uvf, mesh.world);
+		color = visualizeBarycentricCoordinates(primitive, uvf, mesh.world);
 	}
 	else if (VISUALIZATION_MODE == VISUALIZATION_MODE_FLAT_SHADING) {
-		color = visualizeFlatShading(triangle, uvf, mesh.world);
+		color = visualizeFlatShading(primitive, uvf, mesh.world);
 	}
-	else if (VISUALIZATION_MODE == VISUALIZATION_MODE_PHONG_SHADING) {
-		color = visualizePhongShading(triangle, normals, uvf, mesh.world);
+	else if (VISUALIZATION_MODE == VISUALIZATION_MODE_BLINN_PHONG_SHADING) {
+		color = visualizeBlinnPhongShading(primitive, uvf, mesh.world);
 	}
 
 	color = adjustVisualizationColor(color);
@@ -86,33 +85,33 @@ fn main(in: In) -> @location(0) vec4f {
 	return vec4f(color, 1);
 }
 
-fn visualizeFaceNormal(triangle: array<vec4f, 3>, world: mat4x4f) -> vec3f {
-	let a: vec3f = triangle[0].xyz;
-	let b: vec3f = triangle[1].xyz;
-	let c: vec3f = triangle[2].xyz;
+fn visualizeFaceNormal(primitive: Primitive, world: mat4x4f) -> vec3f {
+	let a: vec3f = primitive.vertex0Position.xyz;
+	let b: vec3f = primitive.vertex1Position.xyz;
+	let c: vec3f = primitive.vertex2Position.xyz;
 
 	let normal: vec3f = normalize(cross(b - a, c - a));
 
 	return normal * 0.5 + 0.5;
 }
 
-fn visualizeVertexNormal(triangle: array<vec4f, 3>, normals: array<vec3f, 3>, uv: vec2f, world: mat4x4f) -> vec3f {
-	let a: vec4f = view.viewProjection * world * triangle[0];
-	let b: vec4f = view.viewProjection * world * triangle[1];
-	let c: vec4f = view.viewProjection * world * triangle[2];
+fn visualizeVertexNormal(primitive: Primitive, uv: vec2f, world: mat4x4f) -> vec3f {
+	let a: vec4f = view.viewProjection * world * primitive.vertex0Position;
+	let b: vec4f = view.viewProjection * world * primitive.vertex1Position;
+	let c: vec4f = view.viewProjection * world * primitive.vertex2Position;
 	let p: vec2f = ndc(uv);
 
 	let derivatives: BarycentricDerivatives = computeBarycentricDerivatives(a, b, c, p, vec2f(view.viewport.zw));
 
-	let normal: vec3f = normalize(interpolate3x3(derivatives, normals[0], normals[1], normals[2]));
+	let normal: vec3f = normalize(interpolate3x3(derivatives, primitive.vertex0Normal, primitive.vertex1Normal, primitive.vertex2Normal));
 
 	return normal * 0.5 + 0.5;
 }
 
-fn visualizeBarycentricCoordinates(triangle: array<vec4f, 3>, uv: vec2f, world: mat4x4f) -> vec3f {
-	let a: vec4f = view.viewProjection * world * triangle[0];
-	let b: vec4f = view.viewProjection * world * triangle[1];
-	let c: vec4f = view.viewProjection * world * triangle[2];
+fn visualizeBarycentricCoordinates(primitive: Primitive, uv: vec2f, world: mat4x4f) -> vec3f {
+	let a: vec4f = view.viewProjection * world * primitive.vertex0Position;
+	let b: vec4f = view.viewProjection * world * primitive.vertex1Position;
+	let c: vec4f = view.viewProjection * world * primitive.vertex2Position;
 	let p: vec2f = ndc(uv);
 
 	let derivatives: BarycentricDerivatives = computeBarycentricDerivatives(a, b, c, p, vec2f(view.viewport.zw));
@@ -120,10 +119,10 @@ fn visualizeBarycentricCoordinates(triangle: array<vec4f, 3>, uv: vec2f, world: 
 	return derivatives.lambda;
 }
 
-fn visualizeFlatShading(triangle: array<vec4f, 3>, uv: vec2f, world: mat4x4f) -> vec3f {
-	let a: vec3f = triangle[0].xyz;
-	let b: vec3f = triangle[1].xyz;
-	let c: vec3f = triangle[2].xyz;
+fn visualizeFlatShading(primitive: Primitive, uv: vec2f, world: mat4x4f) -> vec3f {
+	let a: vec3f = primitive.vertex0Position.xyz;
+	let b: vec3f = primitive.vertex1Position.xyz;
+	let c: vec3f = primitive.vertex2Position.xyz;
 	let surface: vec3f = vec3f(ndc(uv), (a.z + b.z + c.z) / 3);
 
 	let normal: vec3f = normalize(cross(b - a, c - a));
@@ -136,21 +135,38 @@ fn visualizeFlatShading(triangle: array<vec4f, 3>, uv: vec2f, world: mat4x4f) ->
 	return color * shade;
 }
 
-// TODO: Fix inverted surfaceToLight?
-// The light is at the camera position
-fn visualizePhongShading(triangle: array<vec4f, 3>, normals: array<vec3f, 3>, uv: vec2f, world: mat4x4f) -> vec3f {
-	let a: vec4f = view.viewProjection * world * triangle[0];
-	let b: vec4f = view.viewProjection * world * triangle[1];
-	let c: vec4f = view.viewProjection * world * triangle[2];
+fn visualizeBlinnPhongShading(primitive: Primitive, uv: vec2f, world: mat4x4f) -> vec3f {
+	let a: vec4f = view.viewProjection * world * primitive.vertex0Position;
+	let b: vec4f = view.viewProjection * world * primitive.vertex1Position;
+	let c: vec4f = view.viewProjection * world * primitive.vertex2Position;
 	let p: vec2f = ndc(uv);
 
 	let derivatives: BarycentricDerivatives = computeBarycentricDerivatives(a, b, c, p, vec2f(view.viewport.zw));
 
-	let normal: vec3f = normalize(derivatives.lambda.x * normals[0] + derivatives.lambda.y * normals[1] + derivatives.lambda.z * normals[2]);
-	let surface: vec3f = vec3f(p, interpolate3x1(derivatives, a.z, b.z, c.z));
-	let surfaceToLight: vec3f = normalize(surface - view.position);
+	let normal: vec3f = normalize(interpolate3x3(derivatives, primitive.vertex0Normal, primitive.vertex1Normal, primitive.vertex2Normal));
 
-	let shade: f32 = max(dot(normal, surfaceToLight), 0);
+	var fragPos: vec3f = interpolate3x3(derivatives, primitive.vertex0Position.xyz, primitive.vertex1Position.xyz, primitive.vertex2Position.xyz);
 
-	return vec3f(shade);
+	fragPos = (world * vec4f(fragPos, 1)).xyz;
+
+	let lightPosition: vec3f = view.position;
+	const ambient: f32 = 0.1;
+	const objectColor: vec3f = vec3f(0.4, 0.4, 0.7);
+	const lightColor: vec3f = vec3f(1, 1, 1);
+	const shininess: f32 = 300;
+
+	let lightDirection: vec3f = normalize(lightPosition - fragPos);
+
+	let diffuse: f32 = max(dot(normal, lightDirection), 0);
+
+	const ambientVec: vec3f = lightColor * ambient;
+	let diffuseVec: vec3f = lightColor * diffuse;
+
+	let viewDirection: vec3f = normalize(view.position - fragPos);
+	let halfwayDirection: vec3f = normalize(lightDirection + viewDirection);
+
+	let specular: f32 = pow(max(dot(normal, halfwayDirection), 0), shininess) * 4;
+	let specularVec: vec3f = lightColor * specular;
+
+	return objectColor * (ambientVec + diffuseVec + specularVec);
 }

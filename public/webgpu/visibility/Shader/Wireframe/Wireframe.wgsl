@@ -81,6 +81,7 @@ fn computeBarycentricDerivatives(pt0: vec4f, pt1: vec4f, pt2: vec4f, pixelNdc: v
 	return ret;
 }
 
+// TODO: Replace with primitive system
 fn fetchTriangle(clusterIndex: u32, clusterTriangleIndex: u32) -> array<vec4f, 3> {
 	let offset: u32 = clusterIndex * INDICES_PER_CLUSTER + clusterTriangleIndex * 3;
 
@@ -95,6 +96,7 @@ fn fetchTriangle(clusterIndex: u32, clusterTriangleIndex: u32) -> array<vec4f, 3
 	return array(vertex0, vertex1, vertex2);
 }
 
+// TODO: Replace with primitive system
 fn fetchVertex(vertexBufferOffset: u32) -> vec4f {
 	let x: f32 = vertexPositionBuffer[vertexBufferOffset + 0];
 	let y: f32 = vertexPositionBuffer[vertexBufferOffset + 1];
