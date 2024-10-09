@@ -7,16 +7,16 @@ import {DynamicMesh, StaticMesh} from "../../../../src/Mesh/index.js";
 import {OBJParser} from "../../../../src/Parser/Text/OBJParser.js";
 import {Scene} from "../../../../src/Scene/index.js";
 import {FRAMES_PER_SECOND, PLAYER_COLLISION_HULL} from "../../../index.js";
-import {VisibilityRenderer} from "../VisibilityRenderer.js";
 import {FreecamDevInstance} from "./FreecamDevInstance.js";
 import {Door} from "./Door/Door.js";
 import {Player} from "./Player/Player.js";
 import {ThirdPersonCamera} from "./ThirdPersonCamera.js";
 import {DangerousTrigger} from "./Trigger/DangerousTrigger.js";
+import {WebGPUVisibilityRenderer} from "../../../../src/Platform/WebGPU/Renderer/index.js";
 
 export default async function() {
 	const canvas = document.createElement("canvas");
-	const renderer = new VisibilityRenderer(canvas);
+	const renderer = new WebGPUVisibilityRenderer(canvas);
 	const instance = new FreecamDevInstance({
 		renderer,
 		framesPerSecond: FRAMES_PER_SECOND,
@@ -68,7 +68,7 @@ export default async function() {
  * Can also test HL1 elevator
  * Dimensions: 223.9 x 223.9 square
  * 
- * @param {VisibilityRenderer} renderer
+ * @param {WebGPUVisibilityRenderer} renderer
  */
 async function createSourceScene(renderer) {
 	/*
@@ -335,7 +335,7 @@ async function createSourceScene(renderer) {
 /**
  * Creates a scene with realistic proportions (roughly)
  * 
- * @param {VisibilityRenderer} renderer
+ * @param {WebGPUVisibilityRenderer} renderer
  */
 async function createIrlScene(renderer) {
 	/*
@@ -482,7 +482,7 @@ async function createIrlScene(renderer) {
 }
 
 /**
- * @param {VisibilityRenderer} renderer
+ * @param {WebGPUVisibilityRenderer} renderer
  */
 async function createBunnyScene(renderer) {
 	const textLoader = new TextLoader();

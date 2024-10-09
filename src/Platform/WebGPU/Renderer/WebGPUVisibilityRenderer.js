@@ -1,6 +1,6 @@
-import {Matrix4} from "../../../src/math/index.js";
-import {WebGPURenderer} from "../../../src/Renderer/index.js";
-import {Scene} from "../../../src/Scene/index.js";
+import {Matrix4} from "../../../math/index.js";
+import {WebGPURenderer} from "./index.js";
+import {Scene} from "../../../Scene/index.js";
 
 /**
  * @typedef {Object} SceneMember
@@ -8,7 +8,7 @@ import {Scene} from "../../../src/Scene/index.js";
  * @property {(f32View: Float32Array, u32View: Uint32Array, offsetInts: Number) => void} writer
  */
 
-export class VisibilityRenderer extends WebGPURenderer {
+export class WebGPUVisibilityRenderer extends WebGPURenderer {
 	async build() {
 		await super.build();
 
@@ -72,7 +72,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 		this.#writeViewUniformBuffer();
 		this.#writeCameraUniformBuffer();
 
-		const commandEncoder = this._device.createCommandEncoder();
+		const commandEncoder = this.getDevice().createCommandEncoder();
 
 		this.#renderVisibilityPass(commandEncoder);
 		this.#renderMaterialPass(commandEncoder);
@@ -82,9 +82,9 @@ export class VisibilityRenderer extends WebGPURenderer {
 
 		const commandBuffer = commandEncoder.finish();
 
-		this._device.queue.submit([commandBuffer]);
+		this.getDevice().queue.submit([commandBuffer]);
 
-		await this._device.queue.onSubmittedWorkDone();
+		await this.getDevice().queue.onSubmittedWorkDone();
 
 		// Debug: Check material count buffer contents
 		await this.#debugMaterialCount();
@@ -108,7 +108,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 
 		const visibilityPipelineLayout = this.#createVisibilityPipelineLayout();
 
-		const visibilityRenderPipeline = this._device.createRenderPipeline({
+		const visibilityRenderPipeline = this.getDevice().createRenderPipeline({
 			label: "Visibility",
 			layout: visibilityPipelineLayout,
 			vertex: {
@@ -146,7 +146,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 
 		const materialPipelineLayout = this.#createMaterialPipelineLayout();
 
-		const materialRenderPipeline = this._device.createRenderPipeline({
+		const materialRenderPipeline = this.getDevice().createRenderPipeline({
 			label: "Material",
 			layout: materialPipelineLayout,
 			vertex: {
@@ -191,7 +191,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 
 		const materialCountPipelineLayout = this.#createMaterialCountPipelineLayout();
 
-		const materialCountPipeline = this._device.createComputePipeline({
+		const materialCountPipeline = this.getDevice().createComputePipeline({
 			label: "Material count",
 			layout: materialCountPipelineLayout,
 			compute: {
@@ -217,7 +217,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 
 		const materialStartPipelineLayout = this.#createMaterialStartPipelineLayout();
 
-		const materialStartPipeline = this._device.createComputePipeline({
+		const materialStartPipeline = this.getDevice().createComputePipeline({
 			label: "Material start",
 			layout: materialStartPipelineLayout,
 			compute: {
@@ -237,7 +237,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 	}
 
 	#createViewUniformBuffer() {
-		const viewUniformBuffer = this._device.createBuffer({
+		const viewUniformBuffer = this.getDevice().createBuffer({
 			label: "View uniform",
 			size:
 				 4 * Uint32Array.BYTES_PER_ELEMENT +
@@ -252,7 +252,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 	#createVertexPositionBuffer() {
 		const vertexBuffer = this._scene.getClusteredMeshes().vertexPositionBuffer;
 
-		const vertexPositionBuffer = this._device.createBuffer({
+		const vertexPositionBuffer = this.getDevice().createBuffer({
 			label: "Vertex position",
 			size: vertexBuffer.byteLength,
 			usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
@@ -279,7 +279,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 			byteLength = 3 * Float32Array.BYTES_PER_ELEMENT;
 		}
 
-		const vertexNormalBuffer = this._device.createBuffer({
+		const vertexNormalBuffer = this.getDevice().createBuffer({
 			label: "Vertex normal",
 			size: byteLength,
 			usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
@@ -302,7 +302,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 		const vertexCount = vertexPositionIndexBuffer.length;
 		const VERTEX_STRIDE = 2;
 
-		const vertexBuffer = this._device.createBuffer({
+		const vertexBuffer = this.getDevice().createBuffer({
 			label: "Index buffer",
 			size: vertexCount * VERTEX_STRIDE * Uint32Array.BYTES_PER_ELEMENT,
 			usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
@@ -327,7 +327,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 		const clusterCount = this._scene.getClusteredMeshes().clusters.length;
 		const firstIndex = 0;
 
-		const indirectBuffer = this._device.createBuffer({
+		const indirectBuffer = this.getDevice().createBuffer({
 			label: "Geometry indirect",
 			size: WebGPURenderer._INDIRECT_BUFFER_SIZE * Uint32Array.BYTES_PER_ELEMENT,
 			usage: GPUBufferUsage.INDIRECT | GPUBufferUsage.COPY_DST,
@@ -354,7 +354,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 	#createClusterStorageBuffer() {
 		const clusteredMeshes = this._scene.getClusteredMeshes();
 
-		const clusterStorageBuffer = this._device.createBuffer({
+		const clusterStorageBuffer = this.getDevice().createBuffer({
 			label: "Cluster",
 			size: clusteredMeshes.clusters.length * 2 * Uint32Array.BYTES_PER_ELEMENT,
 			usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
@@ -384,7 +384,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 		const geometries = this._scene.getGeometries();
 		const GEOMETRY_STRIDE = 3;
 
-		const geometryStorageBuffer = this._device.createBuffer({
+		const geometryStorageBuffer = this.getDevice().createBuffer({
 			label: "Geometry",
 			size: geometries.length * GEOMETRY_STRIDE * Uint32Array.BYTES_PER_ELEMENT,
 			usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
@@ -418,7 +418,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 		const meshes = this._scene.getMeshes();
 		const MESH_STRIDE = 20;
 
-		const meshStorageBuffer = this._device.createBuffer({
+		const meshStorageBuffer = this.getDevice().createBuffer({
 			label: "Mesh",
 			size: meshes.length * MESH_STRIDE * Float32Array.BYTES_PER_ELEMENT,
 			usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
@@ -462,7 +462,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 
 		const sceneSizeBytes = memberOffsetBytes;
 
-		const sceneUniformBuffer = this._device.createBuffer({
+		const sceneUniformBuffer = this.getDevice().createBuffer({
 			label: "Scene",
 			size: sceneSizeBytes,
 			usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
@@ -510,7 +510,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 	}
 
 	#createViewBindGroupLayout() {
-		const viewBindGroupLayout = this._device.createBindGroupLayout({
+		const viewBindGroupLayout = this.getDevice().createBindGroupLayout({
 			label: "View",
 			entries: [
 				{
@@ -527,7 +527,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 	}
 
 	#createGeometryBindGroupLayout() {
-		const geometryBindGroupLayout = this._device.createBindGroupLayout({
+		const geometryBindGroupLayout = this.getDevice().createBindGroupLayout({
 			label: "Geometry bind group layout",
 			entries: [
 				// Vertex position
@@ -569,7 +569,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 	}
 
 	#createVisibilityBindGroupLayout() {
-		const visibilityBindGroupLayout = this._device.createBindGroupLayout({
+		const visibilityBindGroupLayout = this.getDevice().createBindGroupLayout({
 			label: "Visibility bind group layout",
 			entries: [
 				{
@@ -609,7 +609,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 	}
 
 	#createMaterialVisibilityBindGroupLayout() {
-		const materialVisibilityBindGroupLayout = this._device.createBindGroupLayout({
+		const materialVisibilityBindGroupLayout = this.getDevice().createBindGroupLayout({
 			label: "Material visibility bind group layout",
 			entries: [
 				// Depth texture
@@ -636,7 +636,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 	}
 
 	#createMeshBindGroupLayout() {
-		const meshBindGroupLayout = this._device.createBindGroupLayout({
+		const meshBindGroupLayout = this.getDevice().createBindGroupLayout({
 			label: "Mesh",
 			entries: [
 				// Mesh
@@ -662,7 +662,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 	}
 
 	#createMaterialCountBindGroupLayout() {
-		const materialCountBindGroupLayout = this._device.createBindGroupLayout({
+		const materialCountBindGroupLayout = this.getDevice().createBindGroupLayout({
 			label: "Material count",
 			entries: [
 				// Material count buffer
@@ -680,7 +680,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 	}
 
 	#createMaterialStartBindGroupLayout() {
-		const materialStartBindGroupLayout = this._device.createBindGroupLayout({
+		const materialStartBindGroupLayout = this.getDevice().createBindGroupLayout({
 			label: "Material start",
 			entries: [
 				// Material count buffer
@@ -718,7 +718,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 	}
 
 	#createViewBindGroup() {
-		const viewBindGroup = this._device.createBindGroup({
+		const viewBindGroup = this.getDevice().createBindGroup({
 			label: "View",
 			layout: this._bindGroupLayouts.view,
 			entries: [
@@ -735,7 +735,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 	}
 
 	#createGeometryBindGroup() {
-		const geometryBindGroup = this._device.createBindGroup({
+		const geometryBindGroup = this.getDevice().createBindGroup({
 			label: "Geometry bind group",
 			layout: this._bindGroupLayouts.geometry,
 			entries: [
@@ -770,7 +770,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 	}
 
 	#createVisibilityBindGroup() {
-		const visibilityBindGroup = this._device.createBindGroup({
+		const visibilityBindGroup = this.getDevice().createBindGroup({
 			label: "Visibility",
 			layout: this._bindGroupLayouts.visibility,
 			entries: [
@@ -801,7 +801,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 	}
 
 	#createMaterialVisibilityBindGroup() {
-		const materialVisibilityBindGroup = this._device.createBindGroup({
+		const materialVisibilityBindGroup = this.getDevice().createBindGroup({
 			label: "Material visibility",
 			layout: this._bindGroupLayouts.materialVisibility,
 			entries: [
@@ -832,7 +832,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 	}
 
 	#createMeshBindGroup() {
-		const meshBindGroup = this._device.createBindGroup({
+		const meshBindGroup = this.getDevice().createBindGroup({
 			label: "Mesh bind group",
 			layout: this._bindGroupLayouts.mesh,
 			entries: [
@@ -855,7 +855,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 	}
 
 	#createMaterialCountBindGroup() {
-		const materialCountBindGroup = this._device.createBindGroup({
+		const materialCountBindGroup = this.getDevice().createBindGroup({
 			label: "Material count",
 			layout: this._bindGroupLayouts.materialCount,
 			entries: [
@@ -873,7 +873,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 	}
 
 	#createMaterialStartBindGroup() {
-		const materialStartBindGroup = this._device.createBindGroup({
+		const materialStartBindGroup = this.getDevice().createBindGroup({
 			label: "Material start",
 			layout: this._bindGroupLayouts.materialStart,
 			entries: [
@@ -905,7 +905,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 	}
 
 	#createVisibilityPipelineLayout() {
-		const visibilityPipelineLayout = this._device.createPipelineLayout({
+		const visibilityPipelineLayout = this.getDevice().createPipelineLayout({
 			label: "Visibility",
 			bindGroupLayouts: [
 				this._bindGroupLayouts.view,
@@ -919,7 +919,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 	}
 
 	#createMaterialPipelineLayout() {
-		const materialPipelineLayout = this._device.createPipelineLayout({
+		const materialPipelineLayout = this.getDevice().createPipelineLayout({
 			label: "Material",
 			bindGroupLayouts: [
 				this._bindGroupLayouts.view,
@@ -933,7 +933,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 	}
 
 	#createMaterialCountPipelineLayout() {
-		const materialCountPipelineLayout = this._device.createPipelineLayout({
+		const materialCountPipelineLayout = this.getDevice().createPipelineLayout({
 			label: "Material count",
 			bindGroupLayouts: [
 				this._bindGroupLayouts.view,
@@ -947,7 +947,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 	}
 
 	#createMaterialStartPipelineLayout() {
-		const materialStartPipelineLayout = this._device.createPipelineLayout({
+		const materialStartPipelineLayout = this.getDevice().createPipelineLayout({
 			label: "Material start",
 			bindGroupLayouts: [
 				this._bindGroupLayouts.materialStart,
@@ -958,11 +958,11 @@ export class VisibilityRenderer extends WebGPURenderer {
 	}
 
 	#createDepthTexture() {
-		const depthTexture = this._device.createTexture({
+		const depthTexture = this.getDevice().createTexture({
 			label: "Depth",
 			size: {
-				width: this._viewport[2],
-				height: this._viewport[3],
+				width: this.getViewport()[2],
+				height: this.getViewport()[3],
 			},
 			format: "r32uint",
 			usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.STORAGE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
@@ -972,11 +972,11 @@ export class VisibilityRenderer extends WebGPURenderer {
 	}
 
 	#createDepthStencilTexture() {
-		const depthStencilTexture = this._device.createTexture({
+		const depthStencilTexture = this.getDevice().createTexture({
 			label: "Depth stencil",
 			size: {
-				width: this._viewport[2],
-				height: this._viewport[3],
+				width: this.getViewport()[2],
+				height: this.getViewport()[3],
 			},
 			format: "depth24plus",
 			usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
@@ -986,11 +986,11 @@ export class VisibilityRenderer extends WebGPURenderer {
 	}
 
 	#createVisibilityTexture() {
-		const visibilityTexture = this._device.createTexture({
+		const visibilityTexture = this.getDevice().createTexture({
 			label: "Visibility",
 			size: {
-				width: this._viewport[2],
-				height: this._viewport[3],
+				width: this.getViewport()[2],
+				height: this.getViewport()[3],
 			},
 			format: "rg32uint",
 			usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.STORAGE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
@@ -1000,9 +1000,9 @@ export class VisibilityRenderer extends WebGPURenderer {
 	}
 
 	#createVisibilityBuffer() {
-		const visibilityBuffer = this._device.createBuffer({
+		const visibilityBuffer = this.getDevice().createBuffer({
 			label: "Visibility",
-			size: this._viewport[2] * this._viewport[3] * Uint32Array.BYTES_PER_ELEMENT,
+			size: this.getViewport()[2] * this.getViewport()[3] * Uint32Array.BYTES_PER_ELEMENT,
 			usage: GPUBufferUsage.STORAGE,
 		});
 
@@ -1010,9 +1010,9 @@ export class VisibilityRenderer extends WebGPURenderer {
 	}
 
 	#createDepthBuffer() {
-		const depthBuffer = this._device.createBuffer({
+		const depthBuffer = this.getDevice().createBuffer({
 			label: "Depth",
-			size: this._viewport[2] * this._viewport[3] * Uint32Array.BYTES_PER_ELEMENT,
+			size: this.getViewport()[2] * this.getViewport()[3] * Uint32Array.BYTES_PER_ELEMENT,
 			usage: GPUBufferUsage.STORAGE,
 		});
 
@@ -1022,7 +1022,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 	#createMaterialCountBuffer() {
 		const materials = this.getScene().getMaterials();
 
-		const materialCountBuffer = this._device.createBuffer({
+		const materialCountBuffer = this.getDevice().createBuffer({
 			label: "Material count",
 			size: materials.length * 1 * Uint32Array.BYTES_PER_ELEMENT,
 			usage: GPUBufferUsage.COPY_SRC | GPUBufferUsage.STORAGE,
@@ -1032,7 +1032,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 	}
 
 	#createDebugMaterialCountBuffer() {
-		const debugMaterialCountBuffer = this._device.createBuffer({
+		const debugMaterialCountBuffer = this.getDevice().createBuffer({
 			label: "Debug material count",
 			size: this._buffers.materialCount.size,
 			usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
@@ -1042,7 +1042,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 	}
 
 	#createMaterialStartBuffer() {
-		const materialStartBuffer = this._device.createBuffer({
+		const materialStartBuffer = this.getDevice().createBuffer({
 			label: "Material start",
 			size: this._buffers.materialCount.size,
 			usage: GPUBufferUsage.COPY_SRC | GPUBufferUsage.STORAGE,
@@ -1052,7 +1052,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 	}
 
 	#createDebugMaterialStartBuffer() {
-		const debugMaterialStartBuffer = this._device.createBuffer({
+		const debugMaterialStartBuffer = this.getDevice().createBuffer({
 			label: "Debug material start",
 			size: this._buffers.materialStart.size,
 			usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
@@ -1062,7 +1062,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 	}
 
 	#createTotalMaterialCountBuffer() {
-		const totalMaterialCountBuffer = this._device.createBuffer({
+		const totalMaterialCountBuffer = this.getDevice().createBuffer({
 			label: "Total material count",
 			size: 1 * Uint32Array.BYTES_PER_ELEMENT,
 			usage: GPUBufferUsage.COPY_SRC | GPUBufferUsage.STORAGE,
@@ -1082,15 +1082,15 @@ export class VisibilityRenderer extends WebGPURenderer {
 	#writeViewUniformBuffer() {
 		const viewport = new Uint32Array(this.getViewport());
 
-		this._device.queue.writeBuffer(this._buffers.viewUniform, 0, viewport);
+		this.getDevice().queue.writeBuffer(this._buffers.viewUniform, 0, viewport);
 	}
 
 	#writeCameraUniformBuffer() {
 		const viewProjection = this._camera.getViewProjection();
 		const position = this._camera.getPosition();
 
-		this._device.queue.writeBuffer(this._buffers.viewUniform, 4 * Uint32Array.BYTES_PER_ELEMENT, viewProjection);
-		this._device.queue.writeBuffer(this._buffers.viewUniform, 4 * Uint32Array.BYTES_PER_ELEMENT + 16 * Float32Array.BYTES_PER_ELEMENT, position);
+		this.getDevice().queue.writeBuffer(this._buffers.viewUniform, 4 * Uint32Array.BYTES_PER_ELEMENT, viewProjection);
+		this.getDevice().queue.writeBuffer(this._buffers.viewUniform, 4 * Uint32Array.BYTES_PER_ELEMENT + 16 * Float32Array.BYTES_PER_ELEMENT, position);
 	}
 
 	/**
@@ -1098,7 +1098,7 @@ export class VisibilityRenderer extends WebGPURenderer {
 	 * @param {Matrix4} world
 	 */
 	writeMeshWorld(index, world) {
-		this._device.queue.writeBuffer(this._buffers.meshStorage, index * 20 * Float32Array.BYTES_PER_ELEMENT, world);
+		this.getDevice().queue.writeBuffer(this._buffers.meshStorage, index * 20 * Float32Array.BYTES_PER_ELEMENT, world);
 	}
 
 	/**
@@ -1169,8 +1169,8 @@ export class VisibilityRenderer extends WebGPURenderer {
 		materialCountPass.setBindGroup(3, this._bindGroups.materialCount);
 
 		// Split screen into 8x8 tiles
-		const x = (this._viewport[2] / 8) | 0;
-		const y = (this._viewport[3] / 8) | 0;
+		const x = (this.getViewport()[2] / 8) | 0;
+		const y = (this.getViewport()[3] / 8) | 0;
 
 		materialCountPass.dispatchWorkgroups(x, y, 1);
 		materialCountPass.end();

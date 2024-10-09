@@ -1,7 +1,8 @@
-import {Renderer} from "./Renderer.js";
-import {Scene, TextureImage} from "../index.js";
-import {Camera} from "../Camera/index.js";
-import {WebGLShader} from "../Platform/WebGL/Shader/index.js";
+import {WebGLShader} from "../Shader/index.js";
+import {TextureImage} from "../../../index.js";
+import {Camera} from "../../../Camera/index.js";
+import {Renderer} from "../../../Renderer/index.js";
+import {Scene} from "../../../Scene/index.js";
 
 export class WebGLRenderer extends Renderer {
 	/**
@@ -111,21 +112,20 @@ export class WebGLRenderer extends Renderer {
 	}
 
 	resize() {
-		this._canvas.width = this._viewport[2];
-		this._canvas.height = this._viewport[3];
+		const canvas = this.getCanvas();
+		const viewport = this.getViewport();
 
-		this._context.viewport(
-			this._viewport[0],
-			this._viewport[1],
-			this._viewport[2],
-			this._viewport[3],
-		);
+		canvas.width = viewport[2];
+		canvas.height = viewport[3];
+
+		this._context.viewport(viewport[0], viewport[1], viewport[2], viewport[3]);
 	}
 
 	dispose() {
 		this._context.getExtension("WEBGL_lose_context").loseContext();
 
-		this._canvas.remove();
+		// Remove the canvas from the DOM
+		this.getCanvas().remove();
 	}
 
 	/**
@@ -225,11 +225,11 @@ export class WebGLRenderer extends Renderer {
 		const source = await textLoader.load(sourceUrl);
 		const shader = WebGLShader.fromSource(this._context, source);
 
-		if (name in this._shaders) {
+		if (name in this.getShaders()) {
 			throw new Error(`The shader "${name}" is already defined in the shader map.`);
 		}
 
-		this._shaders[name] = shader;
+		this.getShaders()[name] = shader;
 	}
 
 	/**
@@ -243,11 +243,11 @@ export class WebGLRenderer extends Renderer {
 		const fragmentSource = await textLoader.load(fragmentSourceUrl);
 		const shader = WebGLShader.fromSeparatedSources(this._context, vertexSource, fragmentSource);
 
-		if (name in this._shaders) {
+		if (name in this.getShaders()) {
 			throw new Error(`The shader "${name}" is already defined in the shader map.`);
 		}
 
-		this._shaders[name] = shader;
+		this.getShaders()[name] = shader;
 	}
 
 	/**
@@ -263,10 +263,10 @@ export class WebGLRenderer extends Renderer {
 		const fragmentSource = await textLoader.load(fragmentSourceUrl);
 		const shader = WebGLShader.fromCommonAndSeparatedSources(this._context, commonSource, vertexSource, fragmentSource);
 
-		if (name in this._shaders) {
+		if (name in this.getShaders()) {
 			throw new Error(`The shader "${name}" is already defined in the shader map.`);
 		}
 
-		this._shaders[name] = shader;
+		this.getShaders()[name] = shader;
 	}
 }

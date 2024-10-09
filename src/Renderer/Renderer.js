@@ -9,15 +9,13 @@ import {Shader} from "../Shader/index.js";
  * @abstract
  */
 export class Renderer {
-	#textLoader;
-
 	/**
 	 * @type {Record.<String, Shader>}
 	 */
-	_shaders;
+	#shaders;
 
 	_canvas;
-	_viewport;
+	#viewport;
 
 	/**
 	 * @type {?Scene}
@@ -32,19 +30,22 @@ export class Renderer {
 	#isPointerLocked;
 	#canRender;
 
+	#textLoader;
+
 	/**
 	 * @param {HTMLCanvasElement} canvas
 	 */
 	constructor(canvas) {
-		this.#textLoader = new TextLoader();
-		this._shaders = {};
+		this.#shaders = {};
 
 		this._canvas = canvas;
-		this._viewport = new Vector4(0, 0, 300, 150);
+		this.#viewport = new Vector4(0, 0, 300, 150);
 		this._scene = null;
 		this._camera = null;
 		this.#isPointerLocked = false;
 		this.#canRender = true;
+
+		this.#textLoader = new TextLoader();
 
 		document.addEventListener("pointerlockchange", () => {
 			const isPointerLocked = document.pointerLockElement === this._canvas;
@@ -61,19 +62,19 @@ export class Renderer {
 		});
 	}
 
-	getTextLoader() {
-		return this.#textLoader;
+	getShaders() {
+		return this.#shaders;
 	}
 
 	/**
 	 * @param {String} name
 	 */
 	getShader(name) {
-		if (!(name in this._shaders)) {
+		if (!(name in this.#shaders)) {
 			throw new Error(`Could not access non-existing shader "${name}".`);
 		}
 
-		return this._shaders[name];
+		return this.#shaders[name];
 	}
 
 	getCanvas() {
@@ -81,14 +82,14 @@ export class Renderer {
 	}
 
 	getViewport() {
-		return this._viewport;
+		return this.#viewport;
 	}
 
 	/**
 	 * @param {Vector4} viewport
 	 */
 	setViewport(viewport) {
-		this._viewport = viewport;
+		this.#viewport = viewport;
 	}
 
 	getScene() {
@@ -96,7 +97,7 @@ export class Renderer {
 	}
 
 	/**
-	 * @param {Object} scene
+	 * @param {Scene} scene
 	 */
 	setScene(scene) {
 		this._scene = scene;
@@ -121,6 +122,21 @@ export class Renderer {
 	 */
 	setIsPointerLocked(isPointerLocked) {
 		this.#isPointerLocked = isPointerLocked;
+	}
+
+	canRender() {
+		return this.#canRender;
+	}
+
+	/**
+	 * @param {Boolean} canRender
+	 */
+	setCanRender(canRender) {
+		this.#canRender = canRender;
+	}
+
+	getTextLoader() {
+		return this.#textLoader;
 	}
 
 	/**
@@ -154,17 +170,6 @@ export class Renderer {
 	 * @abstract
 	 */
 	async render() {}
-
-	canRender() {
-		return this.#canRender;
-	}
-
-	/**
-	 * @param {Boolean} canRender
-	 */
-	setCanRender(canRender) {
-		this.#canRender = canRender;
-	}
 
 	/**
 	 * @abstract

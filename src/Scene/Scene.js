@@ -190,11 +190,11 @@ export class Scene {
 	#updateIntersectionTriggers() {
 		for (let index = 0; index < this.#intersectionTriggerIndices.length; index++) {
 			const intersectionTriggerIndex = this.#intersectionTriggerIndices[index];
-
-			/**
-			 * @type {IntersectionTrigger}
-			 */
 			const intersectionTrigger = this.#triggers[intersectionTriggerIndex];
+
+			if (!(intersectionTrigger instanceof IntersectionTrigger)) {
+				continue;
+			}
 
 			if (intersectionTrigger.getState() === TriggerState.OFF) {
 				continue;

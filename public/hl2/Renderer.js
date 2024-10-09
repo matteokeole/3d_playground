@@ -1,9 +1,9 @@
-import {Scene} from "../../src/index.js";
+import {SSDPlaneGeometry} from "../../src/Geometry/index.js";
 import {TextLoader} from "../../src/Loader/index.js";
 import {Material} from "../../src/Material/index.js";
 import {Mesh} from "../../src/Mesh/index.js";
-import {WebGLRenderer} from "../../src/Renderer/index.js";
-import {SSDPlaneGeometry} from "../../src/Geometry/SSDPlaneGeometry.js";
+import {WebGLRenderer} from "../../src/Platform/WebGL/Renderer/index.js";
+import {Scene} from "../../src/Scene/index.js";
 
 export class Renderer extends WebGLRenderer {
 	/**
@@ -283,7 +283,7 @@ export class Renderer extends WebGLRenderer {
 		const gl = this._context;
 
 		gl.useProgram(this._programs.crosshair);
-			gl.uniform2f(this._uniforms.crosshairViewport, this._viewport[2], this._viewport[3]);
+			gl.uniform2f(this._uniforms.crosshairViewport, this.getViewport()[2], this.getViewport()[3]);
 			gl.drawArrays(gl.POINTS, 0, 5);
 		gl.useProgram(null);
 	}

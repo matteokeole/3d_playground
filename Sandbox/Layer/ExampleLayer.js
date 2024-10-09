@@ -1,4 +1,4 @@
-import {Layer} from "../src/Layer/index.js";
+import {Layer} from "../../src/Layer/index.js";
 
 export class ExampleLayer extends Layer {
 	constructor() {

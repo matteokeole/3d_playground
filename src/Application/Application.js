@@ -3,22 +3,18 @@ import {Layer} from "../Layer/index.js";
 
 export class Application {
 	/**
-	 * @type {Layer[]}
-	 */
-	#layers;
-	#timeSinceLastFrame;
-
-	/**
 	 * @returns {Application}
 	 */
 	static create() {
 		throw new NotImplementedError();
 	}
 
-	constructor() {
-		this.#layers = [];
-		this.#timeSinceLastFrame = 0;
-	}
+	/**
+	 * @type {Layer[]}
+	 */
+	#layers = [];
+
+	#timeSinceLastFrame = 0;
 
 	/**
 	 * @param {Layer} layer

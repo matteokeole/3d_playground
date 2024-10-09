@@ -1,5 +1,8 @@
 import {NotImplementedError} from "../Error/index.js";
 
+/**
+ * A 2D slice of an application.
+ */
 export class Layer {
 	#name;
 

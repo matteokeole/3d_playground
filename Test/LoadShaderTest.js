@@ -1,10 +1,9 @@
-import {createRendererFromApi} from "../src/Renderer/index.js";
 import {UnitTest} from "../src/Test/index.js";
 
 export class LoadShaderTest extends UnitTest {
 	async execute() {
 		const canvas = this.createTestCanvas();
-		const renderer = createRendererFromApi(canvas, "webgpu");
+		const renderer = this.createRendererFromApi(canvas, "webgpu");
 
 		await renderer.build();
 

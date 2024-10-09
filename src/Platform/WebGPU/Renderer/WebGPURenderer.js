@@ -1,6 +1,6 @@
-import {Renderer} from "./Renderer.js";
-import {Camera} from "../Camera/index.js";
-import {WebGPUShader} from "../Platform/WebGPU/Shader/index.js";
+import {Renderer} from "../../../Renderer/Renderer.js";
+import {Camera} from "../../../Camera/index.js";
+import {WebGPUShader} from "../Shader/index.js";
 
 export class WebGPURenderer extends Renderer {
 	static _INDIRECT_BUFFER_SIZE = 4;
@@ -8,7 +8,7 @@ export class WebGPURenderer extends Renderer {
 	/**
 	 * @type {?GPUDevice}
 	 */
-	_device;
+	#device;
 
 	/**
 	 * @type {?GPUCanvasContext}
@@ -56,7 +56,7 @@ export class WebGPURenderer extends Renderer {
 	constructor(canvas) {
 		super(canvas);
 
-		this._device = null;
+		this.#device = null;
 		this._context = null;
 		this._preferredCanvasFormat = null;
 		this._computePipelines = {};
@@ -65,6 +65,10 @@ export class WebGPURenderer extends Renderer {
 		this._bindGroupLayouts = {};
 		this._buffers = {};
 		this._textures = {};
+	}
+
+	getDevice() {
+		return this.#device;
 	}
 
 	/**
@@ -104,19 +108,22 @@ export class WebGPURenderer extends Renderer {
 			throw new Error("Couldn't request a WebGPU adapter.");
 		}
 
-		this._device = await adapter.requestDevice();
+		this.#device = await adapter.requestDevice();
 		this._context = this._canvas.getContext("webgpu");
 		this._preferredCanvasFormat = navigator.gpu.getPreferredCanvasFormat();
 
 		this._context.configure({
-			device: this._device,
+			device: this.#device,
 			format: this._preferredCanvasFormat,
 		});
 	}
 
 	resize() {
-		this._canvas.width = this._viewport[2];
-		this._canvas.height = this._viewport[3];
+		const canvas = this.getCanvas();
+		const viewport = this.getViewport();
+
+		canvas.width = viewport[2];
+		canvas.height = viewport[3];
 	}
 
 	/**
@@ -158,13 +165,13 @@ export class WebGPURenderer extends Renderer {
 	async #loadShaderFromSource(name, sourceUrl) {
 		const textLoader = this.getTextLoader();
 		const source = await textLoader.load(sourceUrl);
-		const shader = WebGPUShader.fromSource(this._device, name, source);
+		const shader = WebGPUShader.fromSource(this.#device, name, source);
 
-		if (name in this._shaders) {
+		if (name in this.getShaders()) {
 			throw new Error(`The shader "${name}" is already defined in the shader map.`);
 		}
 
-		this._shaders[name] = shader;
+		this.getShaders()[name] = shader;
 	}
 
 	/**
@@ -176,13 +183,13 @@ export class WebGPURenderer extends Renderer {
 		const textLoader = this.getTextLoader();
 		const vertexSource = await textLoader.load(vertexSourceUrl);
 		const fragmentSource = await textLoader.load(fragmentSourceUrl);
-		const shader = WebGPUShader.fromSeparatedSources(this._device, name, vertexSource, fragmentSource);
+		const shader = WebGPUShader.fromSeparatedSources(this.#device, name, vertexSource, fragmentSource);
 
-		if (name in this._shaders) {
+		if (name in this.getShaders()) {
 			throw new Error(`The shader "${name}" is already defined in the shader map.`);
 		}
 
-		this._shaders[name] = shader;
+		this.getShaders()[name] = shader;
 	}
 
 	/**
@@ -196,12 +203,12 @@ export class WebGPURenderer extends Renderer {
 		const commonSource = await textLoader.load(commonSourceUrl);
 		const vertexSource = await textLoader.load(vertexSourceUrl);
 		const fragmentSource = await textLoader.load(fragmentSourceUrl);
-		const shader = WebGPUShader.fromCommonAndSeparatedSources(this._device, name, commonSource, vertexSource, fragmentSource);
+		const shader = WebGPUShader.fromCommonAndSeparatedSources(this.#device, name, commonSource, vertexSource, fragmentSource);
 
-		if (name in this._shaders) {
+		if (name in this.getShaders()) {
 			throw new Error(`The shader "${name}" is already defined in the shader map.`);
 		}
 
-		this._shaders[name] = shader;
+		this.getShaders()[name] = shader;
 	}
 }

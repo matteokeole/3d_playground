@@ -5,11 +5,11 @@ import {Mesh} from "../../../../src/Mesh/index.js";
 import {Scene} from "../../../../src/Scene/index.js";
 import {FRAMES_PER_SECOND} from "../../../index.js";
 import {FreecamDevInstance} from "../Dev/FreecamDevInstance.js";
-import {VisibilityRenderer} from "../VisibilityRenderer.js";
+import {WebGPUVisibilityRenderer} from "../../../../src/Platform/WebGPU/Renderer/index.js";
 
 export default async function() {
 	const canvas = document.createElement("canvas");
-	const renderer = new VisibilityRenderer(canvas);
+	const renderer = new WebGPUVisibilityRenderer(canvas);
 	const instance = new FreecamDevInstance({
 		renderer,
 		framesPerSecond: FRAMES_PER_SECOND,

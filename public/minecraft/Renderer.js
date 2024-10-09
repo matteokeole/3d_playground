@@ -1,6 +1,6 @@
-import {WebGLRenderer} from "../../src/Renderer/index.js";
-import {Matrix4, Vector4} from "../../src/math/index.js";
 import {TextLoader} from "../../src/Loader/index.js";
+import {Matrix4, Vector4} from "../../src/math/index.js";
+import {WebGLRenderer} from "../../src/Platform/WebGL/Renderer/index.js";
 
 export class Renderer extends WebGLRenderer {
 	/**
@@ -248,8 +248,8 @@ export class Renderer extends WebGLRenderer {
 				gl.TEXTURE_2D,
 				0,
 				gl.RGBA8,
-				this._viewport[2],
-				this._viewport[3],
+				this.getViewport()[2],
+				this.getViewport()[3],
 				0,
 				gl.RGBA,
 				gl.UNSIGNED_BYTE,
@@ -262,8 +262,8 @@ export class Renderer extends WebGLRenderer {
 				gl.TEXTURE_2D,
 				0,
 				gl.RGBA8,
-				this._viewport[2],
-				this._viewport[3],
+				this.getViewport()[2],
+				this.getViewport()[3],
 				0,
 				gl.RGBA,
 				gl.UNSIGNED_BYTE,
@@ -276,8 +276,8 @@ export class Renderer extends WebGLRenderer {
 				gl.TEXTURE_2D,
 				0,
 				gl.RGBA8,
-				this._viewport[2],
-				this._viewport[3],
+				this.getViewport()[2],
+				this.getViewport()[3],
 				0,
 				gl.RGBA,
 				gl.UNSIGNED_BYTE,
@@ -290,8 +290,8 @@ export class Renderer extends WebGLRenderer {
 				gl.TEXTURE_2D,
 				0,
 				gl.DEPTH_COMPONENT24,
-				this._viewport[2],
-				this._viewport[3],
+				this.getViewport()[2],
+				this.getViewport()[3],
 				0,
 				gl.DEPTH_COMPONENT,
 				gl.UNSIGNED_INT,
@@ -329,8 +329,8 @@ export class Renderer extends WebGLRenderer {
 				gl.TEXTURE_2D,
 				0,
 				gl.DEPTH_COMPONENT24,
-				this._viewport[2],
-				this._viewport[3],
+				this.getViewport()[2],
+				this.getViewport()[3],
 				0,
 				gl.DEPTH_COMPONENT,
 				gl.UNSIGNED_INT,
@@ -482,7 +482,7 @@ export class Renderer extends WebGLRenderer {
 
 	#renderDebug() {
 		const gl = this._context;
-		const viewportHalf = new Vector4(this._viewport).divideScalar(2);
+		const viewportHalf = new Vector4(this.getViewport()).divideScalar(2);
 
 		gl.enable(gl.SCISSOR_TEST);
 			/* gl.useProgram(this._programs.debugGBuffer);

@@ -3,7 +3,7 @@ import {EPA, GJK} from "../../../../src/Algorithm/index.js";
 import {PerspectiveCamera} from "../../../../src/Camera/index.js";
 import {max, PI, rad, Vector3} from "../../../../src/math/index.js";
 import {Mesh} from "../../../../src/Mesh/index.js";
-import {VisibilityRenderer} from "../VisibilityRenderer.js";
+import {WebGPUVisibilityRenderer} from "../../../../src/Platform/WebGPU/Renderer/index.js";
 import {PLAYER_COLLISION_HULL, PLAYER_EYE_LEVEL} from "../../../index.js";
 import {Player} from "./Player/Player.js";
 import {Door} from "./Door/Door.js";
@@ -38,7 +38,7 @@ export class HL1DevInstance extends Instance {
 	 * @param {Number} deltaTime
 	 */
 	_update(deltaTime) {
-		/** @type {VisibilityRenderer} */
+		/** @type {WebGPUVisibilityRenderer} */
 		const renderer = this._renderer;
 		const scene = renderer.getScene();
 		const meshes = scene.getMeshes();
@@ -485,7 +485,7 @@ export class HL1DevInstance extends Instance {
 	}
 
 	/**
-	 * @param {VisibilityRenderer} renderer
+	 * @param {WebGPUVisibilityRenderer} renderer
 	 * @param {Player} player
 	 * @param {Door} door
 	 * @param {Number} doorIndex
